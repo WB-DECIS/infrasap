@@ -1,0 +1,30 @@
+## The Data 
+
+The data is read in and cleaned in the data-raw/create_data.R file
+
+There are two main datasets that the app uses
+
+1) dat
+This is the country level data that contains country characteristics (region, low income/high income, low/high population, etc) as well as the indicator values for each year. The indicators are contained in a hierarchical structure: Indicator Sector, Indicator Pillar, Indicator Sub-Pillar, Indicator Topic, & Indicator Name, followed by columns for year/values. 
+
+2) dat_bm
+This is the benchmark level data. this include indicator values at the benchmark level (Region, OECD, Low income, etc).
+
+## The Dashboard  
+
+### Indicators Trends tab
+
+The core purpose of this tab is to create a visualization and grouping table based on `selected country` (reference country) `comparison` (options available: other countries/benchmarks/indicators). Also, exists the ability to filter the data to the specific sector, indicator and years range. 
+
+### InfraSAP Pillar tab
+
+The core purpose of this tab is to compare a country with multiple benchmarks (Region & Income group) as well as multiple other countries. Data grouped by hierarchy: sub-pillar -> topic -> indicator. Comparision based on 'traffic light system': `Green` if the coutry's indicator is equal to or better than the benchmark. `Yellow` if it is worse but within 10% of the benchmark. `Red` if it is worse and not within 10% of the benchmark
+ 
+
+### SCD tab
+
+The core purpose of this tab is to compare a country with multiple benchmarks as well as multiple other countries. Data grouped by sector. Comparision based on 'traffic light system': `Green` if the coutry's indicator is equal to or better than the benchmark. `Yellow` if it is worse but within 10% of the benchmark. `Red` if it is worse and not within 10% of the benchmark
+
+### World maps
+
+The core purpose of this tab is to create a map filtered by select sector, year, indicator and zoomed in to the selected region.

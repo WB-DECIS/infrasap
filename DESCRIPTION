@@ -1,0 +1,35 @@
+Package: infrasap
+Title: PKG_TITLE
+Version: 0.0.0.9000
+Authors@R: person('AUTHOR_FIRST', 'AUTHOR_LAST', email = 'AUTHOR@MAIL.COM', role = c('cre', 'aut'))
+Description: PKG_DESC.
+License: What license is it under?
+Imports: 
+    config,
+    golem,
+    shiny,
+    stringi,
+    tidyverse,
+    dplyr,
+    leaflet,
+    plotly,
+    thinkr,
+    rlang,
+    purrr,
+    DT,
+    RColorBrewer,
+    ggplot2,
+    gsheet,
+    htmltools,
+    shinyMobile,
+    shinydashboard,
+    tidyr,
+    stringr,
+    mapview,
+    sjmisc,
+    shinycssloaders
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Depends: 
+    R (>= 2.10)
