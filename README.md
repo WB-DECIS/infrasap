@@ -18,5 +18,5 @@ remotes::install_github("tonyfujs/infrasap")
 `rsconnect::accounts(server = "{internal-server}.worldbank.org")`
 
 - Deploy your app
-`rsconnect::deployApp(appId = 831, server = "w0lxpjekins05.worldbank.org")`
+`rsconnect::deployApp(appId = 831, server = "{internal-server}.worldbank.org")`
 
