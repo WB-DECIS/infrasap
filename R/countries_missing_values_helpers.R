@@ -122,12 +122,12 @@ df <- df %>%
 
 
 # get years for data
-get_year_scd <- function(cn, sc, bm, year_position = NULL){
+get_year_scd <- function(cn, bm, year_position = NULL){
 
   # get data based on inputs
   temp <- infrasap::scd_dat %>% 
     filter(`Country Name`%in% cn) %>%
-    filter(`Indicator Sector` %in% sc) %>%
+    # filter(`Indicator Sector` %in% sc) %>%
     select(`1990`:`2017-2021`)
 
   # remove columns that have all NA
@@ -135,8 +135,9 @@ get_year_scd <- function(cn, sc, bm, year_position = NULL){
   
   # benchmark data 
   temp_bm <- infrasap::scd_bm %>% 
-    filter(Grouping %in% bm) %>%
-    filter(Sector %in% "Energy") 
+    filter(Grouping %in% bm) 
+  # %>%
+  #   filter(Sector %in% "Energy") 
   
   # remove columns that have all NA
   temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
@@ -153,7 +154,7 @@ get_year_scd <- function(cn, sc, bm, year_position = NULL){
   if(is.null(bm)){
     without_bm <- infrasap::scd_dat %>% 
       filter(`Country Name`%in% cn) %>%
-      filter(`Indicator Sector` %in% sc) %>%
+      # filter(`Indicator Sector` %in% sc) %>%
       select(`1990`:`2017-2021`)
     without_bm <- without_bm[,colSums(is.na(without_bm))<nrow(without_bm)]
     
@@ -171,7 +172,7 @@ get_year_scd <- function(cn, sc, bm, year_position = NULL){
 
 
 # scd fill missing values
-fill_missing_values_in_years_scd <- function(df, based_year, year_step_back, country, sector){
+fill_missing_values_in_years_scd <- function(df, based_year, year_step_back, country){
   
   
   df <- df %>%
@@ -179,7 +180,7 @@ fill_missing_values_in_years_scd <- function(df, based_year, year_step_back, cou
     dplyr::bind_cols(
       infrasap::scd_dat %>% 
         dplyr::filter(`Country Name`%in% country) %>% 
-        dplyr::filter(`Indicator Sector` %in% sector) %>%
+        # dplyr::filter(`Indicator Sector` %in% sector) %>%
         dplyr::select(year_step_back)
     ) %>%
     dplyr::mutate(
@@ -193,11 +194,11 @@ fill_missing_values_in_years_scd <- function(df, based_year, year_step_back, cou
 }
 
 
-country_to_compare_scd <- function(countryName, sc, available_years_in_use, df_years_col){
+country_to_compare_scd <- function(countryName, available_years_in_use, df_years_col){
   
   df_cn <- infrasap::scd_dat %>%
     dplyr::filter(`Country Name` == countryName) %>%
-    dplyr::filter(`Indicator Sector` %in% sc) %>%
+    # dplyr::filter(`Indicator Sector` %in% sc) %>%
     dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
     left_join(df_years_col, by=c("Indicator Name"))
   
