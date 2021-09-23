@@ -10,30 +10,36 @@
 mod_scd_tab_module_ui <- function(id){
   ns <- NS(id)
   tagList(
+    # fluidRow(
+    #   column(6,
+    #          selectInput(ns('scd_country'),
+    #                      label = 'Select a country',
+    #                      choices = sort(unique(scd_dat$`Country Name`)),
+    #                      selected = 'Kenya')
+    #   ),
+    #   column(6,
+    #          selectInput(ns('scd_sector'),
+    #                      label = 'Select a sector',
+    #                      choices = c('Energy', 
+    #                                  'Digital Development',
+    #                                  'Transport', 
+    #                                  'Transport Road', 
+    #                                  'Transport Railways', 
+    #                                  'Transport Port'),
+    #                      selected = 'Energy')
+    #   )
+    # ),
     fluidRow(
-      column(6,
+      column(4,
              selectInput(ns('scd_country'),
                          label = 'Select a country',
                          choices = sort(unique(scd_dat$`Country Name`)),
                          selected = 'Kenya')
       ),
-      column(6,
-             selectInput(ns('scd_sector'),
-                         label = 'Select a sector',
-                         choices = c('Energy', 
-                                     'Digital Development',
-                                     'Transport', 
-                                     'Transport Road', 
-                                     'Transport Railways', 
-                                     'Transport Port'),
-                         selected = 'Energy')
-      )
-    ),
-    fluidRow(
-      column(6,
+      column(4,
              uiOutput(ns('scd_bm_ui'))
       ),
-      column(6,
+      column(4,
              uiOutput(ns('scd_countries_ui'))
       )
     ),
@@ -64,7 +70,6 @@ mod_scd_tab_module_server <- function(id){
     
     #------- Initialize the Memory ----------
     selected_vals = reactiveValues(scd_country_name = 'Kenya', 
-                                   scd_sector_name = "Energy",
                                    scd_benchmark_name = NULL,
                                    scd_countries_name = NULL,
                                    scd_year_name = NULL
@@ -108,8 +113,6 @@ mod_scd_tab_module_server <- function(id){
     
     # ui output for years based on inputs selected
     output$scd_year_ui <- renderUI({
-      sc <- input$scd_sector
-      sc <- c(sc, 'National')
       cn <- input$scd_country
       bm <- input$scd_benchmark
       
@@ -119,7 +122,7 @@ mod_scd_tab_module_server <- function(id){
         # get country data
         df <- infrasap::scd_dat %>% 
           filter(`Country Name`== cn) %>% 
-          filter(`Indicator Sector` %in% sc) %>%
+          # filter(`Indicator Sector` %in% sc) %>%
           select(`Country Name`,`Indicator Name`,`1990`:`2020`) %>% 
           gather(key = 'key', value = 'value',-`Indicator Name`, -`Country Name`) %>% 
           drop_na()
@@ -128,7 +131,7 @@ mod_scd_tab_module_server <- function(id){
         # get benchmark data
         df_bm <- infrasap::scd_bm %>%
           filter(Grouping %in% bm) %>%
-          filter(Sector %in% sc) %>%
+          # filter(Sector %in% sc) %>%
           select(Indicator, `1990`:`2020`) %>%
           gather(key = 'key', value = 'value',-`Indicator`) %>% 
           drop_na()
@@ -138,7 +141,7 @@ mod_scd_tab_module_server <- function(id){
         
         # subset data by common intersection
         df <- df %>% filter(`Indicator Name` %in% int_ic)
-        df_bm<- df_bm%>% filter(`Indicator` %in% int_ic)
+        df_bm <- df_bm%>% filter(`Indicator` %in% int_ic)
         
         year_choices <- intersect(unique(df$key), unique(df_bm$key))
         
@@ -153,14 +156,12 @@ mod_scd_tab_module_server <- function(id){
     }) # /output$scd_year_ui
     
     output$scd_countries_ui <- renderUI({
-      sc <- input$scd_sector
-      sc <- c(sc, 'National')
       cn <- input$scd_country
       
       
       df <- infrasap::scd_dat %>%
         filter(`Country Name`==cn) %>%
-        filter(`Indicator Sector` %in% sc ) %>%
+        # filter(`Indicator Sector` %in% sc ) %>%
         select(`Indicator Name`,`Region`) %>%
         drop_na() %>%
         select(`Region`, `Indicator Name`)
@@ -170,7 +171,7 @@ mod_scd_tab_module_server <- function(id){
       
       # subset data by region pillar and sector to get countries from that region with available data
       df <- infrasap::scd_dat %>%
-        filter(`Indicator Sector` %in% sc ) %>%
+        # filter(`Indicator Sector` %in% sc ) %>%
         filter(Region == rn) %>%
         filter(`Indicator Name` %in% ic) %>%
         select(`Country Name`) %>%
@@ -210,24 +211,23 @@ mod_scd_tab_module_server <- function(id){
     table_reactive <- reactive({
       cn <- input$scd_country
       bm <- input$scd_benchmark
-      sc <- input$scd_sector
-      sc <- c(sc, 'National')
       cc <- input$scd_countries
       
-      yr <- as.character(get_year_scd(cn = cn, sc = sc, bm = bm, year_position = "last"))
+      yr <- as.character(get_year_scd(cn = cn, bm = bm, year_position = "last"))
       
       # get data based on inputs
+      # infrasap::scd_dat_names_unique %>% select(`Indicator Name`, `Indicator Sector`) %>% distinct()
       df <- infrasap::scd_dat %>% 
         filter(`Country Name`%in% cn) %>% 
-        filter(`Indicator Sector` %in% sc) %>%
+        # filter(`Indicator Sector` %in% sc) %>%
         select(`Country Name`,`Indicator Name`, `Type of Benchmark`, yr) 
       
-      
+        
       df <- df %>% 
         mutate(`Type of Benchmark` = dplyr::if_else(is.na(`Type of Benchmark`), 'Upper', `Type of Benchmark`))
       
       available_years <- c()
-      range <- c((as.numeric(yr) - 1):(as.numeric(get_year_scd(cn = cn, sc = sc, bm = bm))))
+      range <- c((as.numeric(yr) - 1):(as.numeric(get_year_scd(cn = cn, bm = bm))))
       range <- as.character(range)
       
       df <- df %>%
@@ -240,8 +240,10 @@ mod_scd_tab_module_server <- function(id){
         df <<- fill_missing_values_in_years_scd(df = df,
                                                 based_year = yr,
                                                 year_step_back = range[x],
-                                                country = cn,
-                                                sector = sc)
+                                                country = cn
+                                                # ,
+                                                # sector = sc
+                                                )
       })
       
       # Years to delete
@@ -260,7 +262,7 @@ mod_scd_tab_module_server <- function(id){
       # TO DO ADD Benchmark length for multiple choices
       df <- infrasap::scd_bm %>% 
         filter(Grouping %in% bm) %>%
-        filter(Sector %in% sc) %>%
+        # filter(Sector %in% sc) %>%
         select(Grouping, Indicator, available_years_in_use) %>%
         dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
       
@@ -289,14 +291,14 @@ mod_scd_tab_module_server <- function(id){
         # get infrasap data based on inputs to get the benchmark type and join
         df_cn <- infrasap::scd_dat %>% 
           dplyr::filter(`Country Name`%in% cc) %>% 
-          dplyr::filter(`Indicator Sector` %in% sc) %>%
+          # dplyr::filter(`Indicator Sector` %in% sc) %>%
           dplyr::select(`Country Name`,`Indicator Name`, available_years_in_use) %>%
           dplyr::select(-c(`Country Name`, available_years_in_use))
         
         if(length(cc) == 1) {
           df_cn <- df_cn %>% 
             dplyr::full_join(
-              country_to_compare_scd(cc[1], sc, available_years_in_use, df_years_col)
+              country_to_compare_scd(cc[1], available_years_in_use, df_years_col)
             ) %>% 
             distinct()
         }
@@ -304,10 +306,10 @@ mod_scd_tab_module_server <- function(id){
         if(length(cc) == 2) {
           df_cn <- df_cn %>% 
             dplyr::full_join(
-              country_to_compare_scd(cc[1], sc, available_years_in_use, df_years_col)
+              country_to_compare_scd(cc[1], available_years_in_use, df_years_col)
             ) %>% 
             dplyr::full_join(
-              country_to_compare_scd(cc[2], sc, available_years_in_use, df_years_col)
+              country_to_compare_scd(cc[2], available_years_in_use, df_years_col)
             ) %>% 
             distinct()
         }
@@ -315,13 +317,13 @@ mod_scd_tab_module_server <- function(id){
         if(length(cc) == 3) {
           df_cn <- df_cn %>% 
             dplyr::full_join(
-              country_to_compare_scd(cc[1], sc, available_years_in_use, df_years_col)
+              country_to_compare_scd(cc[1], available_years_in_use, df_years_col)
             ) %>% 
             dplyr::full_join(
-              country_to_compare_scd(cc[2], sc, available_years_in_use, df_years_col)
+              country_to_compare_scd(cc[2], available_years_in_use, df_years_col)
             ) %>% 
             dplyr::full_join(
-              country_to_compare_scd(cc[3], sc, available_years_in_use, df_years_col)
+              country_to_compare_scd(cc[3], available_years_in_use, df_years_col)
             ) %>% 
             distinct()
         }
@@ -332,7 +334,7 @@ mod_scd_tab_module_server <- function(id){
         
       }
       
-      
+
       df <- df %>% 
         select(year_tooltip, `Indicator`, cn, everything()) 
       
@@ -362,11 +364,13 @@ mod_scd_tab_module_server <- function(id){
       # get rid of string named `NA`
       df <- df[names(df) != "NA"]
       
-      a <- infrasap::scd_dat %>% select(`Indicator Name`) %>% distinct()
+      a <- infrasap::scd_dat %>% select(`grouping`, `Indicator Name`) %>% distinct()
       b <- infrasap::scd_bm %>% select(`Indicator`) %>% distinct()
       df_ind <- a %>% full_join(b, by = c("Indicator Name" = "Indicator"))
       df <- df %>% full_join(df_ind, by = c("Indicator" = "Indicator Name"))
-      
+      df <- df %>% 
+              select(year_tooltip, `grouping`, everything()) %>%
+              arrange(`grouping`)
       
       return(df)
       
@@ -394,25 +398,29 @@ mod_scd_tab_module_server <- function(id){
         })
       }
       
+      hiddenColNum <- hiddenColNum-1
+      
       df <- df %>% mutate(across(where(is.numeric), ~round(., 2)))
       
       
       # datatable(df) 
       dtable <- DT::datatable(df,
+                              rownames = FALSE,
                               extensions = 'Buttons',
                               escape=FALSE,
                               options = list(pageLength = nrow(df),
                                              rowCallback = JS(
                                                "function(row, data) {",
-                                               "var full_text = 'This row values extracted from ' + data[1] +  ' year'",
+                                               "var full_text = 'This row values extracted from ' + data[0] +  ' year'",
                                                "$('td', row).attr('title', full_text);",
                                                "console.log(data)",
                                                "}"
                                              ),
+                                             rowsGroup = list(1), # merge cells of column 1, 2
                                              info = FALSE, 
                                              dom='Bfrti', 
-                                             columnDefs = list(list(visible=FALSE, 
-                                                                    targets=c(hiddenColNum, 1)
+                                             columnDefs = list(list(visible=FALSE,
+                                                                    targets=c(hiddenColNum, 0)
                                              )
                                              ),
                                              buttons = list(
@@ -451,6 +459,12 @@ mod_scd_tab_module_server <- function(id){
       }
       
       
+      
+      dep <- htmltools::htmlDependency(
+        "RowsGroup", "2.0.0",
+        src = c(href = 'www'), script = "script.js", package = 'infrasap')
+      
+      dtable$dependencies <- c(dtable$dependencies, list(dep))
       dtable
       
     }) #/ rendertable

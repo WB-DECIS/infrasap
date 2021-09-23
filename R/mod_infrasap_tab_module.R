@@ -25,10 +25,7 @@ mod_infrasap_tab_module_ui <- function(id){
                              label = 'Select sector',
                              choices = c('Energy', 
                                          'Digital Development',
-                                         'Transport', 
-                                         'Transport Road', 
-                                         'Transport Railways', 
-                                         'Transport Port'),
+                                         'Transport'),
                              selected = 'Energy')
                  
           ),
@@ -146,7 +143,7 @@ mod_infrasap_tab_module_server <- function(id){
         } else {
           seleted_year <- "Latest year available"
         }
-        
+        year_choices <- sort(year_choices, decreasing = T)
         updateSelectInput(session = session, 
                           inputId = "db_year",
                           choices = c("Latest year available", year_choices),
