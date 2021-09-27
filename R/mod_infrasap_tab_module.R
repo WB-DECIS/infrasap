@@ -1722,6 +1722,7 @@ mod_infrasap_tab_module_server <- function(id){
           if(length(input$country_to_compare_id) == 3){
             if(input$db_year == "Latest year available"){
               dtable <- datatable(infrasap_table(),
+                                  extensions = 'Buttons',
                                   rownames = FALSE,
                                   options = list(
                                     rowCallback = JS(
@@ -1731,22 +1732,36 @@ mod_infrasap_tab_module_server <- function(id){
                                       "console.log(data)",
                                       "}"),
                                     rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                    dom = 't',
+                                    dom='Bfrti',
                                     columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11, 13, 14))),
                                     pageLength = -1,
-                                    ordering=F
+                                    ordering=F,
+                                    buttons = list(
+                                      list(extend = "csv",
+                                           # To export only visible columns without color code
+                                           exportOptions = list(columns = ":visible")
+                                      )
+                                    )
                                   ),
                                   selection = 'none'
               )
             } else {
               dtable <- datatable(infrasap_table(),
                                   rownames = FALSE,
+                                  extensions = 'Buttons',
                                   options = list(
                                     rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                    dom = 't',
+                                    dom='Bfrti',
                                     columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11, 13))),
                                     pageLength = -1,
-                                    ordering=F
+                                    ordering=F,
+                                    buttons = list(
+                                      list(extend = "csv",
+                                           # To export only visible columns without color code
+                                           exportOptions = list(columns = ":visible")
+                                      )
+                                    )
+                                    
                                   ),
                                   selection = 'none'
               )
@@ -1788,6 +1803,7 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_year == "Latest year available"){
                 dtable <- datatable(infrasap_table(),
                                     rownames = FALSE,
+                                    extensions = 'Buttons',
                                     options = list(
                                       rowCallback = JS(
                                         "function(row, data) {",
@@ -1796,22 +1812,37 @@ mod_infrasap_tab_module_server <- function(id){
                                         "console.log(data)",
                                         "}"),
                                       rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                      dom = 't',
+                                      dom='Bfrti',
                                       columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11, 12))),
                                       pageLength = -1,
-                                      ordering=F
+                                      ordering=F,
+                                      buttons = list(
+                                        list(extend = "csv",
+                                             # To export only visible columns without color code
+                                             exportOptions = list(columns = ":visible")
+                                        )
+                                      )
+
                                     ),
                                     selection = 'none'
                 ) 
               } else {
                 dtable <- datatable(infrasap_table(),
                                     rownames = FALSE,
+                                    extensions = 'Buttons',
                                     options = list(
                                       rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                      dom = 't',
+                                      dom='Bfrti',
                                       columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11))),
                                       pageLength = -1,
-                                      ordering=F
+                                      ordering=F,
+                                      buttons = list(
+                                        list(extend = "csv",
+                                             # To export only visible columns without color code
+                                             exportOptions = list(columns = ":visible")
+                                        )
+                                      )
+                                      
                                     ),
                                     selection = 'none'
                 ) 
@@ -1847,6 +1878,7 @@ mod_infrasap_tab_module_server <- function(id){
                 if(input$db_year == "Latest year available"){
                   dtable <- datatable(infrasap_table(),
                                       rownames = FALSE,
+                                      extensions = 'Buttons',
                                       options = list(
                                         rowCallback = JS(
                                           "function(row, data) {",
@@ -1855,22 +1887,37 @@ mod_infrasap_tab_module_server <- function(id){
                                           "console.log(data)",
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                        dom = 't',
+                                        dom='Bfrti',
                                         columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 10))),
                                         pageLength = -1,
-                                        ordering=F
+                                        ordering=F,
+                                        buttons = list(
+                                          list(extend = "csv",
+                                               # To export only visible columns without color code
+                                               exportOptions = list(columns = ":visible")
+                                          )
+                                        )
+                                        
                                       ),
                                       selection = 'none'
                   ) 
                 } else {
                   dtable <- datatable(infrasap_table(),
                                       rownames = FALSE,
+                                      extensions = 'Buttons',
                                       options = list(
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                        dom = 't',
+                                        dom='Bfrti',
                                         columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9))),
                                         pageLength = -1,
-                                        ordering=F
+                                        ordering=F,
+                                        buttons = list(
+                                          list(extend = "csv",
+                                               # To export only visible columns without color code
+                                               exportOptions = list(columns = ":visible")
+                                          )
+                                        )
+                                        
                                       ),
                                       selection = 'none'
                   )
@@ -1900,6 +1947,7 @@ mod_infrasap_tab_module_server <- function(id){
                 if(input$db_year == "Latest year available"){
                   dtable <- datatable(infrasap_table(),
                                       rownames = FALSE,
+                                      extensions = 'Buttons',
                                       options = list(
                                         rowCallback = JS(
                                           "function(row, data) {",
@@ -1908,10 +1956,16 @@ mod_infrasap_tab_module_server <- function(id){
                                           "console.log(data)",
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                        dom = 't',
+                                        dom='Bfrti',
                                         columnDefs = list(list(visible=FALSE, targets=c(5, 7, 8))),
                                         pageLength = -1,
-                                        ordering=F
+                                        ordering=F,
+                                        buttons = list(
+                                          list(extend = "csv",
+                                               # To export only visible columns without color code
+                                               exportOptions = list(columns = ":visible")
+                                          )
+                                        )
                                       ),
                                       selection = 'none'
                   ) %>% formatStyle(
@@ -1924,12 +1978,19 @@ mod_infrasap_tab_module_server <- function(id){
                 } else {
                   dtable <- datatable(infrasap_table(),
                                       rownames = FALSE,
+                                      extensions = 'Buttons',
                                       options = list(
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                        dom = 't',
+                                        dom='Bfrti',
                                         columnDefs = list(list(visible=FALSE, targets=c(5, 7))),
                                         pageLength = -1,
-                                        ordering=F
+                                        ordering=F,
+                                        buttons = list(
+                                          list(extend = "csv",
+                                               # To export only visible columns without color code
+                                               exportOptions = list(columns = ":visible")
+                                          )
+                                        )
                                       ),
                                       selection = 'none'
                   ) 
@@ -1966,6 +2027,7 @@ mod_infrasap_tab_module_server <- function(id){
             if(input$db_year == "Latest year available"){
               dtable <- datatable(infrasap_table(),
                                   rownames = FALSE,
+                                  extensions = 'Buttons',
                                   options = list(
                                     rowCallback = JS(
                                       "function(row, data) {",
@@ -1974,10 +2036,16 @@ mod_infrasap_tab_module_server <- function(id){
                                       "console.log(data)",
                                       "}"),
                                     rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                    dom = 't',
+                                    dom='Bfrti',
                                     columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11, 12))),
                                     pageLength = -1,
-                                    ordering=F
+                                    ordering=F,
+                                    buttons = list(
+                                      list(extend = "csv",
+                                           # To export only visible columns without color code
+                                           exportOptions = list(columns = ":visible")
+                                      )
+                                    )
                                   ),
                                   selection = 'none'
               ) %>% formatStyle(
@@ -1990,12 +2058,19 @@ mod_infrasap_tab_module_server <- function(id){
             } else {
               dtable <- datatable(infrasap_table(),
                                   rownames = FALSE,
+                                  extensions = 'Buttons',
                                   options = list(
                                     rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                    dom = 't',
+                                    dom='Bfrti',
                                     columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11))),
                                     pageLength = -1,
-                                    ordering=F
+                                    ordering=F,
+                                    buttons = list(
+                                      list(extend = "csv",
+                                           # To export only visible columns without color code
+                                           exportOptions = list(columns = ":visible")
+                                      )
+                                    )
                                   ),
                                   selection = 'none'
               )
@@ -2032,6 +2107,7 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_year == "Latest year available"){
                 dtable <- datatable(infrasap_table(),
                                     rownames = FALSE,
+                                    extensions = 'Buttons',
                                     options = list(
                                       rowCallback = JS(
                                         "function(row, data) {",
@@ -2040,10 +2116,16 @@ mod_infrasap_tab_module_server <- function(id){
                                         "console.log(data)",
                                         "}"),
                                       rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                      dom = 't',
+                                      dom='Bfrti',
                                       columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 10))),
                                       pageLength = -1,
-                                      ordering=F
+                                      ordering=F,
+                                      buttons = list(
+                                        list(extend = "csv",
+                                             # To export only visible columns without color code
+                                             exportOptions = list(columns = ":visible")
+                                        )
+                                      )
                                     ),
                                     selection = 'none'
                 ) %>% formatStyle(
@@ -2057,12 +2139,19 @@ mod_infrasap_tab_module_server <- function(id){
                 
                 dtable <- datatable(infrasap_table(),
                                     rownames = FALSE,
+                                    extensions = 'Buttons',
                                     options = list(
                                       rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                      dom = 't',
+                                      dom='Bfrti',
                                       columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9))),
                                       pageLength = -1,
-                                      ordering=F
+                                      ordering=F,
+                                      buttons = list(
+                                        list(extend = "csv",
+                                             # To export only visible columns without color code
+                                             exportOptions = list(columns = ":visible")
+                                        )
+                                      )
                                     ),
                                     selection = 'none'
                 )
@@ -2093,6 +2182,7 @@ mod_infrasap_tab_module_server <- function(id){
                 if(input$db_year == "Latest year available"){
                   dtable <- datatable(infrasap_table(),
                                       rownames = FALSE,
+                                      extensions = 'Buttons',
                                       options = list(
                                         rowCallback = JS(
                                           "function(row, data) {",
@@ -2101,22 +2191,35 @@ mod_infrasap_tab_module_server <- function(id){
                                           "console.log(data)",
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                        dom = 't',
+                                        dom = 'Bfrti',
                                         columnDefs = list(list(visible=FALSE, targets=c(5, 7, 8))),
                                         pageLength = -1,
-                                        ordering=F
+                                        ordering=F,
+                                        buttons = list(
+                                          list(extend = "csv",
+                                               # To export only visible columns without color code
+                                               exportOptions = list(columns = ":visible")
+                                          )
+                                        )
                                       ),
                                       selection = 'none'
                   )
                 } else {
                   dtable <- datatable(infrasap_table(),
                                       rownames = FALSE,
+                                      extensions = 'Buttons',
                                       options = list(
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                        dom = 't',
+                                        dom='Bfrti',
                                         columnDefs = list(list(visible=FALSE, targets=c(5, 7))),
                                         pageLength = -1,
-                                        ordering=F
+                                        ordering=F,
+                                        buttons = list(
+                                          list(extend = "csv",
+                                               # To export only visible columns without color code
+                                               exportOptions = list(columns = ":visible")
+                                          )
+                                        )
                                       ),
                                       selection = 'none'
                   )
@@ -2143,6 +2246,7 @@ mod_infrasap_tab_module_server <- function(id){
                 if(input$db_year == "Latest year available"){
                   dtable <- datatable(infrasap_table(),
                                       rownames = FALSE,
+                                      extensions = 'Buttons',
                                       options = list(
                                         rowCallback = JS(
                                           "function(row, data) {",
@@ -2151,10 +2255,16 @@ mod_infrasap_tab_module_server <- function(id){
                                           "console.log(data)",
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                        dom = 't',
+                                        dom='Bfrti',
                                         columnDefs = list(list(visible=FALSE, targets=c(3, 6))),
                                         pageLength = -1,
-                                        ordering=F
+                                        ordering=F,
+                                        buttons = list(
+                                          list(extend = "csv",
+                                               # To export only visible columns without color code
+                                               exportOptions = list(columns = ":visible")
+                                          )
+                                        )
                                       ),
                                       selection = 'none',
                                       escape = FALSE
@@ -2171,6 +2281,7 @@ mod_infrasap_tab_module_server <- function(id){
                 } else {
                   dtable <- datatable(infrasap_table(),
                                       rownames = FALSE,
+                                      extensions = 'Buttons',
                                       options = list(
                                         rowCallback = JS(
                                           "function(row, data) {",
@@ -2179,10 +2290,16 @@ mod_infrasap_tab_module_server <- function(id){
                                           "console.log(data)",
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
-                                        dom = 't',
+                                        dom='Bfrti',
                                         columnDefs = list(list(visible=FALSE, targets=c(5))),
                                         pageLength = -1,
-                                        ordering=F
+                                        ordering=F,
+                                        buttons = list(
+                                          list(extend = "csv",
+                                               # To export only visible columns without color code
+                                               exportOptions = list(columns = ":visible")
+                                          )
+                                        )
                                       ),
                                       selection = 'none',
                                       escape = FALSE

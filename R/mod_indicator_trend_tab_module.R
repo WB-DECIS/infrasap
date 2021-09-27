@@ -14,7 +14,7 @@ mod_indicator_trend_tab_module_ui <- function(id){
         fluidRow(
           column(4,
                  selectInput(inputId = ns('data_country'), 
-                             label = 'Select country',
+                             label = '1. Select country',
                              choices = sort(unique(dat$`Country Name`)),
                              selected = 'Jordan'
                              ),
@@ -163,7 +163,7 @@ mod_indicator_trend_tab_module_server <- function(id){
       sc_choices <- sc_choices[sc_choices != 'National']
       
       selectInput(inputId = ns('data_sector'),
-                  label = 'Select sector',
+                  label = '2. Select sector',
                   choices = sc_choices,
                   selected = NULL)
     })
@@ -330,7 +330,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     output$data_indicator_ui <- renderUI({
       # get sector and year
       sc <- input$data_sector
-      sc <- c(sc, 'National')
+      # sc <- c(sc, 'National')
       cn <- input$data_country
       cp <- input$data_compare_to
       ct <- input$country_ports
@@ -350,7 +350,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             column(12,
                    
                    selectInput(inputId = ns('data_indicator'),
-                               label = 'Select an indicator',
+                               label = '3. Select an indicator',
                                choices = ic,
                                selected = ic[1]))
           )
@@ -369,7 +369,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             column(12,
                    
                    selectInput(inputId = ns('data_indicator'),
-                               label = 'Select an indicator',
+                               label = '3. Select an indicator',
                                choices = ic,
                                selected = ic[1]))
           )
@@ -383,12 +383,12 @@ mod_indicator_trend_tab_module_server <- function(id){
     # UI for benchmarks or countries depending on "data_compare_to" input
     output$data_benchmark_ui <- renderUI({
       sc <- input$data_sector
-      sc <- c(sc, 'National')
+      # sc <- c(sc, 'National')
       cn <- input$data_country
       ic <- input$data_indicator
       yr <- input$data_year
       ct <- input$data_compare_to
-      save(ct, file = 'temp_ct.rda')
+      # save(ct,sc,cn,ic,yr, file = 'temp_ct.rda')
       if(is.null(yr)){
         NULL
       } else {
@@ -399,7 +399,7 @@ mod_indicator_trend_tab_module_server <- function(id){
           if(ct == 'Other benchmarks'){
             df <- infrasap::dat_bm %>%
               filter(Indicator == ic) %>%
-              filter(Sector == sc) %>%
+              filter(Sector %in% sc) %>%
               select(`Grouping`,`1990`:`2021`) %>%
               gather(key = 'key', value = 'value',-`Grouping`) %>%
               drop_na() %>%
@@ -407,6 +407,9 @@ mod_indicator_trend_tab_module_server <- function(id){
             
             # get unique list of benchmarks
             bn <- sort(unique(df$Grouping))
+            temp <- selected_vals$data_benchmarks_name
+            
+            save(bn, temp, file = 'bn.rda')
             
             if(is.null(selected_vals$data_benchmarks_name)) {
               bn_selected <- bn[c(7,8)]
@@ -557,7 +560,7 @@ mod_indicator_trend_tab_module_server <- function(id){
       req(input$data_compare_to)
       # get sector and year
       sc <- input$data_sector
-      sc <- c(sc, 'National')
+      # sc <- c(sc, 'National')
       cn <- input$data_country
       ic <- input$data_indicator
       yr <- input$data_year
@@ -719,6 +722,7 @@ mod_indicator_trend_tab_module_server <- function(id){
       if(input$data_selection_type_year == "Select a range of years"){  
         # get available years for the inputs selected
         output$data_year_ui <- renderUI({
+        
           # get sector and year
           sc <- input$data_sector
           # sc <- c(sc, 'National')
@@ -764,17 +768,22 @@ mod_indicator_trend_tab_module_server <- function(id){
               
               # get a unique list of indicators
               yr <- as.numeric(sort(unique(df$key)))
-              fluidRow(
-                column(12, id = "DataTabSliderWidth", 
-                       sliderInput(ns('data_year'),
-                                   label = 'Select years',
-                                   min = min(yr),
-                                   max = max(yr),
-                                   value = c(min(yr), max(yr)),
-                                   step = 1,
-                                   sep = "")
+              if(length(yr)==0){
+                NULL
+              } else {
+                fluidRow(
+                  column(12, id = "DataTabSliderWidth", 
+                         sliderInput(ns('data_year'),
+                                     label = 'Select years',
+                                     min = min(yr),
+                                     max = max(yr),
+                                     value = c(min(yr), max(yr)),
+                                     step = 1,
+                                     sep = "")
+                  )
                 )
-              )
+              }
+            
             }
             
           }
@@ -917,9 +926,18 @@ mod_indicator_trend_tab_module_server <- function(id){
               if(nrow(p$data)==0){
                 NULL
               } else {
-                fig <- ggplotly(p, tooltip = 'text') %>%
-                  config(displayModeBar = F)
-                fig
+                
+                # condition for showing hover over
+                if(ic %in% irf_indicators){
+                  fig <- ggplotly(p, tooltip = NULL) %>%
+                    config(displayModeBar = F)
+                  fig
+                } else {
+                  fig <- ggplotly(p, tooltip ='text') %>%
+                    config(displayModeBar = F)
+                  fig
+                }
+                
               }
             }
           }
@@ -1078,9 +1096,16 @@ mod_indicator_trend_tab_module_server <- function(id){
               if(nrow(p$data)==0){
                 NULL
               } else {
-                fig <- ggplotly(p, tooltip = 'text') %>%
-                  config(displayModeBar = F)
-                fig
+                # condition for showing hover over
+                if(ic %in% irf_indicators){
+                  fig <- ggplotly(p, tooltip = NULL) %>%
+                    config(displayModeBar = F)
+                  fig
+                } else {
+                  fig <- ggplotly(p, tooltip ='text') %>%
+                    config(displayModeBar = F)
+                  fig
+                }
               }
             }
             
@@ -1110,11 +1135,11 @@ mod_indicator_trend_tab_module_server <- function(id){
     
     # Table with download
     output$data_table_access <- renderUI({
-      if(input$data_sector != "Transport Road"){
+      ind_name <- input$data_indicator
+      if(ind_name %in% irf_indicators){
         output$data_table <- DT::renderDataTable({
-          ind_name <- input$data_indicator
           sector_name <- input$data_sector
-          sector_name <- c(sector_name, 'National')
+          # sector_name <- c(sector_name, 'National')
           df <- data_tab()
           if(is.null(df)){
             NULL
@@ -1142,7 +1167,9 @@ mod_indicator_trend_tab_module_server <- function(id){
         
         DT::dataTableOutput(session$ns('data_table'))
       } else {
-        h3("This data is available on request. Please contact the Library Network for access")
+        tags$h2(style = 'color:#28323d', 'This data is available on request. Please contact the Library Network for access')
+        
+        # h3("This data is available on request. Please contact the Library Network for access")
       }
       
     })
@@ -1200,7 +1227,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     data_chart_download <- reactive({
       ic <- input$data_indicator
       sc <- input$data_sector
-      sc <- c(sc, 'National')
+      # sc <- c(sc, 'National')
       df <- data_tab()
       
       if(is.null(df)){
