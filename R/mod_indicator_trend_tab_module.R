@@ -12,52 +12,44 @@ mod_indicator_trend_tab_module_ui <- function(id){
   tagList(
     div(class = "controlSection",
         fluidRow(
-          column(4,
-                 selectInput(inputId = ns('data_country'), 
-                             label = '1. Select country',
-                             choices = sort(unique(dat$`Country Name`)),
-                             selected = 'Jordan'
-                             ),
-                 uiOutput(ns('data_indicator_ui'))
-                 
-          ),
-          column(4,
-                 uiOutput(ns('data_sector_ui')),
-                 selectInput(ns('data_selection_type_year'), 
-                             label = 'Type of selection: ',
-                             choices = c('Select latest year available', 'Select a range of years'),
-                             selected = 'Select a range of years'
-                 )
+          column(8, class = "column-eight-width",
+            column(6,
+                   selectInput(inputId = ns('data_country'), 
+                               label = '1. Select country',
+                               choices = sort(unique(dat$`Country Name`)),
+                               selected = 'Jordan'
+                               ),
+                   uiOutput(ns('data_indicator_ui'))
+                   
+            ),
+            column(6,
+                   uiOutput(ns('data_sector_ui')),
+                   selectInput(ns('data_selection_type_year'), 
+                               label = 'Type of selection: ',
+                               choices = c('Select latest year available', 'Select a range of years'),
+                               selected = 'Select a range of years'
+                   )
+            ),
+            uiOutput(ns('data_year_ui'))
+            
           ),
           column(4,
                  uiOutput(ns('country_ports_ui')),
                  # uiOutput(ns('data_compare_to_ui')),
-                 selectInput(ns('data_compare_to'), 
-                             label = NULL,
-                             choices = NULL,
-                             selected = NULL
-                 ),
+                 uiOutput(ns('ports_compare_to_indicator_type_ui')),
+                 # selectInput(ns('data_compare_to'),
+                 #             label = NULL,
+                 #             choices = NULL,
+                 #             selected = NULL
+                 # ),
+                 uiOutput(ns('data_compare_to_ui')),
                  uiOutput(ns('data_benchmark_ui')),
           )
+          
+          
         ),
     
-        # fluidRow(
-        #   column(4,
-        #          uiOutput(ns('data_indicator_ui'))
-        #   ),
-        #   column(4,
-        #          selectInput(ns('data_selection_type_year'), 
-        #                      label = 'Type of selection: ',
-        #                      choices = c('Select latest year available', 'Select a range of years'),
-        #                      selected = 'Select a range of years'
-        #                      )
-        #   ),
-        #   column(4,
-        #          uiOutput(ns('data_benchmark_ui')),
-        #          # uiOutput(ns('data_compare_ports_ui'))
-        #   )
-        # ),
-        uiOutput(ns('data_year_ui'))
+        
     ),
     div(
       fluidRow(
@@ -106,7 +98,9 @@ mod_indicator_trend_tab_module_server <- function(id){
     #------- Initialize the Memory ----------
     selected_vals = reactiveValues(
       db_countries_name = NULL,
-      data_benchmarks_name = NULL
+      data_benchmarks_name = NULL,
+      data_ports_name = NULL
+      
     )
     
     observe({
@@ -125,6 +119,7 @@ mod_indicator_trend_tab_module_server <- function(id){
  
       selected_vals$db_countries_name <- input$data_countries
       selected_vals$data_benchmarks_name <- input$data_benchmarks
+      selected_vals$data_ports_name <- input$country_ports
       
     })
     
@@ -148,10 +143,44 @@ mod_indicator_trend_tab_module_server <- function(id){
                    # input$other_indicator
                    ),{
       selected_vals$data_benchmarks_name <- input$data_benchmarks
+      selected_vals$data_ports_name <- input$country_ports
     })
     
     
-    
+    # Compare to UI
+    output$data_compare_to_ui <- renderUI({
+
+      if(input$ports_compare_to_indicator_type == "to_regional_bench" && input$data_sector == 'Transport Port') {
+        selectizeInput(ns('data_compare_to'),
+                       label = NULL,
+                       choices = NULL,
+                       selected = NULL,
+                       multiple = TRUE,
+                       options = list(
+                         # maxItems = 3,
+                         'plugins' = list('remove_button'),
+                         'create' = TRUE,
+                         'persist' = FALSE
+                       )
+
+        )
+      } else {
+        if(!is.null(input$data_sector)){
+          selectInput(ns('data_compare_to'),
+                      label = NULL,
+                      choices = NULL,
+                      selected = NULL
+          )
+        } else {
+          selectInput(ns('data_compare_to'),
+                      label = NULL,
+                      choices = NULL,
+                      selected = NULL
+          )
+        }
+
+      } 
+    })
     
     # get sectors based on country input
     output$data_sector_ui <- renderUI({
@@ -189,55 +218,57 @@ mod_indicator_trend_tab_module_server <- function(id){
           # port_choices <- sort(unique(df$`Sub-national Unit Name`))
           port_choices <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != input$data_compare_to ]
           # port_choices <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != input$country_ports ]
+          if(selected_vals$data_ports_name %in% port_choices && !is.null(selected_vals$data_ports_name)) {
+            port_choice_selected <- selected_vals$data_ports_name
+          } else {
+            port_choice_selected <- port_choices[1]
+          }
           selectInput(ns('country_ports'),
                       label = paste0('Choose a port from ',cn ),
                       choices = port_choices,
-                      selected = port_choices[1]
+                      selected = port_choice_selected
           )
         }
       }
     })
     
-    # output$data_compare_to_ui <- renderUI({
-    #   req(input$data_sector)
-    #   # sc <- input$data_sector
-    #   # save(sc, file = 'temp_sc.rda')
-    #   # if(is.null(sc)){
-    #   #   NULL
-    #   # } else {
-    #   #   if(grepl('Port', sc)){
-    #   #     NULL
-    #   # 
-    #   #   } else {
-    #       selectInput(ns('data_compare_to'), 
-    #                   label = 'Compare to: ',
-    #                   choices = c('Other countries', 'Other benchmarks', 'Other indicators'),
-    #                   selected = 'Other benchmarks'
-    #       )
-    #   #   }
-    #   #   
-    #   # }
-    #  
-    # })
-    
-    observeEvent(input$data_sector, {
+    output$ports_compare_to_indicator_type_ui <- renderUI({
+      req(input$data_country)
       req(input$data_sector)
-      # req(input$country_ports)
       
-      # print("Country Ports:...12")
-      # print(input$country_ports)
-      # if(is.null(input$country_ports)) {
-      #   print("yeah null")
-      # } else {
-      #   # cp <- input$country_ports
-      #   print("not null yeah")
-      # }
+      cn <- input$data_country
+      sc <- input$data_sector
+      # message('in country ports ui')
+      # message('Sector is ', sc)
+      # save(sc, file = 'sc.rda')
+      if(is.null(sc)){
+        NULL
+      } else {
+        if(!grepl('Port', sc)){
+          NULL
+        } else {
+          
+          selectInput(ns('ports_compare_to_indicator_type'),
+                      label = 'Select indicator type to compare: ??',
+                      choices = NULL,
+                      selected = NULL
+          )
+        }
+      }
+    })
+    
+    
+    
+    observeEvent(c(input$data_sector), {
+      req(input$data_sector)
+      # req(input$data_country)
       
       
       if(grepl('Port', input$data_sector)){
         
         sc <- input$data_sector
         cn <- input$data_country
+        
         
         if(is.null(input$country_ports)) {
           df <- infrasap::dat_ports
@@ -248,22 +279,77 @@ mod_indicator_trend_tab_module_server <- function(id){
           cp <- input$country_ports
         }
         
-        # req(input$country_ports)
           
-          # cp <- input$country_ports
-          
-          # print(input$country_ports)
-          
-        df <- infrasap::dat_ports %>% filter(`Country Name` == cn) %>% filter(`Sub-national Unit Name` != cp)
-        compare_ports <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != cp ]
 
-              # save(compare_ports, file = 'temp1.rda')
-        
-        updateSelectInput(session, "data_compare_to",
-                          label = paste0('Compare to other ports from ',cn, ':'),
-                          choices = compare_ports,
-                          selected = compare_ports[1]
+        country_choice <- as.character(str_glue('Compare to other ports in country {cn}'))
+        choices_ports_compare_to_indicator_type <- c('to_country', 'to_regional_bench', 'to_volume_bench')
+        names(choices_ports_compare_to_indicator_type) <- c(country_choice,
+                                                            'Compare to regional benchmarks',
+                                                            'Compare to Volumne benchmarks')
+        updateSelectInput(session, "ports_compare_to_indicator_type",
+                          choices = choices_ports_compare_to_indicator_type,
+                          selected = 'to_country'
         )
+        
+        observeEvent(input$ports_compare_to_indicator_type, {
+          req(input$ports_compare_to_indicator_type)
+          if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
+          
+          print("Yes, to country")
+              
+            df <- infrasap::dat_ports %>% filter(`Country Name` == cn) %>% filter(`Sub-national Unit Name` != cp)
+            compare_ports <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != cp ]
+            
+            
+            updateSelectInput(session, "data_compare_to",
+                              label = paste0('Compare to other ports from ',cn, ':'),
+                              choices = compare_ports,
+                              selected = compare_ports[1]
+            )
+          
+          } else {
+            if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_regional_bench") {
+              
+              updateSelectizeInput(session, "data_compare_to",
+                                   label = 'Compare to regional benchmarks',
+                                   choices = c('East Asia & Pacific', 
+                                               'Europe & Central Asia',
+                                               'Latin America & Caribbean',
+                                               'Middle East & North Africa',
+                                               'North America',
+                                               'South Asia',
+                                               'Sub-Saharan Africa'
+                                               ),
+                                   selected = 'East Asia & Pacific'
+                                
+              )
+              
+              print('Yes, to_regional_bench')
+              
+            } else {
+              
+              if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_volume_bench") {
+                
+                updateSelectInput(session, "data_compare_to",
+                                  label = "Compare ports by volume",
+                                  choices = c('Small', 'Medium', 'Large', 'Upper 25 Percentile'),
+                                  selected = 'Small'
+                )
+                
+                print("Yes, to_volume_bench")
+                
+              } else {
+                print("No")
+              }
+              
+            }
+            
+          }
+          
+          
+        })
+        
+        
       } else {
         updateSelectInput(session, "data_compare_to",
                           label = 'Compare to: ',
@@ -274,6 +360,7 @@ mod_indicator_trend_tab_module_server <- function(id){
       
       
     })
+    
     
     # observeEvent(input$country_ports, {
     # 
@@ -330,7 +417,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     output$data_indicator_ui <- renderUI({
       # get sector and year
       sc <- input$data_sector
-      # sc <- c(sc, 'National')
+      sc <- c(sc, 'National')
       cn <- input$data_country
       cp <- input$data_compare_to
       ct <- input$country_ports
@@ -388,7 +475,7 @@ mod_indicator_trend_tab_module_server <- function(id){
       ic <- input$data_indicator
       yr <- input$data_year
       ct <- input$data_compare_to
-      # save(ct,sc,cn,ic,yr, file = 'temp_ct.rda')
+      # save(ct, file = 'temp_ct.rda')
       if(is.null(yr)){
         NULL
       } else {
@@ -399,7 +486,7 @@ mod_indicator_trend_tab_module_server <- function(id){
           if(ct == 'Other benchmarks'){
             df <- infrasap::dat_bm %>%
               filter(Indicator == ic) %>%
-              filter(Sector %in% sc) %>%
+              filter(Sector == sc) %>%
               select(`Grouping`,`1990`:`2021`) %>%
               gather(key = 'key', value = 'value',-`Grouping`) %>%
               drop_na() %>%
@@ -407,9 +494,6 @@ mod_indicator_trend_tab_module_server <- function(id){
             
             # get unique list of benchmarks
             bn <- sort(unique(df$Grouping))
-            temp <- selected_vals$data_benchmarks_name
-            
-            save(bn, temp, file = 'bn.rda')
             
             if(is.null(selected_vals$data_benchmarks_name)) {
               bn_selected <- bn[c(7,8)]
@@ -557,7 +641,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     # Reactive data set that compiles data based on data inputs
     data_tab <- reactive({
       req(input$data_sector)
-      req(input$data_compare_to)
+      # req(input$data_compare_to)
       # get sector and year
       sc <- input$data_sector
       # sc <- c(sc, 'National')
@@ -576,17 +660,67 @@ mod_indicator_trend_tab_module_server <- function(id){
       if(input$data_sector == 'Transport Port') {
         # print('Trans')
         
-        # get country data
-        df <- infrasap::dat_ports %>%
-          filter(`Country Name`== cn) %>%
-          filter(`Indicator Name`== ic) %>%
-          filter(`Sub-national Unit Name` %in% c(ct, cp)) %>%
-          select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
-          gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
-          drop_na() %>%
-          filter(key >= yr[1], key<=yr[2])
+        # print(input$data_compare_to)
+        # print(input$ports_compare_to_indicator_type)
+        # print(cn)
+        # print(ic)
+        # print(ct)
+        # print(cp)
+        # 
+        # [1] "Aqaba Industrial"
+        # [1] "to_country"
+        # [1] "Jordan"
+        # [1] "Annual Deployed Capacity per Port"
+        # [1] "Aqaba Industrial"
+        # [1] "Aqaba"
         
-        return(df)
+        if(input$ports_compare_to_indicator_type == "to_country") {
+          # get country data
+          df <- infrasap::dat_ports %>%
+            filter(`Country Name`== cn) %>%
+            # filter(`Country Name`== "Jordan") %>%
+            filter(`Indicator Name`== ic) %>%
+            # filter(`Indicator Name`== 'Annual Deployed Capacity per Port') %>%
+            filter(`Sub-national Unit Name` %in% c(ct, cp)) %>%
+            # filter(`Sub-national Unit Name` %in% c('Aqaba Industrial', 'Aqaba')) %>%
+            select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
+            gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
+            drop_na() %>%
+            filter(key >= yr[1], key<=yr[2])
+            # filter(key >= 2016, key<=2020)
+          print(df)
+          
+          return(df)
+        } else {
+          
+          # filter(Indicator == ic) %>%
+          #   filter(Sector == sc) %>%
+          #   filter(Grouping %in% bn) %>%
+          #   select(`Grouping`,`1990`:`2021`) %>%
+          #   gather(key = 'key', value = 'value',-`Grouping`) %>%
+          #   drop_na() %>%
+          #   filter(key >= yr[1], key<=yr[2])
+          # 
+          # infrasap::dat_ports_bm$Grouping %>% unique()
+          # infrasap::dat_ports %>% str()
+          
+          df <- infrasap::dat_ports_bm %>%
+            # filter(`Indicator`== "Annual Deployed Capacity per Port") %>%
+            filter(`Indicator`== ic) %>%
+            # filter(Grouping %in% c("Europe & Central Asia", "North America")) %>%
+            filter(Grouping %in% ct) %>%
+            select(`Grouping`,`1990`:`2021`) %>%
+            gather(key = 'key', value = 'value',-`Grouping`) %>%
+            drop_na() %>%
+            # filter(key >= 2016, key<=2020)
+            filter(key >= yr[1], key<=yr[2])
+          
+          print(df)  
+          
+          return(df)
+          
+        }
+
         
       } else {
         # print('Not Trans')
@@ -722,7 +856,6 @@ mod_indicator_trend_tab_module_server <- function(id){
       if(input$data_selection_type_year == "Select a range of years"){  
         # get available years for the inputs selected
         output$data_year_ui <- renderUI({
-        
           # get sector and year
           sc <- input$data_sector
           # sc <- c(sc, 'National')
@@ -783,7 +916,6 @@ mod_indicator_trend_tab_module_server <- function(id){
                   )
                 )
               }
-            
             }
             
           }
@@ -820,16 +952,38 @@ mod_indicator_trend_tab_module_server <- function(id){
               } else {
                 y_axis <- 'Value'
               }
-              # text for plot
-              mytext <- paste(
-                "Value: ",round(df$value,2),"<br>",
-                "Year: ", as.character(df$key),"<br>",
-                "Port: ", as.character(df$`Sub-national Unit Name`),"<br>",
-                sep="") %>%
-                lapply(htmltools::HTML)
-              col_pal <- brewer.pal(n = length(unique(df$`Sub-national Unit Name`)), name = 'Set1')
+              
+              if(input$ports_compare_to_indicator_type == "to_country") {
+                  # text for plot
+                  mytext <- paste(
+                    "Value: ",round(df$value,2),"<br>",
+                    "Year: ", as.character(df$key),"<br>",
+                    "Port: ", as.character(df$`Sub-national Unit Name`),"<br>",
+                    sep="") %>%
+                    lapply(htmltools::HTML)
+                  
+                  col_pal <- brewer.pal(n = length(unique(df$`Sub-national Unit Name`)), name = 'Set1')
+              } else {
+                  mytext <- paste(
+                    "Value: ",round(df$value,2),"<br>",
+                    "Year: ", as.character(df$key),"<br>",
+                    "Data: ", as.character(df$Grouping),"<br>",
+                    sep="") %>%
+                    lapply(htmltools::HTML)
+                  
+                  col_pal <- brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
+              }
+              
+
               if(length(unique(df$key))<=4){
-                p <- ggplot(df, aes(key, value, fill = `Sub-national Unit Name`, text = mytext)) +
+                
+                if("Sub-national Unit Name" %in% colnames(df)) {
+                  p <- ggplot(df, aes(key, value, fill = `Sub-national Unit Name`, text = mytext))
+                } else {
+                  p <- ggplot(df, aes(key, value, fill = Grouping, text = mytext))
+                }
+                
+                p <- p +
                   geom_bar(stat= 'identity', position = 'dodge') +
                   scale_fill_manual(name = '', values = col_pal)+
                   labs(x = 'Year', y = y_axis, title = plot_title) +
@@ -842,7 +996,14 @@ mod_indicator_trend_tab_module_server <- function(id){
                         axis.ticks = element_line(colour = "#ebebeb")
                   )
               } else {
-                p <- ggplot(df, aes(key, value, group = `Sub-national Unit Name`, color = `Sub-national Unit Name`, text = mytext)) +
+                
+                if("Sub-national Unit Name" %in% colnames(df)) {
+                  p <- ggplot(df, aes(key, value, group = `Sub-national Unit Name`, color = `Sub-national Unit Name`, text = mytext))
+                } else {
+                  p <- ggplot(df, aes(key, value, group = Grouping, color = Grouping, text = mytext))
+                }
+                
+                p <- p +
                   geom_point() +
                   geom_line() +
                   scale_color_manual(name = '', values = col_pal)+
@@ -862,10 +1023,18 @@ mod_indicator_trend_tab_module_server <- function(id){
               if(nrow(p$data)==0){
                 NULL
               } else {
-                fig <- ggplotly(p, tooltip = 'text') %>%
-                  config(displayModeBar = F)
-                fig
+                # condition for showing hover over
+                if(ic %in% irf_indicators){
+                  fig <- ggplotly(p, tooltip = NULL) %>%
+                    config(displayModeBar = F)
+                  fig
+                } else {
+                  fig <- ggplotly(p, tooltip ='text') %>%
+                    config(displayModeBar = F)
+                  fig
+                }
               }
+            # Not Transport port graph
             } else {
               # make value numeric
               df$value <- round(as.numeric(df$value), 2)
@@ -926,7 +1095,6 @@ mod_indicator_trend_tab_module_server <- function(id){
               if(nrow(p$data)==0){
                 NULL
               } else {
-                
                 # condition for showing hover over
                 if(ic %in% irf_indicators){
                   fig <- ggplotly(p, tooltip = NULL) %>%
@@ -937,7 +1105,6 @@ mod_indicator_trend_tab_module_server <- function(id){
                     config(displayModeBar = F)
                   fig
                 }
-                
               }
             }
           }
@@ -1096,16 +1263,9 @@ mod_indicator_trend_tab_module_server <- function(id){
               if(nrow(p$data)==0){
                 NULL
               } else {
-                # condition for showing hover over
-                if(ic %in% irf_indicators){
-                  fig <- ggplotly(p, tooltip = NULL) %>%
-                    config(displayModeBar = F)
-                  fig
-                } else {
-                  fig <- ggplotly(p, tooltip ='text') %>%
-                    config(displayModeBar = F)
-                  fig
-                }
+                fig <- ggplotly(p, tooltip = 'text') %>%
+                  config(displayModeBar = F)
+                fig
               }
             }
             
@@ -1135,8 +1295,10 @@ mod_indicator_trend_tab_module_server <- function(id){
     
     # Table with download
     output$data_table_access <- renderUI({
+      req(input$data_indicator)
       ind_name <- input$data_indicator
-      if(ind_name %in% irf_indicators){
+      # message('should be ' ,ind_name %in% irf_indicators)
+      if(!ind_name %in% irf_indicators){
         output$data_table <- DT::renderDataTable({
           sector_name <- input$data_sector
           # sector_name <- c(sector_name, 'National')
@@ -1173,7 +1335,6 @@ mod_indicator_trend_tab_module_server <- function(id){
       }
       
     })
-    
     
     
     
