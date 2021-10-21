@@ -64,11 +64,11 @@ country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_y
     dplyr::filter(`Indicator Sector` %in% sc) %>%
     dplyr::filter(`Indicator Pillar` == pi) %>%
     dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
-    left_join(df_years_col, by=c("Indicator Name"))
+    dplyr::left_join(df_years_col, by=c("Indicator Name"))
 
-  temp <- map(1:length(available_years_in_use), function(b){
+  temp <- purrr::map(1:length(available_years_in_use), function(b){
     df_cn <<- df_cn %>%
-      mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(str_glue("{available_years_in_use[b]}")), year_pop)
+      dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}")), year_pop)
       )
   })[length(available_years_in_use)]
 
@@ -76,12 +76,12 @@ country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_y
 
 # print(df_cn)
 
-  df_cn <- df_cn %>% dplyr::select(-contains(available_years_in_use)) %>%
-    rename(
+  df_cn <- df_cn %>% dplyr::select(-dplyr::contains(available_years_in_use)) %>%
+    dplyr::rename(
       `Country Name` = Country.Name,
       `Indicator Name` = Indicator.Name
     )  %>%
-    pivot_wider(
+    tidyr::pivot_wider(
       names_from = `Country Name`,
       values_from = year_pop
     )
@@ -104,7 +104,7 @@ get_last_year <- function(cn, sc, bm){
   
   # remove columns that have all NA
   temp <- temp[,colSums(is.na(temp))<nrow(temp)]
-  temp <- temp %>% select(-`Country Name`, -bm)
+  temp <- temp %>% dplyr::select(-`Country Name`, -bm)
   
   # get years for benchmark 
   temp_bm <- infrasap::dat_bm %>%

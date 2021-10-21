@@ -1,29 +1,6 @@
 ##################################################
 # UI
 ##################################################
-#' @import shiny
-#' @import shinydashboard
-#' @import leaflet
-#' @import shiny
-#' @import dplyr
-#' @import RColorBrewer
-#' @import leaflet
-#' @import tidyverse
-#' @import ggplot2
-#' @import tidyr
-#' @import gsheet
-#' @import plotly
-#' @import DT
-#' @import shinyMobile
-#' @import purrr
-#' @import rlang
-#' @import stringr
-#' @import mapview
-#' @import sjmisc
-#' @import stringi
-#' @import shinycssloaders
-#' 
-
 
 options(DT.options = list(pageLength = 20))
 
@@ -33,21 +10,21 @@ app_ui <- function(request) {
   tagList(
     mobile_golem_add_external_resources(),
     
-    dashboardPage(
+    shinydashboard::dashboardPage(
       
-      dashboardHeader (title = tags$a(tags$img(src='www/logo2.jpg', alt = '', height = '50'))),
-      dashboardSidebar(
+      shinydashboard::dashboardHeader (title = tags$a(tags$img(src='www/logo2.jpg', alt = '', height = '50'))),
+      shinydashboard::dashboardSidebar(
         width = 230,
-        sidebarMenu(
+        shinydashboard::sidebarMenu(
           id = 'tabs',
-          menuItem(
+          shinydashboard::menuItem(
             text="Global Indicators Dashboard",
             tabName="landing_page"),
-          menuItem(
+          shinydashboard::menuItem(
             text = 'About',
             tabName = 'about')
         )),
-      dashboardBody(
+      shinydashboard::dashboardBody(
         tags$head(tags$style(".skin-blue .main-header .logo { padding: 0px;}")),
         
         tags$head(tags$style(HTML(
@@ -69,8 +46,8 @@ app_ui <- function(request) {
               $("header").find("nav").append(\'<div class="headerTitleCust"> Infrastructure Global Indicators Dashboard</div>\');
             })
            ')),
-        tabItems(
-          tabItem(
+    shinydashboard::tabItems(
+      shinydashboard::tabItem(
             tabName="landing_page",
             tabsetPanel(
               tabPanel('Indicator Trends',
@@ -117,7 +94,7 @@ app_ui <- function(request) {
               ) # end world charts tab
             )
           ),
-          tabItem(
+      shinydashboard::tabItem(
             tabName = 'about',
             fluidPage(
               fluidRow(
