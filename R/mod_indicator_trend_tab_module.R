@@ -249,7 +249,7 @@ mod_indicator_trend_tab_module_server <- function(id){
         } else {
           
           selectInput(ns('ports_compare_to_indicator_type'),
-                      label = 'Select indicator type to compare: ??',
+                      label = 'Compare to:',
                       choices = NULL,
                       selected = NULL
           )
@@ -285,7 +285,7 @@ mod_indicator_trend_tab_module_server <- function(id){
         choices_ports_compare_to_indicator_type <- c('to_country', 'to_regional_bench', 'to_volume_bench')
         names(choices_ports_compare_to_indicator_type) <- c(country_choice,
                                                             'Compare to regional benchmarks',
-                                                            'Compare to Volumne benchmarks')
+                                                            'Compare to Volume benchmarks')
         updateSelectInput(session, "ports_compare_to_indicator_type",
                           choices = choices_ports_compare_to_indicator_type,
                           selected = 'to_country'
@@ -492,6 +492,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               drop_na() %>%
               filter(key >= yr[1], key<=yr[2])
             
+            
             # get unique list of benchmarks
             bn <- sort(unique(df$Grouping))
             
@@ -686,25 +687,27 @@ mod_indicator_trend_tab_module_server <- function(id){
             select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
             gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
             drop_na() %>%
-            filter(key >= yr[1], key<=yr[2])
-            # filter(key >= 2016, key<=2020)
-          print(df)
+            # filter(key >= yr[1], key<=yr[2])
+            filter(key >= 2016, key<=2020)
+          # print(df)
           
           return(df)
         } else {
           
-          # filter(Indicator == ic) %>%
-          #   filter(Sector == sc) %>%
-          #   filter(Grouping %in% bn) %>%
-          #   select(`Grouping`,`1990`:`2021`) %>%
-          #   gather(key = 'key', value = 'value',-`Grouping`) %>%
-          #   drop_na() %>%
-          #   filter(key >= yr[1], key<=yr[2])
-          # 
-          # infrasap::dat_ports_bm$Grouping %>% unique()
-          # infrasap::dat_ports %>% str()
+          df_port <- infrasap::dat_ports %>%
+            filter(`Country Name`== cn) %>%
+            # filter(`Country Name`== "Jordan") %>%
+            filter(`Indicator Name`== ic) %>%
+            # filter(`Indicator Name`== 'Annual Deployed Capacity per Port') %>%
+            filter(`Sub-national Unit Name` %in% c(cp)) %>%
+            # filter(`Sub-national Unit Name` %in% c('Aqaba')) %>%
+            select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
+            gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
+            drop_na() %>%
+            filter(key >= yr[1], key<=yr[2])
+            # filter(key >= 2016, key<=2020)
           
-          df <- infrasap::dat_ports_bm %>%
+          df_bench <- infrasap::dat_ports_bm %>%
             # filter(`Indicator`== "Annual Deployed Capacity per Port") %>%
             filter(`Indicator`== ic) %>%
             # filter(Grouping %in% c("Europe & Central Asia", "North America")) %>%
@@ -712,8 +715,14 @@ mod_indicator_trend_tab_module_server <- function(id){
             select(`Grouping`,`1990`:`2021`) %>%
             gather(key = 'key', value = 'value',-`Grouping`) %>%
             drop_na() %>%
-            # filter(key >= 2016, key<=2020)
-            filter(key >= yr[1], key<=yr[2])
+            # filter(key >= 2016, key<=2020) %>%
+            filter(key >= yr[1], key<=yr[2]) %>%
+            rename(`Sub-national Unit Name` = Grouping) %>%
+            mutate(Grouping = cn) %>%
+            # mutate(Grouping = "Jordan") %>%
+            select(Grouping, `Sub-national Unit Name`, everything())
+          
+          df <- rbind(df_port, df_bench)
           
           print(df)  
           
@@ -734,23 +743,42 @@ mod_indicator_trend_tab_module_server <- function(id){
             # get benchmark data
             df_bm <- infrasap::dat_bm %>%
               filter(Indicator == ic) %>%
+              # filter(Indicator == "Annual Deployed Capacity per Port") %>%
               filter(Sector == sc) %>%
+              # filter(Sector == 'Transport Port') %>%
               filter(Grouping %in% bn) %>%
+              # filter(Grouping %in% c("East Asia & Pacific", "Europe & Central Asia")) %>%
               select(`Grouping`,`1990`:`2021`) %>%
               gather(key = 'key', value = 'value',-`Grouping`) %>%
               drop_na() %>%
               filter(key >= yr[1], key<=yr[2])
-            
+              # filter(key >= 2016, key<=2020)
+            # 
+            # print('Other BM:')
+            # print(ic)
+            # print(sc)
+            # print(bn)
+            # print(yr)
             
             # get country data
             df <- infrasap::dat %>%
               filter(`Country Name`== cn) %>%
+              # filter(`Country Name`== "Jordan") %>%
               filter(`Indicator Name` == ic) %>%
+              # filter(`Indicator Name` == "Annual Deployed Capacity per Port") %>%
               filter(`Indicator Sector` %in% sc) %>%
+              # filter(`Indicator Sector` %in% "Transport Port") %>%
               select(Grouping = `Country Name`,`1990`:`2021`) %>%
               gather(key = 'key', value = 'value',-`Grouping`) %>%
               drop_na() %>%
               filter(key >= yr[1], key<=yr[2])
+              # filter(key >= 2016, key<=2020)
+            
+            # print('Other BM 2:')
+            # print(cn)
+            # print(ic)
+            # print(sc)
+            # print(yr)
             
             
             # combine with benchmark data
