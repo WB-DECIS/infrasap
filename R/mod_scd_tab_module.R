@@ -98,6 +98,8 @@ mod_scd_tab_module_server <- function(id){
       # keep only regional and income group benchmarks 
       bm_keep <- 'East Asia & Pacific|Europe & Central Asia|Latin America & Caribbean|Middle East & North Africa|North America|South Asia|Sub-Saharan Africa|High income|Low income|Lower middle income|Upper middle income'
       bm_choices <- bm[grepl(bm_keep, bm)]
+      all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa","North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income","Upper middle income", "Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
+      bm_choices <- bm_choices[order(match(bm_choices, all_bn))]
       
       selectizeInput(inputId = ns('scd_benchmark'),
                      label = 'Select a benchmark',

@@ -249,7 +249,7 @@ mod_indicator_trend_tab_module_server <- function(id){
         } else {
           
           selectInput(ns('ports_compare_to_indicator_type'),
-                      label = 'Select indicator type to compare: ??',
+                      label = 'Compare to:',
                       choices = NULL,
                       selected = NULL
           )
@@ -285,7 +285,7 @@ mod_indicator_trend_tab_module_server <- function(id){
         choices_ports_compare_to_indicator_type <- c('to_country', 'to_regional_bench', 'to_volume_bench')
         names(choices_ports_compare_to_indicator_type) <- c(country_choice,
                                                             'Compare to regional benchmarks',
-                                                            'Compare to Volumne benchmarks')
+                                                            'Compare to Volume benchmarks')
         updateSelectInput(session, "ports_compare_to_indicator_type",
                           choices = choices_ports_compare_to_indicator_type,
                           selected = 'to_country'
@@ -300,6 +300,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             df <- infrasap::dat_ports %>% 
               dplyr::filter(`Country Name` == cn) %>% 
               dplyr::filter(`Sub-national Unit Name` != cp)
+
             compare_ports <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != cp ]
             
             
@@ -503,7 +504,8 @@ mod_indicator_trend_tab_module_server <- function(id){
               bn_selected <- selected_vals$data_benchmarks_name
             }
             
-            
+            all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa","North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income","Upper middle income", "Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
+            bn <- bn[order(match(bn, all_bn))]
             fluidRow(
               column(12,
                      
@@ -680,42 +682,52 @@ mod_indicator_trend_tab_module_server <- function(id){
           # get country data
           df <- infrasap::dat_ports %>%
             dplyr::filter(`Country Name`== cn) %>%
-            # dplyr::filter(`Country Name`== "Jordan") %>%
+            # filter(`Country Name`== "Jordan") %>%
             dplyr::filter(`Indicator Name`== ic) %>%
-            # dplyr::filter(`Indicator Name`== 'Annual Deployed Capacity per Port') %>%
+            # filter(`Indicator Name`== 'Annual Deployed Capacity per Port') %>%
             dplyr::filter(`Sub-national Unit Name` %in% c(ct, cp)) %>%
-            # dplyr::filter(`Sub-national Unit Name` %in% c('Aqaba Industrial', 'Aqaba')) %>%
+            # filter(`Sub-national Unit Name` %in% c('Aqaba Industrial', 'Aqaba')) %>%
             dplyr::select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
             tidyr::drop_na() %>%
-            dplyr::filter(key >= yr[1], key<=yr[2])
-            # dplyr::filter(key >= 2016, key<=2020)
-          print(df)
+            # filter(key >= yr[1], key<=yr[2])
+            dplyr::filter(key >= 2016, key<=2020)
+          # print(df)
           
           return(df)
         } else {
           
-          # dplyr::filter(Indicator == ic) %>%
-          #   dplyr::filter(Sector == sc) %>%
-          #   dplyr::filter(Grouping %in% bn) %>%
-          #   dplyr::select(`Grouping`,`1990`:`2021`) %>%
-          #   tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
-          #   tidyr::drop_na() %>%
-          #   dplyr::filter(key >= yr[1], key<=yr[2])
-          # 
-          # infrasap::dat_ports_bm$Grouping %>% unique()
-          # infrasap::dat_ports %>% str()
+
+          df_port <- infrasap::dat_ports %>%
+            dplyr::filter(`Country Name`== cn) %>%
+            # filter(`Country Name`== "Jordan") %>%
+            dplyr::filter(`Indicator Name`== ic) %>%
+            # filter(`Indicator Name`== 'Annual Deployed Capacity per Port') %>%
+            dplyr::filter(`Sub-national Unit Name` %in% c(cp)) %>%
+            # filter(`Sub-national Unit Name` %in% c('Aqaba')) %>%
+            dplyr:: select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
+            tidyr::gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
+            tidyr::drop_na() %>%
+            dplyr::filter(key >= yr[1], key<=yr[2])
+            # filter(key >= 2016, key<=2020)
           
-          df <- infrasap::dat_ports_bm %>%
-            # dplyr::filter(`Indicator`== "Annual Deployed Capacity per Port") %>%
+          df_bench <- infrasap::dat_ports_bm %>%
+            # filter(`Indicator`== "Annual Deployed Capacity per Port") %>%
             dplyr::filter(`Indicator`== ic) %>%
-            # dplyr::filter(Grouping %in% c("Europe & Central Asia", "North America")) %>%
+            # filter(Grouping %in% c("Europe & Central Asia", "North America")) %>%
             dplyr::filter(Grouping %in% ct) %>%
             dplyr::select(`Grouping`,`1990`:`2021`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
             tidyr::drop_na() %>%
-            # dplyr::filter(key >= 2016, key<=2020)
-            dplyr::filter(key >= yr[1], key<=yr[2])
+
+            # filter(key >= 2016, key<=2020) %>%
+            dplyr::filter(key >= yr[1], key<=yr[2]) %>%
+            dplyr::rename(`Sub-national Unit Name` = Grouping) %>%
+            dplyr:: mutate(Grouping = cn) %>%
+            # mutate(Grouping = "Jordan") %>%
+            dplyr::select(Grouping, `Sub-national Unit Name`, everything())
+          
+          df <- rbind(df_port, df_bench)
           
           print(df)  
           
@@ -736,24 +748,31 @@ mod_indicator_trend_tab_module_server <- function(id){
             # get benchmark data
             df_bm <- infrasap::dat_bm %>%
               dplyr::filter(Indicator == ic) %>%
+              # filter(Indicator == "Annual Deployed Capacity per Port") %>%
               dplyr::filter(Sector == sc) %>%
+              # filter(Sector == 'Transport Port') %>%
               dplyr::filter(Grouping %in% bn) %>%
+              # filter(Grouping %in% c("East Asia & Pacific", "Europe & Central Asia")) %>%
               dplyr::select(`Grouping`,`1990`:`2021`) %>%
               tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
               tidyr::drop_na() %>%
-              dplyr::filter(key >= yr[1], key<=yr[2])
-            
+              filter(key >= yr[1], key<=yr[2])
+              
             
             # get country data
             df <- infrasap::dat %>%
               dplyr::filter(`Country Name`== cn) %>%
+              # filter(`Country Name`== "Jordan") %>%
               dplyr::filter(`Indicator Name` == ic) %>%
+              # filter(`Indicator Name` == "Annual Deployed Capacity per Port") %>%
               dplyr::filter(`Indicator Sector` %in% sc) %>%
+              # filter(`Indicator Sector` %in% "Transport Port") %>%
               dplyr::select(Grouping = `Country Name`,`1990`:`2021`) %>%
               tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
               tidyr::drop_na() %>%
               dplyr::filter(key >= yr[1], key<=yr[2])
-            
+              # filter(key >= 2016, key<=2020)
+           
             
             # combine with benchmark data
             df <- rbind(df, df_bm)
@@ -983,6 +1002,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                   p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = `Sub-national Unit Name`, text = mytext))
                 } else {
                   p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext))
+
                 }
                 
                 p <- p +
@@ -996,6 +1016,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                         axis.text = ggplot2::element_text(colour = "#28313d"),
                         plot.title = ggplot2::element_text(colour = "#28313d"),
                         axis.ticks = ggplot2::element_line(colour = "#ebebeb")
+
                   )
               } else {
                 
@@ -1003,6 +1024,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                   p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = `Sub-national Unit Name`, color = `Sub-national Unit Name`, text = mytext))
                 } else {
                   p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = Grouping, color = Grouping, text = mytext))
+
                 }
                 
                 p <- p +
@@ -1017,6 +1039,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                         axis.text = ggplot2::element_text(colour = "#28313d"),
                         plot.title = ggplot2::element_text(colour = "#28313d"),
                         axis.ticks = ggplot2::element_line(colour = "#ebebeb")
+
                   )
                 
                 
@@ -1065,6 +1088,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext)) +
+
                   ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
                   ggplot2::scale_fill_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
@@ -1089,6 +1113,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                         axis.text = ggplot2::element_text(colour = "#28313d"),
                         plot.title = ggplot2::element_text(colour = "#28313d"),
                         axis.ticks = ggplot2::element_line(colour = "#ebebeb")
+
                   )
                 
                 
@@ -1145,6 +1170,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               
               df <- df %>%
                 dplyr::mutate(check_missing = dplyr::case_when(
+
                   is.na(value) ~ 1,
                   TRUE ~ 0
                 )) %>%
@@ -1176,6 +1202,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$`Sub-national Unit Name`)), name = 'Set1')
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = `Sub-national Unit Name`, text = mytext)) +
+
                   ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
                   ggplot2::scale_fill_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
@@ -1191,6 +1218,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                   ggplot2::theme_bw() +
                   ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
                         axis.title.y = ggplot2::element_text(size = 8))
+
                 
               }
               
@@ -1199,6 +1227,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               } else {
                 fig <- plotly::ggplotly(p, tooltip = 'text') %>%
                   plotly::config(displayModeBar = F)
+
                 fig
               }
             } else{
@@ -1244,6 +1273,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext)) +
+
                   ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
                   ggplot2::scale_fill_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
@@ -1252,6 +1282,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                         axis.title.y = ggplot2::element_text(size = 8))
               } else {
                 p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
+
                   ggplot2::geom_point() +
                   ggplot2::geom_line() +
                   ggplot2::scale_color_manual(name = '', values = col_pal)+
@@ -1259,6 +1290,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                   ggplot2::theme_bw() +
                   ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
                         axis.title.y = ggplot2::element_text(size = 8))
+
                 
               }
               
@@ -1267,6 +1299,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               } else {
                 fig <- plotly::ggplotly(p, tooltip = 'text') %>%
                   plotly::config(displayModeBar = F)
+
                 fig
               }
             }
@@ -1361,6 +1394,7 @@ mod_indicator_trend_tab_module_server <- function(id){
       
       # spread data
       df <- df %>% dplyr::spread(key = 'key', value = 'value')
+
       return(df)
     })
     
@@ -1418,6 +1452,7 @@ mod_indicator_trend_tab_module_server <- function(id){
         col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
         if(length(unique(df$key))<=4){
           p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext)) +
+
             ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
             ggplot2::scale_fill_manual(name = '', values = col_pal)+
             ggplot2::labs(x = 'Year', y = ic, title = plot_title) +
@@ -1426,6 +1461,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                   axis.title.y = ggplot2::element_text(size = 8))
         } else {
           p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
+
             ggplot2::geom_point() +
             ggplot2::geom_line() +
             ggplot2::scale_color_manual(name = '', values = col_pal)+
@@ -1433,7 +1469,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             ggplot2::theme_bw() +
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
                   axis.title.y = ggplot2::element_text(size = 8))
-          
+
           
         }
         
