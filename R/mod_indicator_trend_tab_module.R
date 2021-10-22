@@ -55,10 +55,10 @@ mod_indicator_trend_tab_module_ui <- function(id){
       fluidRow(
         column(12,
                align = 'center',
-               plotlyOutput(ns('data_chart'),
+               plotly::plotlyOutput(ns('data_chart'),
                             width = '900px', 
                             height = "auto"
-                            ) %>% withSpinner(type = 7,color = "#28323d")
+                            ) %>% shinycssloaders::withSpinner(type = 7,color = "#28323d")
         )
       ),
       
@@ -281,7 +281,7 @@ mod_indicator_trend_tab_module_server <- function(id){
         
           
 
-        country_choice <- as.character(str_glue('Compare to other ports in country {cn}'))
+        country_choice <- as.character(stringr::str_glue('Compare to other ports in country {cn}'))
         choices_ports_compare_to_indicator_type <- c('to_country', 'to_regional_bench', 'to_volume_bench')
         names(choices_ports_compare_to_indicator_type) <- c(country_choice,
                                                             'Compare to regional benchmarks',
@@ -297,7 +297,10 @@ mod_indicator_trend_tab_module_server <- function(id){
           
           print("Yes, to country")
               
-            df <- infrasap::dat_ports %>% dplyr::filter(`Country Name` == cn) %>% dplyr::filter(`Sub-national Unit Name` != cp)
+            df <- infrasap::dat_ports %>% 
+              dplyr::filter(`Country Name` == cn) %>% 
+              dplyr::filter(`Sub-national Unit Name` != cp)
+
             compare_ports <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != cp ]
             
             
@@ -367,7 +370,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     #   print(1)
     #   cn <- input$data_country
     #   cp <- input$country_ports
-    #   df <- infrasap::dat_ports %>% filter(`Country Name` == cn) %>% filter(`Sub-national Unit Name` != cp)
+    #   df <- infrasap::dat_ports %>% dplyr::filter(`Country Name` == cn) %>% dplyr::filter(`Sub-national Unit Name` != cp)
     #   compare_ports <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != cp ]
     #   print("Country Ports:...231")
     #   print(compare_ports)
@@ -380,7 +383,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     #                     )
     #   # cn <- input$data_country
     #   # df <- infrasap::dat_ports
-    #   # df <- df %>% filter(`Country Name` == cn)
+    #   # df <- df %>% dplyr::filter(`Country Name` == cn)
     #   # port_choices <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != input$data_compare_to ]
     #   # print(port_choices)
     #   # 
@@ -401,7 +404,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     #     save(cp, cn, file = 'temp.rda')
     #     
     #     # remove port selected above for comparison
-    #     df <- infrasap::dat_ports %>% filter(`Country Name` == cn)%>% filter(`Sub-national Unit Name` != cp)
+    #     df <- infrasap::dat_ports %>% dplyr::filter(`Country Name` == cn)%>% dplyr::filter(`Sub-national Unit Name` != cp)
     #     compare_ports <- sort(unique(df$`Sub-national Unit Name`))
     #     save(compare_ports, file = 'temp1.rda')
     #     
@@ -491,7 +494,6 @@ mod_indicator_trend_tab_module_server <- function(id){
               tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
               tidyr::drop_na() %>%
               dplyr::filter(key >= yr[1], key<=yr[2])
-            
             
             # get unique list of benchmarks
             bn <- sort(unique(df$Grouping))
@@ -597,11 +599,11 @@ mod_indicator_trend_tab_module_server <- function(id){
                 
                 if(length(measure_brackets) == 0){
                   
-                  ic <- setdiff(ic, ic[str_detect(ic, pattern = '[\\(\\)]')])
+                  ic <- setdiff(ic, ic[dplyr::str_detect(ic, pattern = '[\\(\\)]')])
                   ic <- ic[ic != input$data_indicator]
                   
                 } else {
-                  ic <- ic[grep(pattern = as.character(str_glue('\\({measure_brackets}\\)')), x = ic)]
+                  ic <- ic[grep(pattern = as.character(stringr::str_glue('\\({measure_brackets}\\)')), x = ic)]
                   ic <- ic[ic != input$data_indicator]
                 }
                 
@@ -695,6 +697,7 @@ mod_indicator_trend_tab_module_server <- function(id){
           return(df)
         } else {
           
+
           df_port <- infrasap::dat_ports %>%
             dplyr::filter(`Country Name`== cn) %>%
             # filter(`Country Name`== "Jordan") %>%
@@ -716,6 +719,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             dplyr::select(`Grouping`,`1990`:`2021`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
             tidyr::drop_na() %>%
+
             # filter(key >= 2016, key<=2020) %>%
             dplyr::filter(key >= yr[1], key<=yr[2]) %>%
             dplyr::rename(`Sub-national Unit Name` = Grouping) %>%
@@ -753,13 +757,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
               tidyr::drop_na() %>%
               filter(key >= yr[1], key<=yr[2])
-              # filter(key >= 2016, key<=2020)
-            # 
-            # print('Other BM:')
-            # print(ic)
-            # print(sc)
-            # print(bn)
-            # print(yr)
+              
             
             # get country data
             df <- infrasap::dat %>%
@@ -774,13 +772,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               tidyr::drop_na() %>%
               dplyr::filter(key >= yr[1], key<=yr[2])
               # filter(key >= 2016, key<=2020)
-            
-            # print('Other BM 2:')
-            # print(cn)
-            # print(ic)
-            # print(sc)
-            # print(yr)
-            
+           
             
             # combine with benchmark data
             df <- rbind(df, df_bm)
@@ -857,13 +849,13 @@ mod_indicator_trend_tab_module_server <- function(id){
       # 
       #   # get country data
       #   df <- infrasap::dat_ports %>%
-      #     filter(`Country Name`== cn) %>%
-      #     filter(`Indicator Name`== ic) %>%
-      #     filter(`Sub-national Unit Name` %in% c(ct, cp)) %>%
-      #     select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
-      #     gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
-      #     drop_na() %>%
-      #     filter(key >= yr[1], key<=yr[2])
+      #     dplyr::filter(`Country Name`== cn) %>%
+      #     dplyr::filter(`Indicator Name`== ic) %>%
+      #     dplyr::filter(`Sub-national Unit Name` %in% c(ct, cp)) %>%
+      #     dplyr::select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
+      #     tidyr::gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
+      #     tidyr::drop_na() %>%
+      #     dplyr::filter(key >= yr[1], key<=yr[2])
       #   
       #   
       #   # combine with benchmark data
@@ -953,7 +945,7 @@ mod_indicator_trend_tab_module_server <- function(id){
         
         
         # plot country comparison or country/benchmark comparison
-        output$data_chart <- renderPlotly({
+        output$data_chart <- plotly::renderPlotly({
           ic <- input$data_indicator
           sc <- input$data_sector
           cn <- input$data_country
@@ -1007,9 +999,10 @@ mod_indicator_trend_tab_module_server <- function(id){
               if(length(unique(df$key))<=4){
                 
                 if("Sub-national Unit Name" %in% colnames(df)) {
-                  p <- ggplot2::ggplot(df, aes(key, value, fill = `Sub-national Unit Name`, text = mytext))
+                  p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = `Sub-national Unit Name`, text = mytext))
                 } else {
-                  p <- ggplot2::ggplot(df, aes(key, value, fill = Grouping, text = mytext))
+                  p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext))
+
                 }
                 
                 p <- p +
@@ -1017,19 +1010,21 @@ mod_indicator_trend_tab_module_server <- function(id){
                   ggplot2::scale_fill_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
                   ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5, colour = "#28313d"),
-                        axis.title.y = element_text(size = 8, colour = "#28313d"),
-                        axis.title.x = element_text(size = 8, colour = "#28313d"),
-                        axis.text = element_text(colour = "#28313d"),
-                        plot.title = element_text(colour = "#28313d"),
-                        axis.ticks = element_line(colour = "#ebebeb")
+                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
+                        axis.title.y = ggplot2::element_text(size = 8, colour = "#28313d"),
+                        axis.title.x = ggplot2::element_text(size = 8, colour = "#28313d"),
+                        axis.text = ggplot2::element_text(colour = "#28313d"),
+                        plot.title = ggplot2::element_text(colour = "#28313d"),
+                        axis.ticks = ggplot2::element_line(colour = "#ebebeb")
+
                   )
               } else {
                 
                 if("Sub-national Unit Name" %in% colnames(df)) {
-                  p <- ggplot2::ggplot(df, aes(key, value, group = `Sub-national Unit Name`, color = `Sub-national Unit Name`, text = mytext))
+                  p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = `Sub-national Unit Name`, color = `Sub-national Unit Name`, text = mytext))
                 } else {
-                  p <- ggplot2::ggplot(df, aes(key, value, group = Grouping, color = Grouping, text = mytext))
+                  p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = Grouping, color = Grouping, text = mytext))
+
                 }
                 
                 p <- p +
@@ -1038,12 +1033,13 @@ mod_indicator_trend_tab_module_server <- function(id){
                   ggplot2::scale_color_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
                   ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5, colour = "#28313d"),
-                        axis.title.y = element_text(size = 8, colour = "#28313d"),
-                        axis.title.x = element_text(size = 8, colour = "#28313d"),
-                        axis.text = element_text(colour = "#28313d"),
-                        plot.title = element_text(colour = "#28313d"),
-                        axis.ticks = element_line(colour = "#ebebeb")
+                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
+                        axis.title.y = ggplot2::element_text(size = 8, colour = "#28313d"),
+                        axis.title.x = ggplot2::element_text(size = 8, colour = "#28313d"),
+                        axis.text = ggplot2::element_text(colour = "#28313d"),
+                        plot.title = ggplot2::element_text(colour = "#28313d"),
+                        axis.ticks = ggplot2::element_line(colour = "#ebebeb")
+
                   )
                 
                 
@@ -1055,11 +1051,11 @@ mod_indicator_trend_tab_module_server <- function(id){
                 # condition for showing hover over
                 if(ic %in% irf_indicators){
                   fig <- plotly::ggplotly(p, tooltip = NULL) %>%
-                    config(displayModeBar = F)
+                    plotly::config(displayModeBar = F)
                   fig
                 } else {
                   fig <- plotly::ggplotly(p, tooltip ='text') %>%
-                    config(displayModeBar = F)
+                    plotly::config(displayModeBar = F)
                   fig
                 }
               }
@@ -1091,31 +1087,33 @@ mod_indicator_trend_tab_module_server <- function(id){
                 lapply(htmltools::HTML)
               col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
               if(length(unique(df$key))<=4){
-                p <- ggplot2::ggplot(df, aes(key, value, fill = Grouping, text = mytext)) +
+                p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext)) +
+
                   ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
                   ggplot2::scale_fill_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
                   ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5, colour = "#28313d"),
-                        axis.title.y = element_text(size = 8, colour = "#28313d"),
-                        axis.title.x = element_text(size = 8, colour = "#28313d"),
-                        axis.text = element_text(colour = "#28313d"),
-                        plot.title = element_text(colour = "#28313d"),
-                        axis.ticks = element_line(colour = "#ebebeb")
+                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
+                        axis.title.y = ggplot2::element_text(size = 8, colour = "#28313d"),
+                        axis.title.x = ggplot2::element_text(size = 8, colour = "#28313d"),
+                        axis.text = ggplot2::element_text(colour = "#28313d"),
+                        plot.title = ggplot2::element_text(colour = "#28313d"),
+                        axis.ticks = ggplot2::element_line(colour = "#ebebeb")
                   )
               } else {
-                p <- ggplot2::ggplot(df, aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
+                p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
                   ggplot2::geom_point() +
                   ggplot2::geom_line() +
                   ggplot2::scale_color_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
                   ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5, colour = "#28313d"),
-                        axis.title.y = element_text(size = 8, colour = "#28313d"),
-                        axis.title.x = element_text(size = 8, colour = "#28313d"),
-                        axis.text = element_text(colour = "#28313d"),
-                        plot.title = element_text(colour = "#28313d"),
-                        axis.ticks = element_line(colour = "#ebebeb")
+                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
+                        axis.title.y = ggplot2::element_text(size = 8, colour = "#28313d"),
+                        axis.title.x = ggplot2::element_text(size = 8, colour = "#28313d"),
+                        axis.text = ggplot2::element_text(colour = "#28313d"),
+                        plot.title = ggplot2::element_text(colour = "#28313d"),
+                        axis.ticks = ggplot2::element_line(colour = "#ebebeb")
+
                   )
                 
                 
@@ -1127,11 +1125,11 @@ mod_indicator_trend_tab_module_server <- function(id){
                 # condition for showing hover over
                 if(ic %in% irf_indicators){
                   fig <- plotly::ggplotly(p, tooltip = NULL) %>%
-                    config(displayModeBar = F)
+                    plotly::config(displayModeBar = F)
                   fig
                 } else {
                   fig <- plotly::ggplotly(p, tooltip ='text') %>%
-                    config(displayModeBar = F)
+                    plotly::config(displayModeBar = F)
                   fig
                 }
               }
@@ -1152,7 +1150,7 @@ mod_indicator_trend_tab_module_server <- function(id){
         
         
         # plot country comparison or country/benchmark comparison
-        output$data_chart <- renderPlotly({
+        output$data_chart <- plotly::renderPlotly({
           ic <- input$data_indicator
           sc <- input$data_sector
           cn <- input$data_country
@@ -1171,7 +1169,8 @@ mod_indicator_trend_tab_module_server <- function(id){
               df$value <- round(as.numeric(df$value), 2)
               
               df <- df %>%
-                dplyr::mutate(check_missing = case_when(
+                dplyr::mutate(check_missing = dplyr::case_when(
+
                   is.na(value) ~ 1,
                   TRUE ~ 0
                 )) %>%
@@ -1182,7 +1181,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               
               lastyearavailable <- max(unique(df$key), na.rm = TRUE)
               
-              df <- df %>% filter(key == lastyearavailable)
+              df <- df %>% dplyr::filter(key == lastyearavailable)
               
               # get title and subtitle
               plot_title <- paste0(cn, ' : ', ic)
@@ -1202,22 +1201,24 @@ mod_indicator_trend_tab_module_server <- function(id){
                 lapply(htmltools::HTML)
               col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$`Sub-national Unit Name`)), name = 'Set1')
               if(length(unique(df$key))<=4){
-                p <- ggplot2::ggplot(df, aes(key, value, fill = `Sub-national Unit Name`, text = mytext)) +
+                p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = `Sub-national Unit Name`, text = mytext)) +
+
                   ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
                   ggplot2::scale_fill_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
                   ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5),
-                        axis.title.y = element_text(size = 8))
+                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
+                        axis.title.y = ggplot2::element_text(size = 8))
               } else {
-                p <- ggplot2::ggplot(df, aes(key, value, group = `Sub-national Unit Name`, color = `Sub-national Unit Name`, text = mytext)) +
+                p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = `Sub-national Unit Name`, color = `Sub-national Unit Name`, text = mytext)) +
                   ggplot2::geom_point() +
                   ggplot2::geom_line() +
                   ggplot2::scale_color_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
                   ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5),
-                        axis.title.y = element_text(size = 8))
+                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
+                        axis.title.y = ggplot2::element_text(size = 8))
+
                 
               }
               
@@ -1225,7 +1226,8 @@ mod_indicator_trend_tab_module_server <- function(id){
                 NULL
               } else {
                 fig <- plotly::ggplotly(p, tooltip = 'text') %>%
-                  config(displayModeBar = F)
+                  plotly::config(displayModeBar = F)
+
                 fig
               }
             } else{
@@ -1235,7 +1237,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               
               
               df <- df %>%
-                dplyr::mutate(check_missing = case_when(
+                dplyr::mutate(check_missing = dplyr::case_when(
                   is.na(value) ~ 1,
                   TRUE ~ 0
                 )) %>%
@@ -1270,22 +1272,25 @@ mod_indicator_trend_tab_module_server <- function(id){
                 lapply(htmltools::HTML)
               col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
               if(length(unique(df$key))<=4){
-                p <- ggplot2::ggplot(df, aes(key, value, fill = Grouping, text = mytext)) +
+                p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext)) +
+
                   ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
                   ggplot2::scale_fill_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
                   ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5),
-                        axis.title.y = element_text(size = 8))
+                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
+                        axis.title.y = ggplot2::element_text(size = 8))
               } else {
-                p <- ggplot2::ggplot(df, aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
+                p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
+
                   ggplot2::geom_point() +
                   ggplot2::geom_line() +
                   ggplot2::scale_color_manual(name = '', values = col_pal)+
                   ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
                   ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5),
-                        axis.title.y = element_text(size = 8))
+                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
+                        axis.title.y = ggplot2::element_text(size = 8))
+
                 
               }
               
@@ -1293,7 +1298,8 @@ mod_indicator_trend_tab_module_server <- function(id){
                 NULL
               } else {
                 fig <- plotly::ggplotly(p, tooltip = 'text') %>%
-                  config(displayModeBar = F)
+                  plotly::config(displayModeBar = F)
+
                 fig
               }
             }
@@ -1341,7 +1347,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             df$value <- round(as.numeric(df$value), 2)
             
             # spread data
-            df <- df %>% spread(key = 'key', value = 'value')
+            df <- df %>% tidyr::spread(key = 'key', value = 'value')
             DT::datatable(df,
                           extensions = 'Buttons',
                           escape=FALSE,
@@ -1373,7 +1379,7 @@ mod_indicator_trend_tab_module_server <- function(id){
       
       # get data
       df <- infrasap::dat %>%
-        filter(`Indicator Name` == ic)
+        dplyr::filter(`Indicator Name` == ic)
       
       return(df)
       
@@ -1387,7 +1393,8 @@ mod_indicator_trend_tab_module_server <- function(id){
       df$value <- round(as.numeric(df$value), 2)
       
       # spread data
-      df <- df %>% tidyr::spread(key = 'key', value = 'value')
+      df <- df %>% dplyr::spread(key = 'key', value = 'value')
+
       return(df)
     })
     
@@ -1395,7 +1402,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     # Download button fucntionality for all indicators
     output$downloadDataAllIndicator <- downloadHandler(
       filename = function() {
-        paste0(str_glue('All_{input$data_indicator}'), ".csv")
+        paste0(stringr::str_glue('All_{input$data_indicator}'), ".csv")
       },
       content = function(file) {
         write.csv(data_tab_all_indc(), file)
@@ -1405,7 +1412,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     # Download button functionality for specific indicator
     output$downloadDataFilteredCSV <- downloadHandler(
       filename = function() {
-        paste0(str_glue('Filtered'), ".csv")
+        paste0(stringr::str_glue('Filtered'), ".csv")
       },
       content = function(file) {
         write.csv(data_tab_filtered_csv(), file)
@@ -1444,23 +1451,25 @@ mod_indicator_trend_tab_module_server <- function(id){
           lapply(htmltools::HTML)
         col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
         if(length(unique(df$key))<=4){
-          p <- ggplot2::ggplot(df, aes(key, value, fill = Grouping, text = mytext)) +
+          p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext)) +
+
             ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
             ggplot2::scale_fill_manual(name = '', values = col_pal)+
             ggplot2::labs(x = 'Year', y = ic, title = plot_title) +
             ggplot2::theme_bw() +
-            ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5),
-                  axis.title.y = element_text(size = 8))
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
+                  axis.title.y = ggplot2::element_text(size = 8))
         } else {
-          p <- ggplot2::ggplot(df, aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
+          p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
+
             ggplot2::geom_point() +
             ggplot2::geom_line() +
             ggplot2::scale_color_manual(name = '', values = col_pal)+
             ggplot2::labs(x = 'Year', y = ic, title = plot_title) +
             ggplot2::theme_bw() +
-            ggplot2::theme(axis.text.x = element_text(angle=90, vjust = 0.5),
-                  axis.title.y = element_text(size = 8))
-          
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
+                  axis.title.y = ggplot2::element_text(size = 8))
+
           
         }
         
@@ -1478,7 +1487,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     output$downloadPlot <- downloadHandler(
       filename = function() { paste('Chart', '.png', sep='') },
       content = function(file) {
-        ggsave(file, plot = data_chart_download(), device = "png", height=12, width=15)
+        ggplot2::ggsave(file, plot = data_chart_download(), device = "png", height=12, width=15)
       }
     )
     

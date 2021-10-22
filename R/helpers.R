@@ -1,9 +1,9 @@
 empty_plot <- function(title = NULL){
-  p <- plotly_empty(type = "scatter", mode = "markers                                                                                                                                                                        ") %>%
-    config(
+  p <- plotly::plotly_empty(type = "scatter", mode = "markers") %>%
+    plotly::config(
       displayModeBar = FALSE
     ) %>%
-    layout(
+    plotly::layout(
       title = list(
         text = title,
         yref = "paper",
