@@ -502,6 +502,9 @@ mod_indicator_trend_tab_module_server <- function(id){
               bn_selected <- selected_vals$data_benchmarks_name
             }
             
+            # save(bn_selected,bn, file = 'bn.rda')
+            all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa","North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income","Upper middle income", "Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
+            bn <- bn[order(match(bn, all_bn))]
             
             fluidRow(
               column(12,
