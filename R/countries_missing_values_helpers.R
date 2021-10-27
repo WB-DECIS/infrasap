@@ -66,7 +66,7 @@ get_last_year <- function(cn, sc, bm){
   temp <- infrasap::dat %>% 
     dplyr::filter(`Country Name` == cn) %>% 
     dplyr::filter(`Indicator Sector` %in% sc) %>%
-    dplyr::select(`Country Name`, `1990`:`2017-2021`, bm ) 
+    dplyr::select(`Country Name`, `1990`:`2020`, bm ) 
   
   # get type of benchmark to subset benchmark data by
   bm_type <- unique(temp[,bm])

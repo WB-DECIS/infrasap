@@ -115,15 +115,15 @@ mod_infrasap_tab_module_server <- function(id){
       if(is.null(bm)){
         NULL
       } else {
-        
+        # save(cn, sc, bm, file = 'inputs.rda')
         # get years for data
         temp <- infrasap::dat %>%
           dplyr::filter(`Country Name` == cn) %>%
           dplyr::filter(`Indicator Sector` %in% sc) %>%
-          dplyr::select(`Country Name`, `1990`:`2017-2021`, bm )
+          dplyr::select(`Country Name`, `1990`:`2020`, bm )
         
         # get type of benchmark to subset benchmark data by
-        bm_type <- unique(temp[,bm])
+        bm_type <- as.character(unique(temp[,bm]))
         
         # remove columns that have all NA
         temp <- temp[,colSums(is.na(temp))<nrow(temp)]

@@ -431,7 +431,7 @@ mod_indicator_trend_tab_module_server <- function(id){
           df <- infrasap::dat_ports %>%
             dplyr::filter(`Country Name` == cn) %>%
             dplyr::filter(`Sub-national Unit Name` %in% c(cp, ct)) %>%
-            dplyr::select(Grouping = `Indicator Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
+            dplyr::select(Grouping = `Indicator Name`,`Sub-national Unit Name`,`1990`:`2020`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
             tidyr::drop_na()
           # get a unique list of indicators
@@ -449,7 +449,7 @@ mod_indicator_trend_tab_module_server <- function(id){
           df <- infrasap::dat %>%
             dplyr::filter(`Country Name` == cn) %>%
             dplyr::filter(`Indicator Sector` %in% sc) %>%
-            dplyr::select(Grouping = `Indicator Name`,`1990`:`2021`) %>%
+            dplyr::select(Grouping = `Indicator Name`,`1990`:`2020`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
             tidyr::drop_na()
           
@@ -490,7 +490,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             df <- infrasap::dat_bm %>%
               dplyr::filter(Indicator == ic) %>%
               dplyr::filter(Sector == sc) %>%
-              dplyr::select(`Grouping`,`1990`:`2021`) %>%
+              dplyr::select(`Grouping`,`1990`:`2020`) %>%
               tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
               tidyr::drop_na() %>%
               dplyr::filter(key >= yr[1], key<=yr[2])
@@ -533,7 +533,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                 df <- infrasap::dat %>%
                   dplyr::filter(`Indicator Name` == ic) %>%
                   dplyr::filter(`Indicator Sector` %in% sc) %>%
-                  dplyr::select(Grouping = `Country Name`,Region,`1990`:`2021`) %>%
+                  dplyr::select(Grouping = `Country Name`,Region,`1990`:`2020`) %>%
                   tidyr::gather(key = 'key', value = 'value',-`Grouping`,-Region) %>%
                   tidyr::drop_na() %>%
                   dplyr::filter(key >= yr[1], key<=yr[2])
@@ -588,7 +588,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                 df <- infrasap::dat %>%
                   dplyr::filter(`Country Name` == cn) %>%
                   dplyr::filter(`Indicator Sector` %in% sc) %>%
-                  dplyr::select(Grouping = `Indicator Name`,`1990`:`2021`) %>%
+                  dplyr::select(Grouping = `Indicator Name`,`1990`:`2020`) %>%
                   tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
                   tidyr::drop_na()
                 
@@ -687,7 +687,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             # filter(`Indicator Name`== 'Annual Deployed Capacity per Port') %>%
             dplyr::filter(`Sub-national Unit Name` %in% c(ct, cp)) %>%
             # filter(`Sub-national Unit Name` %in% c('Aqaba Industrial', 'Aqaba')) %>%
-            dplyr::select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
+            dplyr::select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2020`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
             tidyr::drop_na() %>%
             # filter(key >= yr[1], key<=yr[2])
@@ -705,7 +705,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             # filter(`Indicator Name`== 'Annual Deployed Capacity per Port') %>%
             dplyr::filter(`Sub-national Unit Name` %in% c(cp)) %>%
             # filter(`Sub-national Unit Name` %in% c('Aqaba')) %>%
-            dplyr:: select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
+            dplyr:: select(Grouping = `Country Name`,`Sub-national Unit Name`,`1990`:`2020`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
             tidyr::drop_na() %>%
             dplyr::filter(key >= yr[1], key<=yr[2])
@@ -716,7 +716,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             dplyr::filter(`Indicator`== ic) %>%
             # filter(Grouping %in% c("Europe & Central Asia", "North America")) %>%
             dplyr::filter(Grouping %in% ct) %>%
-            dplyr::select(`Grouping`,`1990`:`2021`) %>%
+            dplyr::select(`Grouping`,`1990`:`2020`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
             tidyr::drop_na() %>%
 
@@ -753,7 +753,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               # filter(Sector == 'Transport Port') %>%
               dplyr::filter(Grouping %in% bn) %>%
               # filter(Grouping %in% c("East Asia & Pacific", "Europe & Central Asia")) %>%
-              dplyr::select(`Grouping`,`1990`:`2021`) %>%
+              dplyr::select(`Grouping`,`1990`:`2020`) %>%
               tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
               tidyr::drop_na() %>%
               filter(key >= yr[1], key<=yr[2])
@@ -767,7 +767,7 @@ mod_indicator_trend_tab_module_server <- function(id){
               # filter(`Indicator Name` == "Annual Deployed Capacity per Port") %>%
               dplyr::filter(`Indicator Sector` %in% sc) %>%
               # filter(`Indicator Sector` %in% "Transport Port") %>%
-              dplyr::select(Grouping = `Country Name`,`1990`:`2021`) %>%
+              dplyr::select(Grouping = `Country Name`,`1990`:`2020`) %>%
               tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
               tidyr::drop_na() %>%
               dplyr::filter(key >= yr[1], key<=yr[2])
@@ -793,7 +793,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                 dplyr::filter(`Country Name`%in% country_names) %>%
                 dplyr::filter(`Indicator Name` == ic) %>%
                 dplyr::filter(`Indicator Sector` %in% sc) %>%
-                dplyr::select(Grouping = `Country Name`,`1990`:`2021`) %>%
+                dplyr::select(Grouping = `Country Name`,`1990`:`2020`) %>%
                 tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
                 tidyr::drop_na() %>%
                 dplyr::filter(key >= yr[1], key<=yr[2])
@@ -815,7 +815,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                   dplyr::filter(`Country Name`%in% cn) %>%
                   dplyr::filter(`Indicator Name` == ic) %>%
                   dplyr::filter(`Indicator Sector` %in% sc) %>%
-                  dplyr::select(Grouping = `Indicator Name`,`1990`:`2021`) %>%
+                  dplyr::select(Grouping = `Indicator Name`,`1990`:`2020`) %>%
                   tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
                   tidyr::drop_na() %>%
                   dplyr::filter(key >= yr[1], key<=yr[2])
@@ -824,7 +824,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                   dplyr::filter(`Country Name`%in% cn) %>%
                   dplyr::filter(`Indicator Name` %in% oi) %>%
                   dplyr::filter(`Indicator Sector` %in% sc) %>%
-                  dplyr::select(Grouping = `Indicator Name`,`1990`:`2021`) %>%
+                  dplyr::select(Grouping = `Indicator Name`,`1990`:`2020`) %>%
                   tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
                   tidyr::drop_na() %>%
                   dplyr::filter(key >= yr[1], key<=yr[2])
@@ -893,7 +893,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                 dplyr::filter(`Country Name` == cn) %>%
                 dplyr::filter(`Indicator Name`==ic) %>%
                 dplyr::filter(`Sub-national Unit Name` %in% c(cp, ct)) %>%
-                dplyr::select(Grouping = `Indicator Name`,`Sub-national Unit Name`,`1990`:`2021`) %>%
+                dplyr::select(Grouping = `Indicator Name`,`Sub-national Unit Name`,`1990`:`2020`) %>%
                 tidyr::gather(key = 'key', value = 'value',-`Grouping`, -`Sub-national Unit Name`) %>%
                 tidyr::drop_na()
               
@@ -916,7 +916,7 @@ mod_indicator_trend_tab_module_server <- function(id){
                 dplyr::filter(`Country Name` == cn) %>%
                 dplyr::filter(`Indicator Sector` %in% sc) %>%
                 dplyr::filter(`Indicator Name`==ic) %>%
-                dplyr::select(Grouping = `Indicator Name`,`1990`:`2021`) %>%
+                dplyr::select(Grouping = `Indicator Name`,`1990`:`2020`) %>%
                 tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
                 tidyr::drop_na()
               
