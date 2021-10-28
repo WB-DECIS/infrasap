@@ -35,22 +35,22 @@ country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_y
     dplyr::filter(`Indicator Sector` %in% sc) %>%
     dplyr::filter(`Indicator Pillar` == pi) %>%
     dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
-    left_join(df_years_col, by=c("Indicator Name"))
+    dplyr::left_join(df_years_col, by=c("Indicator Name"))
 
-  temp <- map(1:length(available_years_in_use), function(b){
+  temp <- purrr::map(1:length(available_years_in_use), function(b){
     df_cn <<- df_cn %>%
-      mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(str_glue("{available_years_in_use[b]}")), year_pop)
+      dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}")), year_pop)
       )
   })[length(available_years_in_use)]
 
   df_cn <- temp %>% data.frame()
 
-  df_cn <- df_cn %>% dplyr::select(-contains(available_years_in_use)) %>%
-    rename(
+  df_cn <- df_cn %>% dplyr::select(-dplyr::contains(available_years_in_use)) %>%
+    dplyr::rename(
       `Country Name` = Country.Name,
       `Indicator Name` = Indicator.Name
     )  %>%
-    pivot_wider(
+    tidyr::pivot_wider(
       names_from = `Country Name`,
       values_from = year_pop
     )
@@ -66,14 +66,15 @@ get_last_year <- function(cn, sc, bm){
   temp <- infrasap::dat %>% 
     dplyr::filter(`Country Name` == cn) %>% 
     dplyr::filter(`Indicator Sector` %in% sc) %>%
-    dplyr::select(`Country Name`, `1990`:`2017-2021`, bm ) 
+    dplyr::select(`Country Name`, `1990`:`2020`, bm ) 
   
   # get type of benchmark to subset benchmark data by
+  # bm_type <- unique(temp[,bm]) %>% pull()
   bm_type <- unique(temp[,bm])
   
   # remove columns that have all NA
   temp <- temp[,colSums(is.na(temp))<nrow(temp)]
-  temp <- temp %>% select(-`Country Name`, -bm)
+  temp <- temp %>% dplyr::select(-`Country Name`, -bm)
   
   # get years for benchmark 
   temp_bm <- infrasap::dat_bm %>%
@@ -97,24 +98,24 @@ get_last_year <- function(cn, sc, bm){
 scd_color_encode <- function(df, value, cn, bm) {
 
 df <- df %>%
-  mutate(!!col_sym_conv(value) := dplyr::case_when(
+  dplyr::mutate(!!col_sym_conv(value) := dplyr::case_when(
     # TRUE ~ "0",
-    (df %>% select(contains(cn))) >= (df %>% select(contains(bm))) & (`Type of Benchmark` == "Upper") ~ "3",
-    ((df %>% select(contains(cn))) >= ((df %>% select(contains(bm))) * 0.9) & (df %>% select(contains(cn))) < (df %>% select(contains(bm)))) & (`Type of Benchmark` == "Upper") ~ "2",
-    (df %>% select(contains(cn))) < ((df %>% select(contains(bm))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
+    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Upper") ~ "3",
+    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Upper") ~ "2",
+    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
     
-    (df %>% select(contains(cn))) <= (df %>% select(contains(bm))) & (`Type of Benchmark` == "Lower") ~ "3",
-    ((df %>% select(contains(cn))) <= ((df %>% select(contains(bm))) * 1.1) & (df %>% select(contains(cn))) > (df %>% select(contains(bm)))) & (`Type of Benchmark` == "Lower") ~ "2",
-    (df %>% select(contains(cn))) > ((df %>% select(contains(bm))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
+    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Lower") ~ "3",
+    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Lower") ~ "2",
+    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
     TRUE ~ "0"
   )
   ) %>% 
   # Fill NAs with grey color
-  mutate(!!col_sym_conv(value) := dplyr::case_when(
-    is.na(df %>% select(contains(cn))) ~ "0",
+  dplyr::mutate(!!col_sym_conv(value) := dplyr::case_when(
+    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
     TRUE ~ !!col_sym_conv(value)
   )) %>%
-  mutate(!!col_sym_conv(value) := !!col_sym_conv(value) %>% as.numeric())
+  dplyr::mutate(!!col_sym_conv(value) := !!col_sym_conv(value) %>% as.numeric())
 
   return(df)
 
@@ -126,21 +127,21 @@ get_year_scd <- function(cn, bm, year_position = NULL){
 
   # get data based on inputs
   temp <- infrasap::scd_dat %>% 
-    filter(`Country Name`%in% cn) %>%
+    dplyr::filter(`Country Name`%in% cn) %>%
     # filter(`Indicator Sector` %in% sc) %>%
-    select(`1990`:`2017-2021`)
+    dplyr::select(`1990`:`2017-2021`)
 
   # remove columns that have all NA
-  temp <- temp[,colSums(is.na(temp))<nrow(temp)]
+  temp <- temp[,colSums(is.na(temp)) < nrow(temp)]
   
   # benchmark data 
   temp_bm <- infrasap::scd_bm %>% 
-    filter(Grouping %in% bm) 
+    dplyr::filter(Grouping %in% bm) 
   # %>%
   #   filter(Sector %in% "Energy") 
   
   # remove columns that have all NA
-  temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
+  temp_bm <- temp_bm[,colSums(is.na(temp_bm)) < nrow(temp_bm)]
   
   # get intersection of years to populate year input
   year_choices <- intersect(names(temp), names(temp_bm))
@@ -153,10 +154,10 @@ get_year_scd <- function(cn, bm, year_position = NULL){
   
   if(is.null(bm)){
     without_bm <- infrasap::scd_dat %>% 
-      filter(`Country Name`%in% cn) %>%
+      dplyr::filter(`Country Name`%in% cn) %>%
       # filter(`Indicator Sector` %in% sc) %>%
-      select(`1990`:`2017-2021`)
-    without_bm <- without_bm[,colSums(is.na(without_bm))<nrow(without_bm)]
+      dplyr::select(`1990`:`2017-2021`)
+    without_bm <- without_bm[,colSums(is.na(without_bm)) < nrow(without_bm)]
     
     if(!is.null(year_position)) {
       year_choices <- as.character(without_bm %>% colnames() %>% as.numeric() %>% max(., na.rm = TRUE))
@@ -200,23 +201,23 @@ country_to_compare_scd <- function(countryName, available_years_in_use, df_years
     dplyr::filter(`Country Name` == countryName) %>%
     # dplyr::filter(`Indicator Sector` %in% sc) %>%
     dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
-    left_join(df_years_col, by=c("Indicator Name"))
+    dplyr::left_join(df_years_col, by=c("Indicator Name"))
   
   
-  temp <- map(1:length(available_years_in_use), function(b){
+  temp <- purrr::map(1:length(available_years_in_use), function(b){
     df_cn <<- df_cn %>%
-      mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(str_glue("{available_years_in_use[b]}")), year_pop)
+      dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}")), year_pop)
       )
   })[length(available_years_in_use)]
   
   df_cn <- temp %>% data.frame()
   
-  df_cn <- df_cn %>% dplyr::select(-contains(available_years_in_use)) %>%
-    rename(
+  df_cn <- df_cn %>% dplyr::select(-dplyr::contains(available_years_in_use)) %>%
+    dplyr::rename(
       `Country Name` = Country.Name,
       `Indicator Name` = Indicator.Name
     )  %>%
-    pivot_wider(
+    tidyr::pivot_wider(
       names_from = `Country Name`,
       values_from = year_pop
     )

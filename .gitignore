@@ -5,5 +5,4 @@
 .DS_Store
 data-raw/*
 df.rda
-data/*
 rsconnect/*
