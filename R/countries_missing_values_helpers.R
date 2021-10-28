@@ -69,6 +69,7 @@ get_last_year <- function(cn, sc, bm){
     dplyr::select(`Country Name`, `1990`:`2020`, bm ) 
   
   # get type of benchmark to subset benchmark data by
+  # bm_type <- unique(temp[,bm]) %>% pull()
   bm_type <- unique(temp[,bm])
   
   # remove columns that have all NA

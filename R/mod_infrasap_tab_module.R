@@ -299,6 +299,12 @@ mod_infrasap_tab_module_server <- function(id){
       yr <- input$db_year
       pi <- input$db_pillar
       
+      # cn <- "Kenya"
+      # sc <- c("National", "Energy")
+      # bm <- "Region"
+      # yr <- "Latest year availbale"
+      # pi <- "Connectivity"
+      
       # add national automatically to sector (as in the excel tool)
       sc <- c(sc, 'National')
       if(is.null(yr)){

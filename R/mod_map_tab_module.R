@@ -68,7 +68,7 @@ mod_map_tab_module_ui <- function(id){
       fluidRow(
         column(12, 
                align = 'center',
-               leafletOutput(ns('world_map'), height = 700, width = 1000) %>% shinycssloaders::withSpinner(type = 7, color = "#28323d")
+               leafletOutput(ns('world_map'), height = 700, width = 1000) %>% withSpinner(type = 7, color = "#28323d")
         )
       )
     )
@@ -93,16 +93,16 @@ mod_map_tab_module_server <- function(id){
       if(rn == 'Entire World'){
         # subset data to get indicator 
         df <- infrasap::dat %>%
-          dplyr::filter(`Indicator Sector` %in% sc) %>%
-          dplyr::select(`Indicator Name`, yr) %>% 
-          tidyr::drop_na()
+          filter(`Indicator Sector` %in% sc) %>%
+          select(`Indicator Name`, yr) %>% 
+          drop_na()
       } else {
         # subset data to get indicator 
         df <- infrasap::dat %>%
-          dplyr::filter(`Indicator Sector` %in% sc) %>%
-          dplyr::filter(Region == rn) %>%
-          dplyr::select(`Indicator Name`, yr) %>% 
-          tidyr::drop_na()
+          filter(`Indicator Sector` %in% sc) %>%
+          filter(Region == rn) %>%
+          select(`Indicator Name`, yr) %>% 
+          drop_na()
       }
       ic_choices <- sort(unique(df$`Indicator Name`))
       fluidRow(
@@ -131,23 +131,23 @@ mod_map_tab_module_server <- function(id){
       } else {
         if(rn == 'Entire World'){
           # for now just visualize entire world 
-          df <- dat %>% dplyr::filter(`Indicator Name`== ic) %>% 
-            dplyr::filter(`Indicator Sector` %in% sc) %>%
-            dplyr::select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
+          df <- dat %>% filter(`Indicator Name`== ic) %>% 
+            filter(`Indicator Sector` %in% sc) %>%
+            select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
         } else {
           # for now just visualize entire world 
-          df <- dat %>% dplyr::filter(`Indicator Name`== ic) %>% 
-            dplyr::filter(`Indicator Sector` %in% sc) %>%
-            dplyr::filter(Region == rn) %>%
-            dplyr::select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
+          df <- dat %>% filter(`Indicator Name`== ic) %>% 
+            filter(`Indicator Sector` %in% sc) %>%
+            filter(Region == rn) %>%
+            select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
         }
         
         
         if(nrow(df)==0){
-          world_map <- leaflet::leaflet(options = leaflet::leafletOptions(minZoom = 1,
+          world_map <- leaflet(options = leafletOptions(minZoom = 1,
                                                         maxZoom = 10)) %>%
-            leaflet::addProviderTiles('CartoDB.VoyagerNoLabels') %>%
-            leaflet::setView(lat=0, lng=0 , zoom=1.7)
+            addProviderTiles('CartoDB.VoyagerNoLabels') %>%
+            setView(lat=0, lng=0 , zoom=1.7)
         } else {
           # join with shp files
           map@data <- map@data %>% dplyr::left_join(df, by = c('ISO_A3'= 'Country Code'))
@@ -155,13 +155,13 @@ mod_map_tab_module_server <- function(id){
           
           
           # get region location (from manually created data in "create_data.R" file in data-raw folder)
-          loc <- infrasap::map_location %>% dplyr::filter(region == rn)
+          loc <- infrasap::map_location %>% filter(region == rn)
           lat <- loc$lat
           lon <- loc$lon
           zoom_level <- loc$zoom
           
           # generate map
-          map_palette <- colorNumeric(palette = RColorBrewer::brewer.pal(11, "Greens"), domain=map@data$value, na.color="transparent")
+          map_palette <- colorNumeric(palette = brewer.pal(11, "Greens"), domain=map@data$value, na.color="transparent")
           map_text <- paste(
             "Indicator: ",  ic,"<br>",
             "Country: ", as.character(map@data$`Country Name`),"<br/>",
@@ -170,16 +170,16 @@ mod_map_tab_module_server <- function(id){
             sep="") %>%
             lapply(htmltools::HTML)
           
-          world_map <- leaflet::leaflet(map, options = leaflet::leafletOptions(minZoom = 1, maxZoom = 10, preferCanvas = TRUE)) %>%
-            leaflet::addProviderTiles('Esri.WorldShadedRelief') %>%
-            leaflet::addPolygons(
+          world_map <- leaflet(map, options = leafletOptions(minZoom = 1, maxZoom = 10, preferCanvas = TRUE)) %>%
+            addProviderTiles('Esri.WorldShadedRelief') %>%
+            addPolygons(
               color = 'black',
               fillColor = ~map_palette(value),
               stroke=TRUE,
               fillOpacity = 0.9,
               weight=1,
               label = map_text,
-              highlightOptions = leaflet::highlightOptions(
+              highlightOptions = highlightOptions(
                 weight = 1,
                 fillColor = 'white',
                 fillOpacity = 1,
@@ -188,14 +188,14 @@ mod_map_tab_module_server <- function(id){
                 bringToFront = TRUE,
                 sendToBack = TRUE
               ),
-              labelOptions = leaflet::labelOptions(
+              labelOptions = labelOptions(
                 noHide = FALSE,
                 style = list("font-weight" = "normal", padding = "3px 8px"),
                 textsize = "13px",
                 direction = "auto"
               )
-            ) %>% leaflet::setView(lat=lat, lng=lon , zoom=zoom_level) %>%
-            leaflet::addLegend(pal=map_palette, title = yr, values=~value, opacity=0.9, position = "bottomleft", na.label = "NA" )
+            ) %>% setView(lat=lat, lng=lon , zoom=zoom_level) %>%
+            addLegend(pal=map_palette, title = yr, values=~value, opacity=0.9, position = "bottomleft", na.label = "NA" )
         }
         world_map
       }
@@ -204,7 +204,7 @@ mod_map_tab_module_server <- function(id){
     
     
     # MAP
-    output$world_map <- leaflet::renderLeaflet({
+    output$world_map <- renderLeaflet({
       
       mapToShow()
       
@@ -221,9 +221,9 @@ mod_map_tab_module_server <- function(id){
     observe({
       req(input$world_ind, input$world_region, input$world_sector, input$world_year)
       
-      map_title$ic_name_map <- as.character(stringr::str_replace_all(string = input$world_ind, pattern = " ", replacement = "_"))
-      map_title$ic_name_region <- as.character(stringr::str_replace_all(string = input$world_region, pattern = " ", replacement = "_"))
-      map_title$ic_name_sector <- as.character(stringr::str_replace_all(string = input$world_sector, pattern = " ", replacement = "_"))
+      map_title$ic_name_map <- as.character(str_replace_all(string = input$world_ind, pattern = " ", replacement = "_"))
+      map_title$ic_name_region <- as.character(str_replace_all(string = input$world_region, pattern = " ", replacement = "_"))
+      map_title$ic_name_sector <- as.character(str_replace_all(string = input$world_sector, pattern = " ", replacement = "_"))
       map_title$ic_name_year <- as.character(input$world_year)
       
     })
@@ -231,7 +231,7 @@ mod_map_tab_module_server <- function(id){
     
     filenameReact <- reactive({
       rr <- tags$div(
-        HTML(as.character(stringr::str_glue('<h4 style="margin: 0;">{input$world_ind}</h4> 
+        HTML(as.character(str_glue('<h4 style="margin: 0;">{input$world_ind}</h4> 
                                     <h6 style="margin: 0;">Region: {input$world_region}</h6>
                                     <h6 style="margin: 0;">Sector: {input$world_sector}</h6>
                                     <h6 style="margin: 0;">Year: {input$world_year}</h6>')
@@ -239,14 +239,14 @@ mod_map_tab_module_server <- function(id){
              )
       )
       
-      mapToShow() %>% leaflet::addControl(rr, position = "topleft")
+      mapToShow() %>% addControl(rr, position = "topleft")
       
     })
     
     
     output$downloadMap <- downloadHandler(
       filename =  function() {
-        as.character(stringr::str_glue("{map_title$ic_name_map}.png"))
+        as.character(str_glue("{map_title$ic_name_map}.png"))
       },
       
       content = function(file) {
