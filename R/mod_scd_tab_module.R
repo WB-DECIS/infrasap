@@ -81,7 +81,7 @@ mod_scd_tab_module_server <- function(id){
       cn <- input$scd_country
       
       # get benchmark info for country selected
-      bm_choices<- infrasap::scd_dat %>%
+      bm_cn<- infrasap::scd_dat %>%
         filter(`Country Name` == cn) %>%
         select(4:12) %>%
         distinct() %>%
@@ -92,12 +92,16 @@ mod_scd_tab_module_server <- function(id){
       # only keep choices that have corresponding data on in benchmarks
       bm <- sort(unique(scd_bm$Grouping))
       
-      bm_choices <- intersect(bm_choices, bm)
+      # bm_choices <- intersect(bm_choices, bm)
+      
+      # keep only regional and income group benchmarks 
+      bm_keep <- 'East Asia & Pacific|Europe & Central Asia|Latin America & Caribbean|Middle East & North Africa|North America|South Asia|Sub-Saharan Africa|High income|Low income|Lower middle income|Upper middle income'
+      bm_choices <- bm[grepl(bm_keep, bm)]
       
       selectizeInput(inputId = ns('scd_benchmark'),
                      label = 'Select a benchmark',
                      choices = bm_choices,
-                     selected = bm_choices[1],
+                     selected = bm_cn[1],
                      multiple = TRUE,
                      options = list(
                        'plugins' = list('remove_button'),
