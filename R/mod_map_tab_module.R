@@ -257,7 +257,7 @@ mod_map_tab_module_server <- function(id){
             shiny::incProgress(1/10)
             Sys.sleep(1)
             shiny::incProgress(5/10)
-            mapview::mapshot(filenameReact(), file = file)
+            # mapview::mapshot(filenameReact(), file = file)
           }
         )
       }

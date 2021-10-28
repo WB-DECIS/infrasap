@@ -18,7 +18,6 @@
 #' @import purrr
 #' @import rlang
 #' @import stringr
-#' @import mapview
 #' @import sjmisc
 #' @import stringi
 #' @import shinycssloaders

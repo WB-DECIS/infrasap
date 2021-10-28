@@ -25,7 +25,6 @@ Imports:
     shinydashboard,
     tidyr,
     stringr,
-    mapview,
     sjmisc,
     shinycssloaders,
     pkgload
