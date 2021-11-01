@@ -14,7 +14,7 @@ mod_map_tab_module_ui <- function(id){
       column(3, 
              selectInput(inputId = ns('world_sector'), 
                          label = 'Select a Sector',
-                         choices = sort(unique(dat$`Indicator Sector`))[sort(unique(dat$`Indicator Sector`)) != 'National'],
+                         choices = sort(unique(dat$`Indicator Sector`)),
                          selected = 'Energy'
                          )
              ),
@@ -86,7 +86,6 @@ mod_map_tab_module_server <- function(id){
     # ui for world ind
     output$world_ind_ui <- renderUI({
       sc <- input$world_sector
-      sc <- c(sc, 'National')
       yr <- input$world_year
       rn <- input$world_region
       
@@ -109,7 +108,7 @@ mod_map_tab_module_server <- function(id){
         selectInput(inputId = ns('world_ind'), 
                     'Select an Indicator',
                     choices =ic_choices,
-                    selected = ic_choices[1])
+                    selected = 'Access to electricity (% of population)')
       )
     })
     
@@ -119,7 +118,6 @@ mod_map_tab_module_server <- function(id){
       
       # these countries dont have corresponding shape file, likely because of names: "South Sudan", "Curacao", "Sint Maarten (Dutch part)", "Kosovo","Channel Islands" 
       sc <- input$world_sector
-      sc <- c(sc, 'National')
       yr <- input$world_year
       rn <- input$world_region
       ic <- input$world_ind
@@ -147,7 +145,13 @@ mod_map_tab_module_server <- function(id){
           world_map <- leaflet(options = leafletOptions(minZoom = 1,
                                                         maxZoom = 10)) %>%
             addProviderTiles('CartoDB.VoyagerNoLabels') %>%
-            setView(lat=0, lng=0 , zoom=1.7)
+            setView(lat=0, lng=0 , zoom=1.7) %>%
+            onRender(
+              "function(el, x) {
+          L.control.zoom({
+            position:'bottomright'
+          }).addTo(this);
+        }")
         } else {
           # join with shp files
           map@data <- map@data %>% dplyr::left_join(df, by = c('ISO_A3'= 'Country Code'))
@@ -197,7 +201,14 @@ mod_map_tab_module_server <- function(id){
             ) %>% setView(lat=lat, lng=lon , zoom=zoom_level) %>%
             addLegend(pal=map_palette, title = yr, values=~value, opacity=0.9, position = "bottomleft", na.label = "NA" )
         }
-        world_map
+        world_map %>% htmlwidgets::onRender(
+                                      "function(el, x) {
+                                        L.control.zoom({
+                                          position:'bottomright'
+                                        }).addTo(this);
+                                       }
+                                      "
+                                    )
       }
       
     })

@@ -24,6 +24,7 @@ mod_infrasap_tab_module_ui <- function(id){
                  selectInput(inputId = ns('db_sector'),
                              label = 'Select sector',
                              choices = c('Energy', 
+                                         'National',
                                          'Digital Development',
                                          'Transport'),
                              selected = 'Energy')
@@ -111,7 +112,6 @@ mod_infrasap_tab_module_server <- function(id){
       bm <- input$db_benchmark
       
       # add national automatically to sector (as in the excel tool)
-      sc <- c(sc, 'National')
       if(is.null(bm)){
         NULL
       } else {
@@ -229,8 +229,7 @@ mod_infrasap_tab_module_server <- function(id){
       req(input$db_country)
       
       sc <- input$db_sector
-      sc <- c(sc, "National")
-      
+
       regionF <- dat %>%
         dplyr::filter(`Country Name` == input$db_country) %>% dplyr::select(Region) %>% dplyr::distinct() %>% dplyr::pull()
       
@@ -249,8 +248,7 @@ mod_infrasap_tab_module_server <- function(id){
     output$countriestc <- renderUI({
       req(countriesOptionsInput())
       sc <- input$db_sector
-      sc <- c(sc, "National")
-      
+
       countryList <- infrasap::dat %>%
         dplyr::filter(`Indicator Sector` %in% sc) %>%
         dplyr::filter(`Indicator Pillar` == input$db_pillar) %>%
@@ -306,7 +304,6 @@ mod_infrasap_tab_module_server <- function(id){
       # pi <- "Connectivity"
       
       # add national automatically to sector (as in the excel tool)
-      sc <- c(sc, 'National')
       if(is.null(yr)){
         NULL
       } else {

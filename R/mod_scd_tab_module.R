@@ -82,6 +82,7 @@ mod_scd_tab_module_server <- function(id){
       
       # get benchmark info for country selected
       bm_cn<- infrasap::scd_dat %>%
+        # filter(`Country Name` == "Kenya") %>%
         filter(`Country Name` == cn) %>%
         select(4:12) %>%
         distinct() %>%
@@ -98,10 +99,15 @@ mod_scd_tab_module_server <- function(id){
       bm_keep <- 'East Asia & Pacific|Europe & Central Asia|Latin America & Caribbean|Middle East & North Africa|North America|South Asia|Sub-Saharan Africa|High income|Low income|Lower middle income|Upper middle income'
       bm_choices <- bm[grepl(bm_keep, bm)]
       
+      # Check after deployment (Sometimes AWS )
+      bm_choices <- list("Region" = bm_choices[!str_detect(bm_choices, 'income')],
+        "Income Groups" = bm_choices[str_detect(bm_choices, 'income')])
+      
       selectizeInput(inputId = ns('scd_benchmark'),
                      label = 'Select a benchmark',
                      choices = bm_choices,
-                     selected = bm_cn[1],
+                     # selected = bm_cn[1],
+                     selected = bm_choices[[1]][1],
                      multiple = TRUE,
                      options = list(
                        'plugins' = list('remove_button'),
@@ -125,7 +131,8 @@ mod_scd_tab_module_server <- function(id){
       } else {
         # get country data
         df <- infrasap::scd_dat %>% 
-          filter(`Country Name`== cn) %>% 
+          # filter(`Country Name`== "Kenya") %>% 
+          filter(`Country Name`== cn) %>%
           # filter(`Indicator Sector` %in% sc) %>%
           select(`Country Name`,`Indicator Name`,`1990`:`2020`) %>% 
           gather(key = 'key', value = 'value',-`Indicator Name`, -`Country Name`) %>% 
@@ -216,6 +223,10 @@ mod_scd_tab_module_server <- function(id){
       cn <- input$scd_country
       bm <- input$scd_benchmark
       cc <- input$scd_countries
+      
+      # cn <- "Kenya"
+      # bm <- "East Asia & Pacific"
+      # cc <- "Angola"
       
       yr <- as.character(get_year_scd(cn = cn, bm = bm, year_position = "last"))
       
@@ -345,20 +356,28 @@ mod_scd_tab_module_server <- function(id){
       
       
       if((!is.null(cc)) && (length(cc) > 0)){
+        # map(1:length(cc), function(x){
         map(1:length(input$scd_countries), function(x){
           df <<- scd_color_encode(df = df, 
                                   value = str_glue('value_c{x}'), 
-                                  cn = input$scd_country, 
-                                  bm = input$scd_countries[x])
+                                  cn = input$scd_country,
+                                  bm = input$scd_countries[x]
+                                  # cn = cn, 
+                                  # bm = bm[x]
+                                  )
         })
       }
       
       if((!is.null(bm)) && (length(bm) > 0)){
+        # map(1:length(bm), function(x){
         map(1:length(input$scd_benchmark), function(x){
           df <<- scd_color_encode(df = df, 
                                   value = str_glue('value_b{x}'), 
-                                  cn = input$scd_country, 
-                                  bm = input$scd_benchmark[x])
+                                  cn = input$scd_country,
+                                  bm = input$scd_benchmark[x]
+                                  # cn = cn, 
+                                  # bm = bm[x]
+                                  )
         })
       }
       
@@ -374,7 +393,16 @@ mod_scd_tab_module_server <- function(id){
       df <- df %>% full_join(df_ind, by = c("Indicator" = "Indicator Name"))
       df <- df %>% 
               select(year_tooltip, `grouping`, everything()) %>%
-              arrange(`grouping`)
+              arrange(factor(`grouping`, 
+                             levels = c('Economic Linkages', 
+                                        'Poverty and Equity', 
+                                        'Quality of Infrastructure', 
+                                        'Governance', 
+                                        'Finance', 
+                                        'Climate change')
+                             ))
+              # arrange(`grouping`)
+      
       
       return(df)
       
@@ -389,6 +417,8 @@ mod_scd_tab_module_server <- function(id){
       df <- table_reactive()
       
       hiddenColNum <- c()
+      
+      # print(df)
       
       if(!is.null(bm)){
         map(1:length(input$scd_benchmark), function(x){
@@ -413,6 +443,7 @@ mod_scd_tab_module_server <- function(id){
                               extensions = 'Buttons',
                               escape=FALSE,
                               options = list(pageLength = nrow(df),
+                                             ordering = FALSE,
                                              rowCallback = JS(
                                                "function(row, data) {",
                                                "var full_text = 'This row values extracted from ' + data[0] +  ' year'",
