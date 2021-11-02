@@ -391,17 +391,18 @@ mod_scd_tab_module_server <- function(id){
       b <- infrasap::scd_bm %>% select(`Indicator`) %>% distinct()
       df_ind <- a %>% full_join(b, by = c("Indicator Name" = "Indicator"))
       df <- df %>% full_join(df_ind, by = c("Indicator" = "Indicator Name"))
+      
+      
       df <- df %>% 
               select(year_tooltip, `grouping`, everything()) %>%
-              arrange(factor(`grouping`, 
-                             levels = c('Economic Linkages', 
-                                        'Poverty and Equity', 
-                                        'Quality of Infrastructure', 
-                                        'Governance', 
-                                        'Finance', 
-                                        'Climate change')
-                             ))
-              # arrange(`grouping`)
+              mutate(`grouping` = forcats::as_factor(`grouping`)) %>%
+              mutate(`grouping` = forcats::lvls_revalue(`grouping`, c('Economic Linkages',
+                                                                    'Poverty and Equity',
+                                                                    'Quality of Infrastructure',
+                                                                    'Governance',
+                                                                    'Finance',
+                                                                    'Climate change'))) %>%
+              arrange(`grouping`)
       
       
       return(df)
@@ -434,7 +435,31 @@ mod_scd_tab_module_server <- function(id){
       
       hiddenColNum <- hiddenColNum-1
       
-      df <- df %>% mutate(across(where(is.numeric), ~round(., 2)))
+      df <- df %>% mutate(across(where(is.numeric), ~round(., 2))) 
+                # %>%
+                # arrange(factor(`grouping`, 
+                #                levels = c('Economic Linkages', 
+                #                           'Poverty and Equity', 
+                #                           'Quality of Infrastructure', 
+                #                           'Governance', 
+                #                           'Finance', 
+                #                           'Climate change')
+                # ))
+      
+      # print(
+      #   factor(df$`grouping`, 
+      #          levels = c('Economic Linkages', 
+      #                     'Poverty and Equity', 
+      #                     'Quality of Infrastructure', 
+      #                     'Governance', 
+      #                     'Finance', 
+      #                     'Climate change')
+      #   )
+      # )
+      # 
+      # print(df)
+      
+      
       
       
       # datatable(df) 
