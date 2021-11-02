@@ -104,6 +104,22 @@ mod_infrasap_tab_module_server <- function(id){
       
     })
     
+    observeEvent(input$db_sector, {
+      if(input$db_sector == 'National') {
+        updateSelectInput(session,
+                          'db_pillar',
+                          choices = c('Finance')
+                          )
+      } else {
+        updateSelectInput(session,
+                          'db_pillar',
+                          choices = c('Connectivity', 'Finance', 'Governance'),
+                          selected = selected_vals$db_pillar_name
+        )
+      }
+
+    })
+    
     # Update year field data according to selections in the other fields
     observe({
       
@@ -783,6 +799,80 @@ mod_infrasap_tab_module_server <- function(id){
             df <- df %>% dplyr::mutate(year_tooltip_b = year_tooltip) %>% dplyr::select(-year_tooltip) %>% dplyr::rename(year_tooltip = year_tooltip_b)
             
             
+            if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
+              df <- df %>%
+                arrange(
+                  factor(`Sub-Pillar`, 
+                         levels = c('Project Lifecycle', 
+                                    'Cross cutting Principles', 
+                                    'Market Structure', 
+                                    'SOE capacity', 
+                                    'Finance', 
+                                    'Climate change'
+                         )
+                  ),
+                  factor(`Topic`, 
+                         levels = c('Planning, Preparation, Selection', 
+                                    'Economic efficiency and Value for Money', 
+                                    'Fiscal Sustainability', 
+                                    'Procurement', 
+                                    'Contract Management and O&M', 
+                                    'Environmental and Social Considerations',
+                                    'Resilience and Climate Change',
+                                    'Transparency',
+                                    'Integrity',
+                                    'Market Contestability',
+                                    'Sector regulation',
+                                    'Corporate Governance',
+                                    'Financial Discipline',
+                                    'Human Resources',
+                                    'Information and Technology'
+                         )
+                  )
+                )
+            }
+            
+            if(input$db_sector %in% c('Energy', 'Digital Development') && input$db_pillar %in% c('Connectivity')) {
+              
+              df <- df %>%
+                arrange(factor(`Sub-Pillar`, 
+                               levels = c('Access to Service', 
+                                          'Tariffs', 
+                                          'Service Quality', 
+                                          'Environmental Sustainability')
+                ),
+                factor(`Topic`, 
+                       levels = c('Service Coverage', 
+                                  'Service Uptake', 
+                                  'Efficiency', 
+                                  'Retail tariffs',
+                                  'Wholesale Tariffs',
+                                  'Reliability', 
+                                  'Carbon Footprint',
+                                  'Environment Footprint'
+                       )
+                )
+                )
+            }
+            
+            
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
+              
+              df <- df %>%
+                arrange(factor(`Sub-Pillar`, 
+                               levels = c('Budget Expenditure', 
+                                          'International Finance')
+                ),
+                factor(`Topic`, 
+                       levels = c('Budget Allocation', 
+                                  'Budget Execution', 
+                                  'Off-Taker Risk',
+                                  'PPP Financing Constraints'
+                       )
+                )
+                )
+            }
+            
             
             return(df)
  
@@ -1131,6 +1221,79 @@ mod_infrasap_tab_module_server <- function(id){
             df[[cn]] <- round(df[[cn]], 2)
             df[[bm]] <- round(df[[bm]], 2)
             
+            if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
+              df <- df %>%
+                arrange(
+                  factor(`Sub-Pillar`, 
+                         levels = c('Project Lifecycle', 
+                                    'Cross cutting Principles', 
+                                    'Market Structure', 
+                                    'SOE capacity', 
+                                    'Finance', 
+                                    'Climate change'
+                         )
+                  ),
+                  factor(`Topic`, 
+                         levels = c('Planning, Preparation, Selection', 
+                                    'Economic efficiency and Value for Money', 
+                                    'Fiscal Sustainability', 
+                                    'Procurement', 
+                                    'Contract Management and O&M', 
+                                    'Environmental and Social Considerations',
+                                    'Resilience and Climate Change',
+                                    'Transparency',
+                                    'Integrity',
+                                    'Market Contestability',
+                                    'Sector regulation',
+                                    'Corporate Governance',
+                                    'Financial Discipline',
+                                    'Human Resources',
+                                    'Information and Technology'
+                         )
+                  )
+                )
+            }
+            
+            if(input$db_sector %in% c('Energy', 'Digital Development') && input$db_pillar %in% c('Connectivity')) {
+              
+              df <- df %>%
+                arrange(factor(`Sub-Pillar`, 
+                               levels = c('Access to Service', 
+                                          'Tariffs', 
+                                          'Service Quality', 
+                                          'Environmental Sustainability')
+                ),
+                factor(`Topic`, 
+                       levels = c('Service Coverage', 
+                                  'Service Uptake', 
+                                  'Efficiency', 
+                                  'Retail tariffs',
+                                  'Wholesale Tariffs',
+                                  'Reliability', 
+                                  'Carbon Footprint',
+                                  'Environment Footprint'
+                       )
+                )
+                )
+            }
+            
+            
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
+              
+              df <- df %>%
+                arrange(factor(`Sub-Pillar`, 
+                               levels = c('Budget Expenditure', 
+                                          'International Finance')
+                ),
+                factor(`Topic`, 
+                       levels = c('Budget Allocation', 
+                                  'Budget Execution', 
+                                  'Off-Taker Risk',
+                                  'PPP Financing Constraints'
+                       )
+                )
+                )
+            }
             
             return(df)
             
@@ -1457,6 +1620,80 @@ mod_infrasap_tab_module_server <- function(id){
             
             df <- dplyr::full_join(df_r, df_i)
             
+            if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
+              df <- df %>%
+                arrange(
+                  factor(`Sub-Pillar`, 
+                         levels = c('Project Lifecycle', 
+                                    'Cross cutting Principles', 
+                                    'Market Structure', 
+                                    'SOE capacity', 
+                                    'Finance', 
+                                    'Climate change'
+                         )
+                  ),
+                  factor(`Topic`, 
+                         levels = c('Planning, Preparation, Selection', 
+                                    'Economic efficiency and Value for Money', 
+                                    'Fiscal Sustainability', 
+                                    'Procurement', 
+                                    'Contract Management and O&M', 
+                                    'Environmental and Social Considerations',
+                                    'Resilience and Climate Change',
+                                    'Transparency',
+                                    'Integrity',
+                                    'Market Contestability',
+                                    'Sector regulation',
+                                    'Corporate Governance',
+                                    'Financial Discipline',
+                                    'Human Resources',
+                                    'Information and Technology'
+                         )
+                  )
+                )
+            }
+            
+            if(input$db_sector %in% c('Energy', 'Digital Development') && input$db_pillar %in% c('Connectivity')) {
+              
+              df <- df %>%
+                arrange(factor(`Sub-Pillar`, 
+                               levels = c('Access to Service', 
+                                          'Tariffs', 
+                                          'Service Quality', 
+                                          'Environmental Sustainability')
+                ),
+                factor(`Topic`, 
+                       levels = c('Service Coverage', 
+                                  'Service Uptake', 
+                                  'Efficiency', 
+                                  'Retail tariffs',
+                                  'Wholesale Tariffs',
+                                  'Reliability', 
+                                  'Carbon Footprint',
+                                  'Environment Footprint'
+                       )
+                )
+                )
+            }
+            
+            
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
+              
+              df <- df %>%
+                arrange(factor(`Sub-Pillar`, 
+                               levels = c('Budget Expenditure', 
+                                          'International Finance')
+                ),
+                factor(`Topic`, 
+                       levels = c('Budget Allocation', 
+                                  'Budget Execution', 
+                                  'Off-Taker Risk',
+                                  'PPP Financing Constraints'
+                       )
+                )
+                )
+            }
+            
             
             return(df)
             
@@ -1706,6 +1943,80 @@ mod_infrasap_tab_module_server <- function(id){
             # round numbers
             df[[cn]] <- round(df[[cn]], 2)
             df[[bm]] <- round(df[[bm]], 2)
+            
+            if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
+              df <- df %>%
+                arrange(
+                  factor(`Sub-Pillar`, 
+                         levels = c('Project Lifecycle', 
+                                    'Cross cutting Principles', 
+                                    'Market Structure', 
+                                    'SOE capacity', 
+                                    'Finance', 
+                                    'Climate change'
+                                    )
+                  ),
+                  factor(`Topic`, 
+                         levels = c('Planning, Preparation, Selection', 
+                                    'Economic efficiency and Value for Money', 
+                                    'Fiscal Sustainability', 
+                                    'Procurement', 
+                                    'Contract Management and O&M', 
+                                    'Environmental and Social Considerations',
+                                    'Resilience and Climate Change',
+                                    'Transparency',
+                                    'Integrity',
+                                    'Market Contestability',
+                                    'Sector regulation',
+                                    'Corporate Governance',
+                                    'Financial Discipline',
+                                    'Human Resources',
+                                    'Information and Technology'
+                         )
+                  )
+                )
+            }
+            
+            if(input$db_sector %in% c('Energy', 'Digital Development') && input$db_pillar %in% c('Connectivity')) {
+              
+              df <- df %>%
+                arrange(factor(`Sub-Pillar`, 
+                               levels = c('Access to Service', 
+                                          'Tariffs', 
+                                          'Service Quality', 
+                                          'Environmental Sustainability')
+                        ),
+                        factor(`Topic`, 
+                               levels = c('Service Coverage', 
+                                          'Service Uptake', 
+                                          'Efficiency', 
+                                          'Retail tariffs',
+                                          'Wholesale Tariffs',
+                                          'Reliability', 
+                                          'Carbon Footprint',
+                                          'Environment Footprint'
+                               )
+                        )
+                )
+            }
+            
+            
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
+              
+              df <- df %>%
+                arrange(factor(`Sub-Pillar`, 
+                               levels = c('Budget Expenditure', 
+                                          'International Finance')
+                ),
+                factor(`Topic`, 
+                       levels = c('Budget Allocation', 
+                                  'Budget Execution', 
+                                  'Off-Taker Risk',
+                                  'PPP Financing Constraints'
+                       )
+                )
+                )
+            }
             
             return(df)
             
