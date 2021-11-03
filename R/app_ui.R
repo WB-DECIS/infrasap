@@ -22,7 +22,8 @@
 #' @import sjmisc
 #' @import stringi
 #' @import shinycssloaders
-#' 
+#' @import haven
+#' @import forcats
 
 
 options(DT.options = list(pageLength = 20))

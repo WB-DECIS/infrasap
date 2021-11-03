@@ -131,7 +131,6 @@ mod_indicator_trend_tab_module_server <- function(id){
                    input$country_ports
                    # ,
                    # input$data_benchmarks
-                   
                    # input$data_sector
                    # input$data_country
                    # input$data_indicator
@@ -144,6 +143,17 @@ mod_indicator_trend_tab_module_server <- function(id){
                    ),{
       selected_vals$data_benchmarks_name <- input$data_benchmarks
       selected_vals$data_ports_name <- input$country_ports
+    })
+    
+    observeEvent(input$data_country, {
+      
+      
+      bn_selected_cir <- infrasap::dat_country_income_region %>%
+        filter(`Country Name` == input$data_country)
+      
+      updateSelectInput(session, "data_benchmarks",
+                        selected = c(bn_selected_cir$Region, bn_selected_cir$IncomeGroup)
+      )
     })
     
     
@@ -447,14 +457,35 @@ mod_indicator_trend_tab_module_server <- function(id){
         } else {
           # subset data by sector and year and remove NAs
           df <- infrasap::dat %>%
+            # dplyr::filter(`Country Name` == "Jordan") %>%
             dplyr::filter(`Country Name` == cn) %>%
-            dplyr::filter(`Indicator Sector` %in% sc) %>%
+            # dplyr::filter(`Indicator Sector` %in% c('Digital Development')) %>%
+            dplyr::filter(`Indicator Sector` %in% input$data_sector) %>%
             dplyr::select(Grouping = `Indicator Name`,`1990`:`2020`) %>%
             tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
             tidyr::drop_na()
           
+          df_national <- infrasap::dat %>%
+            # dplyr::filter(`Country Name` == "Jordan") %>%
+            dplyr::filter(`Country Name` == cn) %>%
+            dplyr::filter(`Indicator Sector` %in% c('National')) %>%
+            # dplyr::filter(`Indicator Sector` %in% sc) %>%
+            dplyr::select(Grouping = `Indicator Name`,`1990`:`2020`) %>%
+            tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
+            tidyr::drop_na()
+          
+          
           # get a unique list of indicators
-          ic <- sort(unique(df$Grouping))
+          ic_sc <- sort(unique(df$Grouping))
+          ic_national <- sort(unique(df_national$Grouping))
+          
+          ic <- list(
+            'Selected sector name' = ic_sc,
+            'National' = ic_national
+          )
+          
+          names(ic)[1] <- input$data_sector
+          
           fluidRow(
             column(12,
                    
@@ -473,7 +504,7 @@ mod_indicator_trend_tab_module_server <- function(id){
     # UI for benchmarks or countries depending on "data_compare_to" input
     output$data_benchmark_ui <- renderUI({
       sc <- input$data_sector
-      # sc <- c(sc, 'National')
+      sc <- c(sc, 'National')
       cn <- input$data_country
       ic <- input$data_indicator
       yr <- input$data_year
@@ -487,9 +518,10 @@ mod_indicator_trend_tab_module_server <- function(id){
           NULL
         } else {
           if(ct == 'Other benchmarks'){
+
             df <- infrasap::dat_bm %>%
               dplyr::filter(Indicator == ic) %>%
-              dplyr::filter(Sector == sc) %>%
+              dplyr::filter(Sector %in% sc) %>%
               dplyr::select(`Grouping`,`1990`:`2020`) %>%
               tidyr::gather(key = 'key', value = 'value',-`Grouping`) %>%
               tidyr::drop_na() %>%
@@ -498,14 +530,30 @@ mod_indicator_trend_tab_module_server <- function(id){
             # get unique list of benchmarks
             bn <- sort(unique(df$Grouping))
             
-            if(is.null(selected_vals$data_benchmarks_name)) {
-              bn_selected <- bn[c(7,8)]
-            } else {
-              bn_selected <- selected_vals$data_benchmarks_name
-            }
+            bn_selected_cir <- infrasap::dat_country_income_region %>%
+              filter(`Country Name` == input$data_country)
+            
+            # if(is.null(selected_vals$data_benchmarks_name)) {
+            #   bn_selected <- bn[c(7,8)]
+            # } else {
+            #   bn_selected <- selected_vals$data_benchmarks_name
+            # }
+            
             
             all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa","North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income","Upper middle income", "Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
             bn <- bn[order(match(bn, all_bn))]
+            
+            
+            bn <- list(
+              'Region' = all_bn[str_detect(all_bn,'Asia|America|Africa')],
+              'Income group' = all_bn[str_detect(all_bn,'income')],
+              'Exogenous' = all_bn[!str_detect(all_bn,'Asia|America|Africa|income')]
+            )
+            
+            
+            # bn_selected <- c(bn$Region[1], bn$`Income group`[1])
+            bn_selected <- c(bn_selected_cir$Region, bn_selected_cir$IncomeGroup)
+            
             fluidRow(
               column(12,
                      
@@ -648,7 +696,8 @@ mod_indicator_trend_tab_module_server <- function(id){
       # req(input$data_compare_to)
       # get sector and year
       sc <- input$data_sector
-      # sc <- c(sc, 'National')
+      sc <- c(sc, 'National')
+      
       cn <- input$data_country
       ic <- input$data_indicator
       yr <- input$data_year
@@ -749,7 +798,7 @@ mod_indicator_trend_tab_module_server <- function(id){
             df_bm <- infrasap::dat_bm %>%
               dplyr::filter(Indicator == ic) %>%
               # filter(Indicator == "Annual Deployed Capacity per Port") %>%
-              dplyr::filter(Sector == sc) %>%
+              dplyr::filter(Sector %in% sc) %>%
               # filter(Sector == 'Transport Port') %>%
               dplyr::filter(Grouping %in% bn) %>%
               # filter(Grouping %in% c("East Asia & Pacific", "Europe & Central Asia")) %>%
@@ -879,7 +928,8 @@ mod_indicator_trend_tab_module_server <- function(id){
         output$data_year_ui <- renderUI({
           # get sector and year
           sc <- input$data_sector
-          # sc <- c(sc, 'National')
+          sc <- c(sc, 'National')
+          
           cn <- input$data_country
           ic <- input$data_indicator
           cp <- input$country_ports
@@ -948,8 +998,9 @@ mod_indicator_trend_tab_module_server <- function(id){
         output$data_chart <- plotly::renderPlotly({
           ic <- input$data_indicator
           sc <- input$data_sector
+          sc <- c(sc, 'National')
+          
           cn <- input$data_country
-          # sc <- c(sc, 'National')
           df <- data_tab()
           # save(df, file = 'temp_ports.rda')
           
@@ -1155,7 +1206,6 @@ mod_indicator_trend_tab_module_server <- function(id){
           sc <- input$data_sector
           cn <- input$data_country
           
-          # sc <- c(sc, 'National')
           df <- data_tab()
           # save(df, sc, ic, file = 'temp_ports_2.rda')
           if(is.null(df)){
@@ -1336,7 +1386,6 @@ mod_indicator_trend_tab_module_server <- function(id){
       if(!ind_name %in% irf_indicators){
         output$data_table <- DT::renderDataTable({
           sector_name <- input$data_sector
-          # sector_name <- c(sector_name, 'National')
           df <- data_tab()
           if(is.null(df)){
             NULL
@@ -1424,7 +1473,6 @@ mod_indicator_trend_tab_module_server <- function(id){
     data_chart_download <- reactive({
       ic <- input$data_indicator
       sc <- input$data_sector
-      # sc <- c(sc, 'National')
       df <- data_tab()
       
       if(is.null(df)){

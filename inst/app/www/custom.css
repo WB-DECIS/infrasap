@@ -375,3 +375,18 @@ html, body {width:100%;height:100%}
     #controls{background-color:white;padding:20px;}
     .shiny-output-error { visibility: hidden; }
     .shiny-output-error:before { visibility: hidden; }
+    
+
+/* Map zoom controles hiiden top */
+.leaflet-left .leaflet-control-zoom {
+    visibility: hidden !important;
+}
+
+
+.selectize-dropdown .optgroup-header {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+
+
