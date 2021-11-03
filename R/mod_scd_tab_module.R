@@ -98,6 +98,8 @@ mod_scd_tab_module_server <- function(id){
       # keep only regional and income group benchmarks 
       bm_keep <- 'East Asia & Pacific|Europe & Central Asia|Latin America & Caribbean|Middle East & North Africa|North America|South Asia|Sub-Saharan Africa|High income|Low income|Lower middle income|Upper middle income'
       bm_choices <- bm[grepl(bm_keep, bm)]
+      bm_selected <- infrasap::dat_country_income_region %>%
+        filter(`Country Name` == input$scd_country)
       
       # Check after deployment (Sometimes AWS )
       bm_choices <- list("Region" = bm_choices[!str_detect(bm_choices, 'income')],
@@ -107,7 +109,8 @@ mod_scd_tab_module_server <- function(id){
                      label = 'Select a benchmark',
                      choices = bm_choices,
                      # selected = bm_cn[1],
-                     selected = bm_choices[[1]][1],
+                     # selected = bm_choices[[1]][1],
+                     selected = bm_selected$Region,
                      multiple = TRUE,
                      options = list(
                        'plugins' = list('remove_button'),
