@@ -131,7 +131,6 @@ mod_indicator_trend_tab_module_server <- function(id){
                    input$country_ports
                    # ,
                    # input$data_benchmarks
-                   
                    # input$data_sector
                    # input$data_country
                    # input$data_indicator
@@ -144,6 +143,17 @@ mod_indicator_trend_tab_module_server <- function(id){
                    ),{
       selected_vals$data_benchmarks_name <- input$data_benchmarks
       selected_vals$data_ports_name <- input$country_ports
+    })
+    
+    observeEvent(input$data_country, {
+      
+      
+      bn_selected_cir <- infrasap::dat_country_income_region %>%
+        filter(`Country Name` == input$data_country)
+      
+      updateSelectInput(session, "data_benchmarks",
+                        selected = c(bn_selected_cir$Region, bn_selected_cir$IncomeGroup)
+      )
     })
     
     
@@ -508,6 +518,7 @@ mod_indicator_trend_tab_module_server <- function(id){
           NULL
         } else {
           if(ct == 'Other benchmarks'){
+
             df <- infrasap::dat_bm %>%
               dplyr::filter(Indicator == ic) %>%
               dplyr::filter(Sector %in% sc) %>%
@@ -519,11 +530,15 @@ mod_indicator_trend_tab_module_server <- function(id){
             # get unique list of benchmarks
             bn <- sort(unique(df$Grouping))
             
-            if(is.null(selected_vals$data_benchmarks_name)) {
-              bn_selected <- bn[c(7,8)]
-            } else {
-              bn_selected <- selected_vals$data_benchmarks_name
-            }
+            bn_selected_cir <- infrasap::dat_country_income_region %>%
+              filter(`Country Name` == input$data_country)
+            
+            # if(is.null(selected_vals$data_benchmarks_name)) {
+            #   bn_selected <- bn[c(7,8)]
+            # } else {
+            #   bn_selected <- selected_vals$data_benchmarks_name
+            # }
+            
             
             all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa","North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income","Upper middle income", "Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
             bn <- bn[order(match(bn, all_bn))]
@@ -535,7 +550,9 @@ mod_indicator_trend_tab_module_server <- function(id){
               'Exogenous' = all_bn[!str_detect(all_bn,'Asia|America|Africa|income')]
             )
             
-            bn_selected <- c(bn$Region[1], bn$`Income group`[1])
+            
+            # bn_selected <- c(bn$Region[1], bn$`Income group`[1])
+            bn_selected <- c(bn_selected_cir$Region, bn_selected_cir$IncomeGroup)
             
             fluidRow(
               column(12,

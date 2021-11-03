@@ -120,7 +120,15 @@ mod_scd_tab_module_server <- function(id){
       
     }) # /output$scd_bm_ui
     
-    
+    observeEvent(input$scd_country, {
+      bn_selected_cr <- infrasap::dat_country_income_region %>%
+        filter(`Country Name` == input$scd_country)
+
+      updateSelectInput(session, "scd_benchmark",
+                        selected = c(bn_selected_cr$Region)
+      )
+    })
+
     # ui output for years based on inputs selected
     output$scd_year_ui <- renderUI({
       cn <- input$scd_country
@@ -392,11 +400,19 @@ mod_scd_tab_module_server <- function(id){
       df_ind <- a %>% full_join(b, by = c("Indicator Name" = "Indicator"))
       df <- df %>% full_join(df_ind, by = c("Indicator" = "Indicator Name"))
       
+      # print(infrasap::scd_indicators)
+      # print(df)
+      # glimpse(df)
+      
+      df <- infrasap::scd_indicators %>% left_join(df, by = c("Indicator Name" = "Indicator", 
+                                                              "grouping" = "grouping")) %>%
+            rename(Indicator = `Indicator Name`)
       
       df <- df %>% 
               select(year_tooltip, `grouping`, everything()) %>%
               mutate(`grouping` = forcats::as_factor(`grouping`)) %>%
-              mutate(`grouping` = forcats::lvls_revalue(`grouping`, c('Economic Linkages',
+              mutate(`grouping` = forcats::lvls_revalue(`grouping`, c(
+                                                                    'Economic Linkages',
                                                                     'Poverty and Equity',
                                                                     'Quality of Infrastructure',
                                                                     'Governance',
