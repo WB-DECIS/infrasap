@@ -126,10 +126,11 @@ df <- df %>%
 get_year_scd <- function(cn, bm, year_position = NULL){
 
   # get data based on inputs
-  temp <- infrasap::scd_dat %>% 
+  temp <- infrasap::scd_dat %>%
     dplyr::filter(`Country Name`%in% cn) %>%
     # filter(`Indicator Sector` %in% sc) %>%
     dplyr::select(`1990`:`2020`)
+    # dplyr::select(`1990`:`2017-2021`)
 
   # remove columns that have all NA
   temp <- temp[,colSums(is.na(temp)) < nrow(temp)]
@@ -157,6 +158,7 @@ get_year_scd <- function(cn, bm, year_position = NULL){
       dplyr::filter(`Country Name`%in% cn) %>%
       # filter(`Indicator Sector` %in% sc) %>%
       dplyr::select(`1990`:`2020`)
+      # dplyr::select(`1990`:`2017-2021`)
     without_bm <- without_bm[,colSums(is.na(without_bm)) < nrow(without_bm)]
     
     if(!is.null(year_position)) {
@@ -225,3 +227,74 @@ country_to_compare_scd <- function(countryName, available_years_in_use, df_years
   return(df_cn)
   
 }
+
+replace_null_to_na <- function(x) {
+  if(is.null(x)) {
+    return(NA)
+  } else {
+    return(x)
+  }
+}
+
+
+## Factors to arrange pillar tab ------------------------------------
+# infrasap::dat$`Indicator Sub-Pillar` %>% unique()
+# 
+# energy_transport_digit__pillar <- factor(infrasap::dat$`Indicator Sub-Pillar`, 
+#        levels = c('Project Lifecycle', 
+#                   'Cross cutting Principles', 
+#                   'Market Structure', 
+#                   'SOE capacity', 
+#                   'Finance', 
+#                   'Climate change')
+# )
+# 
+# energy_transport_digit__topic <- factor(infrasap::dat$`Indicator Topic`, 
+#        levels = c('Planning, Preparation, Selection', 
+#                   'Economic efficiency and Value for Money', 
+#                   'Fiscal Sustainability', 
+#                   'Procurement', 
+#                   'Contract Management and O&M', 
+#                   'Environmental and Social Considerations',
+#                   'Resilience and Climate Change',
+#                   'Transparency',
+#                   'Integrity',
+#                   'Market Contestability',
+#                   'Sector regulation',
+#                   'Corporate Governance',
+#                   'Financial Discipline',
+#                   'Human Resources',
+#                   'Information and Technology'
+#                   )
+# )
+# 
+# energy_digital__pillar <- factor(infrasap::dat$`Indicator Sub-Pillar`, 
+#        levels = c('Access to service', 
+#                   'Tariffs', 
+#                   'Service Quality', 
+#                   'Environmental Sustainability')
+# )
+# 
+# energy_digital__topic <- factor(infrasap::dat$`Indicator Topic`, 
+#                                         levels = c('Service Coverage', 
+#                                                    'Service Uptake', 
+#                                                    'Efficiency', 
+#                                                    'Retail tariffs',
+#                                                    'Wholesale Tariffs',
+#                                                    'Reliability', 
+#                                                    'Carbon Footprint',
+#                                                    'Environment Footprint'
+#                                         )
+# )
+# 
+# energy__pillar <- factor(infrasap::dat$`Indicator Sub-Pillar`, 
+#                          levels = c('Budget Expenditure', 
+#                                     'International Finance')
+# )
+# 
+# energy__topic <- factor(infrasap::dat$`Indicator Topic`, 
+#                          levels = c('Budget Allocation', 
+#                                     'Budget Execution', 
+#                                     'Off-Taker Risk',
+#                                     'PPP Financing Constraints')
+# )
