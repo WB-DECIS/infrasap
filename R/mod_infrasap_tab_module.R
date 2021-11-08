@@ -24,7 +24,7 @@ mod_infrasap_tab_module_ui <- function(id){
                  selectInput(inputId = ns('db_sector'),
                              label = 'Select sector',
                              choices = c('Energy', 
-                                         'National',
+                                         'Cross-cutting',
                                          'Digital Development',
                                          'Transport'),
                              selected = 'Energy')
@@ -41,7 +41,8 @@ mod_infrasap_tab_module_ui <- function(id){
         fluidRow(
           
           column(4, 
-                 uiOutput(ns('countriestc'))
+                 uiOutput(ns('countriestc')),
+                 downloadButton(ns("report_pdf"), "Generate report")
           ),
           column(4, 
                  selectizeInput(inputId = ns('db_benchmark'),
@@ -62,7 +63,7 @@ mod_infrasap_tab_module_ui <- function(id){
                              label = 'Select year',
                              choices = NULL,
                              selected = NULL
-                 )
+                 ),
           )
       )
     ),
@@ -77,6 +78,13 @@ mod_infrasap_tab_module_ui <- function(id){
 #'
 #' @noRd 
 mod_infrasap_tab_module_server <- function(id){
+  
+  infrasap_dat_mod_modified <- infrasap::dat
+  infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
+  
+  infrsap_dat_bm_mod_modfied <- infrasap::dat_bm
+  infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "National"] <- "Cross-cutting"
+  
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -105,7 +113,7 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     observeEvent(input$db_sector, {
-      if(input$db_sector == 'National') {
+      if(input$db_sector == 'Cross-cutting') {
         updateSelectInput(session,
                           'db_pillar',
                           choices = c('Finance')
@@ -133,7 +141,7 @@ mod_infrasap_tab_module_server <- function(id){
       } else {
         # save(cn, sc, bm, file = 'inputs.rda')
         # get years for data
-        temp <- infrasap::dat %>%
+        temp <- infrasap_dat_mod_modified %>%
           dplyr::filter(`Country Name` == cn) %>%
           dplyr::filter(`Indicator Sector` %in% sc) %>%
           dplyr::select(`Country Name`, `1990`:`2020`, bm )
@@ -146,7 +154,7 @@ mod_infrasap_tab_module_server <- function(id){
         temp <- temp %>% dplyr::select(-`Country Name`, -bm)
         
         # get years for benchmark
-        temp_bm <- infrasap::dat_bm %>%
+        temp_bm <- infrsap_dat_bm_mod_modfied %>%
           dplyr::filter(Grouping == bm_type) %>%
           dplyr::filter(`Sector` %in% sc)
         temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
@@ -177,10 +185,10 @@ mod_infrasap_tab_module_server <- function(id){
       cn <- input$db_country
       
       # get benchmark data
-      temp_bm <- infrasap::dat_bm
+      temp_bm <- infrsap_dat_bm_mod_modfied
       
       # get sector names for this country
-      temp <- infrasap::dat %>% 
+      temp <- infrasap_dat_mod_modified %>% 
         dplyr::filter(`Country Name` == cn) %>% 
         dplyr::mutate(group=1) %>%
         dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% dplyr::distinct() %>% 
@@ -206,10 +214,10 @@ mod_infrasap_tab_module_server <- function(id){
       cn <- input$db_country
       
       # get benchmark data
-      temp_bm <- infrasap::dat_bm
+      temp_bm <- infrsap_dat_bm_mod_modfied
       
       # get sector names for this country
-      temp <- infrasap::dat %>% 
+      temp <- infrasap_dat_mod_modified %>% 
         dplyr::filter(`Country Name` == cn) %>% 
         dplyr::mutate(group=1) %>%
         dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% dplyr::distinct() %>% 
@@ -265,7 +273,7 @@ mod_infrasap_tab_module_server <- function(id){
       req(countriesOptionsInput())
       sc <- input$db_sector
 
-      countryList <- infrasap::dat %>%
+      countryList <- infrasap_dat_mod_modified %>%
         dplyr::filter(`Indicator Sector` %in% sc) %>%
         dplyr::filter(`Indicator Pillar` == input$db_pillar) %>%
         dplyr::select(`Country Name`) %>% dplyr::distinct() %>% dplyr::pull()
@@ -339,7 +347,7 @@ mod_infrasap_tab_module_server <- function(id){
             range <- as.character(range)
             
             # get infrasap data based on inputs to get the benchmark type and join
-            df_r <- infrasap::dat %>%
+            df_r <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Country Name` == cn) %>%
               dplyr::filter(`Indicator Sector` %in% sc) %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -381,7 +389,7 @@ mod_infrasap_tab_module_server <- function(id){
             bm_type <- unique(df_r[, "Region"])
             
             # get benchmark data based on inputs
-            df_r <- infrasap::dat_bm %>%
+            df_r <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(Grouping == bm_type) %>%
               dplyr::filter(`Sector` %in% sc) %>%
               dplyr::select(`Indicator`, available_years_in_use) %>%
@@ -446,7 +454,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             # make table with all combinations of pillar, sub-pillar, and topic
-            df_large <- infrasap::dat %>%
+            df_large <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
               dplyr::filter(`Indicator Sector`== input$db_sector) %>%
               dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
@@ -482,7 +490,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             # get infrasap data based on inputs to get the benchmark type and join
-            df_i <- infrasap::dat %>%
+            df_i <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Country Name` == cn) %>%
               dplyr::filter(`Indicator Sector` %in% sc) %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -524,7 +532,7 @@ mod_infrasap_tab_module_server <- function(id){
             bm_type <- unique(df_i[, "IncomeGroup"])
             
             # get benchmark data based on inputs
-            df_i <- infrasap::dat_bm %>%
+            df_i <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(Grouping == bm_type) %>%
               dplyr::filter(`Sector` %in% sc) %>%
               dplyr::select(`Indicator`, available_years_in_use) %>%
@@ -585,7 +593,7 @@ mod_infrasap_tab_module_server <- function(id){
               
               
               # get infrasap data based on inputs to get the benchmark type and join
-              df_cn <- infrasap::dat %>%
+              df_cn <- infrasap_dat_mod_modified %>%
                 dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
                 dplyr::filter(`Indicator Sector` %in% sc) %>%
                 dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -800,77 +808,22 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
-              df <- df %>%
-                arrange(
-                  factor(`Sub-Pillar`, 
-                         levels = c('Project Lifecycle', 
-                                    'Cross cutting Principles', 
-                                    'Market Structure', 
-                                    'SOE capacity', 
-                                    'Finance', 
-                                    'Climate change'
-                         )
-                  ),
-                  factor(`Topic`, 
-                         levels = c('Planning, Preparation, Selection', 
-                                    'Economic efficiency and Value for Money', 
-                                    'Fiscal Sustainability', 
-                                    'Procurement', 
-                                    'Contract Management and O&M', 
-                                    'Environmental and Social Considerations',
-                                    'Resilience and Climate Change',
-                                    'Transparency',
-                                    'Integrity',
-                                    'Market Contestability',
-                                    'Sector regulation',
-                                    'Corporate Governance',
-                                    'Financial Discipline',
-                                    'Human Resources',
-                                    'Information and Technology'
-                         )
-                  )
-                )
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital_transport_energy__governance)
             }
             
-            if(input$db_sector %in% c('Energy', 'Digital Development') && input$db_pillar %in% c('Connectivity')) {
-              
-              df <- df %>%
-                arrange(factor(`Sub-Pillar`, 
-                               levels = c('Access to Service', 
-                                          'Tariffs', 
-                                          'Service Quality', 
-                                          'Environmental Sustainability')
-                ),
-                factor(`Topic`, 
-                       levels = c('Service Coverage', 
-                                  'Service Uptake', 
-                                  'Efficiency', 
-                                  'Retail tariffs',
-                                  'Wholesale Tariffs',
-                                  'Reliability', 
-                                  'Carbon Footprint',
-                                  'Environment Footprint'
-                       )
-                )
-                )
+            
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
+            }
+            
+            
+            if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Connectivity')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
             }
             
             
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
-              
-              df <- df %>%
-                arrange(factor(`Sub-Pillar`, 
-                               levels = c('Budget Expenditure', 
-                                          'International Finance')
-                ),
-                factor(`Topic`, 
-                       levels = c('Budget Allocation', 
-                                  'Budget Execution', 
-                                  'Off-Taker Risk',
-                                  'PPP Financing Constraints'
-                       )
-                )
-                )
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
             }
             
             
@@ -883,7 +836,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             # get infrasap data based on inputs to get the benchmark type and join
-            df <- infrasap::dat %>%
+            df <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Country Name` == cn) %>%
               dplyr::filter(`Indicator Sector` %in% sc) %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -935,7 +888,7 @@ mod_infrasap_tab_module_server <- function(id){
             bm_type <- unique(df[, bm])
             
             # get benchmark data based on inputs
-            df <- infrasap::dat_bm %>%
+            df <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(Grouping == bm_type) %>%
               dplyr::filter(`Sector` %in% sc) %>%
               dplyr::select(`Indicator`, available_years_in_use) %>%
@@ -981,7 +934,7 @@ mod_infrasap_tab_module_server <- function(id){
               
               
               # get infrasap data based on inputs to get the benchmark type and join
-              df_cn <- infrasap::dat %>%
+              df_cn <- infrasap_dat_mod_modified %>%
                 dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
                 dplyr::filter(`Indicator Sector` %in% sc) %>%
                 dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -1171,7 +1124,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             # make table with all combinations of pillar, sub-pillar, and topic
-            df_large <- infrasap::dat %>%
+            df_large <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
               dplyr::filter(`Indicator Sector`== input$db_sector) %>%
               dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
@@ -1222,77 +1175,21 @@ mod_infrasap_tab_module_server <- function(id){
             df[[bm]] <- round(df[[bm]], 2)
             
             if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
-              df <- df %>%
-                arrange(
-                  factor(`Sub-Pillar`, 
-                         levels = c('Project Lifecycle', 
-                                    'Cross cutting Principles', 
-                                    'Market Structure', 
-                                    'SOE capacity', 
-                                    'Finance', 
-                                    'Climate change'
-                         )
-                  ),
-                  factor(`Topic`, 
-                         levels = c('Planning, Preparation, Selection', 
-                                    'Economic efficiency and Value for Money', 
-                                    'Fiscal Sustainability', 
-                                    'Procurement', 
-                                    'Contract Management and O&M', 
-                                    'Environmental and Social Considerations',
-                                    'Resilience and Climate Change',
-                                    'Transparency',
-                                    'Integrity',
-                                    'Market Contestability',
-                                    'Sector regulation',
-                                    'Corporate Governance',
-                                    'Financial Discipline',
-                                    'Human Resources',
-                                    'Information and Technology'
-                         )
-                  )
-                )
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital_transport_energy__governance)
             }
             
-            if(input$db_sector %in% c('Energy', 'Digital Development') && input$db_pillar %in% c('Connectivity')) {
-              
-              df <- df %>%
-                arrange(factor(`Sub-Pillar`, 
-                               levels = c('Access to Service', 
-                                          'Tariffs', 
-                                          'Service Quality', 
-                                          'Environmental Sustainability')
-                ),
-                factor(`Topic`, 
-                       levels = c('Service Coverage', 
-                                  'Service Uptake', 
-                                  'Efficiency', 
-                                  'Retail tariffs',
-                                  'Wholesale Tariffs',
-                                  'Reliability', 
-                                  'Carbon Footprint',
-                                  'Environment Footprint'
-                       )
-                )
-                )
+            
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
+            }
+            
+            if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Connectivity')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
             }
             
             
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
-              
-              df <- df %>%
-                arrange(factor(`Sub-Pillar`, 
-                               levels = c('Budget Expenditure', 
-                                          'International Finance')
-                ),
-                factor(`Topic`, 
-                       levels = c('Budget Allocation', 
-                                  'Budget Execution', 
-                                  'Off-Taker Risk',
-                                  'PPP Financing Constraints'
-                       )
-                )
-                )
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
             }
             
             return(df)
@@ -1304,7 +1201,7 @@ mod_infrasap_tab_module_server <- function(id){
           
           if(length(input$db_benchmark) == 2 & !is.null(input$db_benchmark)) {
             # get infrasap data based on inputs to get the benchmark type and join
-            df_r <- infrasap::dat %>%
+            df_r <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Country Name` == cn) %>%
               dplyr::filter(`Indicator Sector` %in% sc) %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -1314,7 +1211,7 @@ mod_infrasap_tab_module_server <- function(id){
             bm_type <- unique(df_r[, "Region"])
             
             # get benchmark data based on inputs
-            df_r <- infrasap::dat_bm %>%
+            df_r <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(Grouping == bm_type) %>%
               dplyr::filter(`Sector` %in% sc) %>%
               dplyr::select(`Indicator`, yr) %>%
@@ -1355,7 +1252,7 @@ mod_infrasap_tab_module_server <- function(id){
               dplyr::mutate(value_r = value_r %>% as.numeric())
             
             # make table with all combinations of pillar, sub-pillar, and topic
-            df_large <- infrasap::dat %>%
+            df_large <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
               dplyr::filter(`Indicator Sector`== input$db_sector) %>%
               dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
@@ -1383,7 +1280,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             # get infrasap data based on inputs to get the benchmark type and join
-            df_i <- infrasap::dat %>%
+            df_i <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Country Name` == cn) %>%
               dplyr::filter(`Indicator Sector` %in% sc) %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -1393,7 +1290,7 @@ mod_infrasap_tab_module_server <- function(id){
             bm_type <- unique(df_i[, "IncomeGroup"])
             
             # get benchmark data based on inputs
-            df_i <- infrasap::dat_bm %>%
+            df_i <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(Grouping == bm_type) %>%
               dplyr::filter(`Sector` %in% sc) %>%
               dplyr::select(`Indicator`, yr) %>%
@@ -1434,7 +1331,7 @@ mod_infrasap_tab_module_server <- function(id){
             if(!is.null(input$country_to_compare_id)){
               
               # get infrasap data based on inputs to get the benchmark type and join
-              df_cn <- infrasap::dat %>%
+              df_cn <- infrasap_dat_mod_modified %>%
                 dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
                 dplyr::filter(`Indicator Sector` %in% sc) %>%
                 dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -1621,77 +1518,21 @@ mod_infrasap_tab_module_server <- function(id){
             df <- dplyr::full_join(df_r, df_i)
             
             if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
-              df <- df %>%
-                arrange(
-                  factor(`Sub-Pillar`, 
-                         levels = c('Project Lifecycle', 
-                                    'Cross cutting Principles', 
-                                    'Market Structure', 
-                                    'SOE capacity', 
-                                    'Finance', 
-                                    'Climate change'
-                         )
-                  ),
-                  factor(`Topic`, 
-                         levels = c('Planning, Preparation, Selection', 
-                                    'Economic efficiency and Value for Money', 
-                                    'Fiscal Sustainability', 
-                                    'Procurement', 
-                                    'Contract Management and O&M', 
-                                    'Environmental and Social Considerations',
-                                    'Resilience and Climate Change',
-                                    'Transparency',
-                                    'Integrity',
-                                    'Market Contestability',
-                                    'Sector regulation',
-                                    'Corporate Governance',
-                                    'Financial Discipline',
-                                    'Human Resources',
-                                    'Information and Technology'
-                         )
-                  )
-                )
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital_transport_energy__governance)
             }
             
-            if(input$db_sector %in% c('Energy', 'Digital Development') && input$db_pillar %in% c('Connectivity')) {
-              
-              df <- df %>%
-                arrange(factor(`Sub-Pillar`, 
-                               levels = c('Access to Service', 
-                                          'Tariffs', 
-                                          'Service Quality', 
-                                          'Environmental Sustainability')
-                ),
-                factor(`Topic`, 
-                       levels = c('Service Coverage', 
-                                  'Service Uptake', 
-                                  'Efficiency', 
-                                  'Retail tariffs',
-                                  'Wholesale Tariffs',
-                                  'Reliability', 
-                                  'Carbon Footprint',
-                                  'Environment Footprint'
-                       )
-                )
-                )
+            
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
+            }
+            
+            if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Connectivity')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
             }
             
             
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
-              
-              df <- df %>%
-                arrange(factor(`Sub-Pillar`, 
-                               levels = c('Budget Expenditure', 
-                                          'International Finance')
-                ),
-                factor(`Topic`, 
-                       levels = c('Budget Allocation', 
-                                  'Budget Execution', 
-                                  'Off-Taker Risk',
-                                  'PPP Financing Constraints'
-                       )
-                )
-                )
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
             }
             
             
@@ -1700,7 +1541,7 @@ mod_infrasap_tab_module_server <- function(id){
           } else {
             
             # get infrasap data based on inputs to get the benchmark type and join
-            df <- infrasap::dat %>%
+            df <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Country Name` == cn) %>%
               dplyr::filter(`Indicator Sector` %in% sc) %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -1711,7 +1552,7 @@ mod_infrasap_tab_module_server <- function(id){
             bm_type <- unique(df[, bm])
             
             # get benchmark data based on inputs
-            df <- infrasap::dat_bm %>%
+            df <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(Grouping == bm_type) %>%
               dplyr::filter(`Sector` %in% sc) %>%
               dplyr::select(`Indicator`,yr) %>%
@@ -1735,7 +1576,7 @@ mod_infrasap_tab_module_server <- function(id){
             if(!is.null(input$country_to_compare_id)){
               
               # get infrasap data based on inputs to get the benchmark type and join
-              df_cn <- infrasap::dat %>%
+              df_cn <- infrasap_dat_mod_modified %>%
                 dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
                 dplyr::filter(`Indicator Sector` %in% sc) %>%
                 dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -1899,7 +1740,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             # make table with all combinations of pillar, sub-pillar, and topic
-            df_large <- infrasap::dat %>%
+            df_large <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
               dplyr::filter(`Indicator Sector`== input$db_sector) %>%
               dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
@@ -1945,77 +1786,21 @@ mod_infrasap_tab_module_server <- function(id){
             df[[bm]] <- round(df[[bm]], 2)
             
             if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
-              df <- df %>%
-                arrange(
-                  factor(`Sub-Pillar`, 
-                         levels = c('Project Lifecycle', 
-                                    'Cross cutting Principles', 
-                                    'Market Structure', 
-                                    'SOE capacity', 
-                                    'Finance', 
-                                    'Climate change'
-                                    )
-                  ),
-                  factor(`Topic`, 
-                         levels = c('Planning, Preparation, Selection', 
-                                    'Economic efficiency and Value for Money', 
-                                    'Fiscal Sustainability', 
-                                    'Procurement', 
-                                    'Contract Management and O&M', 
-                                    'Environmental and Social Considerations',
-                                    'Resilience and Climate Change',
-                                    'Transparency',
-                                    'Integrity',
-                                    'Market Contestability',
-                                    'Sector regulation',
-                                    'Corporate Governance',
-                                    'Financial Discipline',
-                                    'Human Resources',
-                                    'Information and Technology'
-                         )
-                  )
-                )
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital_transport_energy__governance)
             }
             
-            if(input$db_sector %in% c('Energy', 'Digital Development') && input$db_pillar %in% c('Connectivity')) {
-              
-              df <- df %>%
-                arrange(factor(`Sub-Pillar`, 
-                               levels = c('Access to Service', 
-                                          'Tariffs', 
-                                          'Service Quality', 
-                                          'Environmental Sustainability')
-                        ),
-                        factor(`Topic`, 
-                               levels = c('Service Coverage', 
-                                          'Service Uptake', 
-                                          'Efficiency', 
-                                          'Retail tariffs',
-                                          'Wholesale Tariffs',
-                                          'Reliability', 
-                                          'Carbon Footprint',
-                                          'Environment Footprint'
-                               )
-                        )
-                )
+
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
+            }
+            
+            if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Connectivity')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
             }
             
             
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
-              
-              df <- df %>%
-                arrange(factor(`Sub-Pillar`, 
-                               levels = c('Budget Expenditure', 
-                                          'International Finance')
-                ),
-                factor(`Topic`, 
-                       levels = c('Budget Allocation', 
-                                  'Budget Execution', 
-                                  'Off-Taker Risk',
-                                  'PPP Financing Constraints'
-                       )
-                )
-                )
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
             }
             
             return(df)
@@ -2040,6 +1825,7 @@ mod_infrasap_tab_module_server <- function(id){
         if(length(input$db_benchmark) == 2){
           
           if(length(input$country_to_compare_id) == 3){
+            
             if(input$db_year == "Latest year available"){
               dtable <- DT::datatable(infrasap_table(),
                                   extensions = 'Buttons',
@@ -2649,6 +2435,34 @@ mod_infrasap_tab_module_server <- function(id){
       }
       
     })
+    
+    
+    output$report_pdf <- downloadHandler(
+      # For PDF output, change this to "report.pdf"
+      filename = "report.pdf",
+      content = function(file) {
+        # Copy the report file to a temporary directory before processing it, in
+        # case we don't have write permissions to the current working dir (which
+        # can happen when deployed).
+        tempReport <- file.path(tempdir(), "infrasap_pillar_table_pdf.Rmd")
+        file.copy("infrasap_pillar_table_pdf.Rmd", tempReport, overwrite = TRUE)
+        
+        # Set up parameters to pass to Rmd document
+        params <- list(country = input$db_country,
+                       benchmark = input$db_benchmark,
+                       table_data = infrasap_table(),
+                       country_to_compare = input$country_to_compare_id
+        )
+        
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(tempReport, output_file = file,
+                          params = params,
+                          envir = new.env(parent = globalenv())
+        )
+      }
+    )
     
     
     # /Module Body /end

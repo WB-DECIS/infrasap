@@ -96,15 +96,17 @@ mod_scd_tab_module_server <- function(id){
       # bm_choices <- intersect(bm_choices, bm)
       
       # keep only regional and income group benchmarks 
-      bm_keep <- 'East Asia & Pacific|Europe & Central Asia|Latin America & Caribbean|Middle East & North Africa|North America|South Asia|Sub-Saharan Africa|High income|Low income|Lower middle income|Upper middle income'
+      bm_keep <- 'East Asia & Pacific|Europe & Central Asia|Latin America & Caribbean|Middle East & North Africa|North America|South Asia|Sub-Saharan Africa|High income|Low income|Lower middle income|Upper middle income|Fragile|Isolated|Low Human Capital|Low Population Density|Mountainous|OECD members|Oil Exporter'
       bm_choices <- bm[grepl(bm_keep, bm)]
       bm_selected <- infrasap::dat_country_income_region %>%
         filter(`Country Name` == input$scd_country)
       
       # Check after deployment (Sometimes AWS )
-      bm_choices <- list("Region" = bm_choices[!str_detect(bm_choices, 'income')],
-        "Income Groups" = bm_choices[str_detect(bm_choices, 'income')])
-      
+      bm_choices <- list(
+        "Region" = bm_choices[str_detect(bm_choices, 'Asia|America|Africa')],
+        "Income Groups" = bm_choices[str_detect(bm_choices, 'income')],
+        'Exogenous' = bm_choices[!str_detect(bm_choices,'Asia|America|Africa|income')]
+      )
       # bm_choices %>% print()
       
       selectizeInput(inputId = ns('scd_benchmark'),
@@ -220,7 +222,7 @@ mod_scd_tab_module_server <- function(id){
                      selected = cnames[1],
                      multiple = TRUE,
                      options = list(
-                       maxItems = 3,
+                       maxItems = 5,
                        'plugins' = list('remove_button'),
                        'create' = TRUE,
                        'persist' = FALSE
@@ -264,7 +266,7 @@ mod_scd_tab_module_server <- function(id){
         ) 
       
       
-      map(1:length(range), function(x){
+      map(1:length(range), function(x) {
         df <<- fill_missing_values_in_years_scd(df = df,
                                                 based_year = yr,
                                                 year_step_back = range[x],
@@ -380,6 +382,78 @@ mod_scd_tab_module_server <- function(id){
           df_cn[cc[3]][[1]] <- lapply(df_cn[cc[3]][[1]], replace_null_to_na)
           df_cn[cc[3]][[1]] <- lapply(df_cn[cc[3]][[1]], `[[`, 1)
           df_cn[cc[3]][[1]] <- as.numeric(df_cn[cc[3]][[1]])
+          
+        }
+        
+        
+        if(length(cc) == 4) {
+          df_cn <- df_cn %>% 
+            dplyr::full_join(
+              country_to_compare_scd(cc[1], available_years_in_use, df_years_col)
+            ) %>% 
+            dplyr::full_join(
+              country_to_compare_scd(cc[2], available_years_in_use, df_years_col)
+            ) %>% 
+            dplyr::full_join(
+              country_to_compare_scd(cc[3], available_years_in_use, df_years_col)
+            ) %>% 
+            dplyr::full_join(
+              country_to_compare_scd(cc[4], available_years_in_use, df_years_col)
+            ) %>%
+            distinct()
+          
+          ### List removal from column
+          df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], replace_null_to_na)
+          df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], `[[`, 1)
+          df_cn[cc[1]][[1]] <- as.numeric(df_cn[cc[1]][[1]])
+          df_cn[cc[2]][[1]] <- lapply(df_cn[cc[2]][[1]], replace_null_to_na)
+          df_cn[cc[2]][[1]] <- lapply(df_cn[cc[2]][[1]], `[[`, 1)
+          df_cn[cc[2]][[1]] <- as.numeric(df_cn[cc[2]][[1]])
+          df_cn[cc[3]][[1]] <- lapply(df_cn[cc[3]][[1]], replace_null_to_na)
+          df_cn[cc[3]][[1]] <- lapply(df_cn[cc[3]][[1]], `[[`, 1)
+          df_cn[cc[3]][[1]] <- as.numeric(df_cn[cc[3]][[1]])
+          df_cn[cc[4]][[1]] <- lapply(df_cn[cc[4]][[1]], replace_null_to_na)
+          df_cn[cc[4]][[1]] <- lapply(df_cn[cc[4]][[1]], `[[`, 1)
+          df_cn[cc[4]][[1]] <- as.numeric(df_cn[cc[4]][[1]])
+          
+        }
+        
+        
+        if(length(cc) == 5) {
+          df_cn <- df_cn %>% 
+            dplyr::full_join(
+              country_to_compare_scd(cc[1], available_years_in_use, df_years_col)
+            ) %>% 
+            dplyr::full_join(
+              country_to_compare_scd(cc[2], available_years_in_use, df_years_col)
+            ) %>% 
+            dplyr::full_join(
+              country_to_compare_scd(cc[3], available_years_in_use, df_years_col)
+            ) %>% 
+            dplyr::full_join(
+              country_to_compare_scd(cc[4], available_years_in_use, df_years_col)
+            ) %>%
+            dplyr::full_join(
+              country_to_compare_scd(cc[5], available_years_in_use, df_years_col)
+            ) %>%
+            distinct()
+          
+          ### List removal from column
+          df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], replace_null_to_na)
+          df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], `[[`, 1)
+          df_cn[cc[1]][[1]] <- as.numeric(df_cn[cc[1]][[1]])
+          df_cn[cc[2]][[1]] <- lapply(df_cn[cc[2]][[1]], replace_null_to_na)
+          df_cn[cc[2]][[1]] <- lapply(df_cn[cc[2]][[1]], `[[`, 1)
+          df_cn[cc[2]][[1]] <- as.numeric(df_cn[cc[2]][[1]])
+          df_cn[cc[3]][[1]] <- lapply(df_cn[cc[3]][[1]], replace_null_to_na)
+          df_cn[cc[3]][[1]] <- lapply(df_cn[cc[3]][[1]], `[[`, 1)
+          df_cn[cc[3]][[1]] <- as.numeric(df_cn[cc[3]][[1]])
+          df_cn[cc[4]][[1]] <- lapply(df_cn[cc[4]][[1]], replace_null_to_na)
+          df_cn[cc[4]][[1]] <- lapply(df_cn[cc[4]][[1]], `[[`, 1)
+          df_cn[cc[4]][[1]] <- as.numeric(df_cn[cc[4]][[1]])
+          df_cn[cc[5]][[1]] <- lapply(df_cn[cc[5]][[1]], replace_null_to_na)
+          df_cn[cc[5]][[1]] <- lapply(df_cn[cc[5]][[1]], `[[`, 1)
+          df_cn[cc[5]][[1]] <- as.numeric(df_cn[cc[5]][[1]])
           
         }
         

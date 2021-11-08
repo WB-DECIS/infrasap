@@ -8,13 +8,18 @@
 #'
 #' @importFrom shiny NS tagList 
 mod_map_tab_module_ui <- function(id){
+  
+  infrasap_dat_mod_modified <- infrasap::dat
+  infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
+  
+  
   ns <- NS(id)
   tagList(
     fluidRow(
       column(3, 
              selectInput(inputId = ns('world_sector'), 
                          label = 'Select a Sector',
-                         choices = sort(unique(dat$`Indicator Sector`)),
+                         choices = sort(unique(infrasap_dat_mod_modified$`Indicator Sector`)),
                          selected = 'Energy'
                          )
              ),
@@ -78,7 +83,12 @@ mod_map_tab_module_ui <- function(id){
 #' map_tab_module Server Functions
 #'
 #' @noRd 
-mod_map_tab_module_server <- function(id){
+mod_map_tab_module_server <- function(id) {
+  
+  infrasap_dat_mod_modified <- infrasap::dat
+  infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
+  
+  
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     
@@ -91,13 +101,13 @@ mod_map_tab_module_server <- function(id){
       
       if(rn == 'Entire World'){
         # subset data to get indicator 
-        df <- infrasap::dat %>%
+        df <- infrasap_dat_mod_modified %>%
           filter(`Indicator Sector` %in% sc) %>%
           select(`Indicator Name`, yr) %>% 
           drop_na()
       } else {
         # subset data to get indicator 
-        df <- infrasap::dat %>%
+        df <- infrasap_dat_mod_modified %>%
           filter(`Indicator Sector` %in% sc) %>%
           filter(Region == rn) %>%
           select(`Indicator Name`, yr) %>% 
@@ -129,12 +139,12 @@ mod_map_tab_module_server <- function(id){
       } else {
         if(rn == 'Entire World'){
           # for now just visualize entire world 
-          df <- dat %>% filter(`Indicator Name`== ic) %>% 
+          df <- infrasap_dat_mod_modified %>% filter(`Indicator Name`== ic) %>% 
             filter(`Indicator Sector` %in% sc) %>%
             select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
         } else {
           # for now just visualize entire world 
-          df <- dat %>% filter(`Indicator Name`== ic) %>% 
+          df <- infrasap_dat_mod_modified %>% filter(`Indicator Name`== ic) %>% 
             filter(`Indicator Sector` %in% sc) %>%
             filter(Region == rn) %>%
             select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
