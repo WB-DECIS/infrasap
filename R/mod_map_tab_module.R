@@ -13,67 +13,67 @@ mod_map_tab_module_ui <- function(id){
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   
   
-  ns <- NS(id)
-  tagList(
-    fluidRow(
-      column(3, 
-             selectInput(inputId = ns('world_sector'), 
-                         label = 'Select a Sector',
-                         choices = sort(unique(infrasap_dat_mod_modified$`Indicator Sector`)),
-                         selected = 'Energy'
-                         )
+  ns <- shiny::NS(id)
+  htmltools::tagList(
+    shiny::fluidRow(
+      shiny::column(3, 
+                    shiny::selectInput(inputId = ns('world_sector'), 
+                                       label = 'Select a Sector',
+                                       choices = sort(unique(infrasap_dat_mod_modified$`Indicator Sector`)),
+                                       selected = 'Energy'
+                                       )
              ),
       
-      column(3,
-             selectInput(ns('world_year'), 
-                         'Select year',
-                         choices = c('2010',
-                                     '2011',
-                                     '2012',
-                                     '2013', 
-                                     '2014',
-                                     '2015',
-                                     '2016', 
-                                     '2017', 
-                                     '2018', 
-                                     '2019'
-                                     ),
-                         selected = '2015'
-                         )
+      shiny::column(3,
+                    shiny::selectInput(ns('world_year'), 
+                                       'Select year',
+                                       choices = c('2010',
+                                                   '2011',
+                                                   '2012',
+                                                   '2013', 
+                                                   '2014',
+                                                   '2015',
+                                                   '2016', 
+                                                   '2017', 
+                                                   '2018', 
+                                                   '2019'
+                                                   ),
+                                       selected = '2015'
+                                       )
              ),
-      column(3,
-             selectInput(ns('world_region'), 
-                         'Select a region',
-                         choices = c('Entire World', 
-                                     'East Asia & Pacific',
-                                     'Europe & Central Asia', 
-                                     'Latin America & Caribbean', 
-                                     'Middle East & North Africa', 
-                                     'North America', 'South Asia', 
-                                     'Sub-Saharan Africa'
-                                     )
-                         )
+      shiny::column(3,
+                    shiny::selectInput(ns('world_region'), 
+                                       'Select a region',
+                                       choices = c('Entire World', 
+                                                   'East Asia & Pacific',
+                                                   'Europe & Central Asia', 
+                                                   'Latin America & Caribbean', 
+                                                   'Middle East & North Africa', 
+                                                   'North America', 'South Asia', 
+                                                   'Sub-Saharan Africa'
+                                                   )
+                                       )
              ),
       
       
       
-      column(3,
-             uiOutput(ns('world_ind_ui')) 
+      shiny::column(3,
+                    shiny::uiOutput(ns('world_ind_ui')) 
       ),
-      fluidRow(
-        column(3,
-               div(class = "form-group shiny-input-container",
-                downloadButton(ns('downloadMap'), 'Download Map')
+      shiny::fluidRow(
+        shiny::column(3,
+                      shiny::div(class = "form-group shiny-input-container",
+                                 shiny::downloadButton(ns('downloadMap'), 'Download Map')
                )
                ),
-        column(3),
-        column(3),
-        column(3)
+        shiny::column(3),
+        shiny::column(3),
+        shiny::column(3)
       ),
-      fluidRow(
-        column(12, 
+      shiny::fluidRow(
+        shiny::column(12, 
                align = 'center',
-               leafletOutput(ns('world_map'), height = 700, width = 1000) %>% withSpinner(type = 7, color = "#28323d")
+               leaflet::leafletOutput(ns('world_map'), height = 700, width = 1000) %>% shinycssloaders::withSpinner(type = 7, color = "#28323d")
         )
       )
     )
@@ -89,12 +89,12 @@ mod_map_tab_module_server <- function(id) {
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   
   
-  moduleServer( id, function(input, output, session){
+  shiny::moduleServer( id, function(input, output, session){
     ns <- session$ns
     
     
     # ui for world ind
-    output$world_ind_ui <- renderUI({
+    output$world_ind_ui <- shiny::renderUI({
       sc <- input$world_sector
       yr <- input$world_year
       rn <- input$world_region
@@ -102,29 +102,29 @@ mod_map_tab_module_server <- function(id) {
       if(rn == 'Entire World'){
         # subset data to get indicator 
         df <- infrasap_dat_mod_modified %>%
-          filter(`Indicator Sector` %in% sc) %>%
-          select(`Indicator Name`, yr) %>% 
-          drop_na()
+          dplyr::filter(`Indicator Sector` %in% sc) %>%
+          dplyr::select(`Indicator Name`, yr) %>% 
+          tidyr::drop_na()
       } else {
         # subset data to get indicator 
         df <- infrasap_dat_mod_modified %>%
-          filter(`Indicator Sector` %in% sc) %>%
-          filter(Region == rn) %>%
-          select(`Indicator Name`, yr) %>% 
-          drop_na()
+          dplyr::filter(`Indicator Sector` %in% sc) %>%
+          dplyr::filter(Region == rn) %>%
+          dplyr::select(`Indicator Name`, yr) %>% 
+          tidyr::drop_na()
       }
       ic_choices <- sort(unique(df$`Indicator Name`))
-      fluidRow(
-        selectInput(inputId = ns('world_ind'), 
-                    'Select an Indicator',
-                    choices =ic_choices,
-                    selected = 'Access to electricity (% of population)')
+      shiny::fluidRow(
+        shiny::selectInput(inputId = ns('world_ind'), 
+                            'Select an Indicator',
+                            choices =ic_choices,
+                            selected = 'Access to electricity (% of population)')
       )
     })
     
     
     #renderMAP
-    mapToShow <- reactive({
+    mapToShow <- shiny::reactive({
       
       # these countries dont have corresponding shape file, likely because of names: "South Sudan", "Curacao", "Sint Maarten (Dutch part)", "Kosovo","Channel Islands" 
       sc <- input$world_sector
@@ -139,29 +139,30 @@ mod_map_tab_module_server <- function(id) {
       } else {
         if(rn == 'Entire World'){
           # for now just visualize entire world 
-          df <- infrasap_dat_mod_modified %>% filter(`Indicator Name`== ic) %>% 
-            filter(`Indicator Sector` %in% sc) %>%
-            select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
+          df <- infrasap_dat_mod_modified %>% 
+            dplyr::filter(`Indicator Name`== ic) %>% 
+            dplyr::filter(`Indicator Sector` %in% sc) %>%
+            dplyr::select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
         } else {
           # for now just visualize entire world 
-          df <- infrasap_dat_mod_modified %>% filter(`Indicator Name`== ic) %>% 
-            filter(`Indicator Sector` %in% sc) %>%
-            filter(Region == rn) %>%
-            select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
+          df <- infrasap_dat_mod_modified %>% 
+            dplyr::filter(`Indicator Name`== ic) %>% 
+            dplyr::filter(`Indicator Sector` %in% sc) %>%
+            dplyr::filter(Region == rn) %>%
+            dplyr::select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
         }
         
         
-        if(nrow(df)==0){
-          world_map <- leaflet(options = leafletOptions(minZoom = 1,
-                                                        maxZoom = 10)) %>%
-            addProviderTiles('CartoDB.VoyagerNoLabels') %>%
-            setView(lat=0, lng=0 , zoom=1.7) %>%
-            onRender(
-              "function(el, x) {
-          L.control.zoom({
-            position:'bottomright'
-          }).addTo(this);
-        }")
+        if(nrow(df) == 0){
+          world_map <- leaflet::leaflet(options = leaflet::leafletOptions(minZoom = 1,
+                                                                          maxZoom = 10)) %>%
+            leaflet::addProviderTiles('CartoDB.VoyagerNoLabels') %>%
+            leaflet::setView(lat = 0, lng = 0 , zoom = 1.7) %>%
+            htmlwidgets::onRender(
+                                  "function(el, x) {
+                                                    L.control.zoom({position:'bottomright'}).addTo(this);
+                                  }"
+                                 )
         } else {
           # join with shp files
           map@data <- map@data %>% dplyr::left_join(df, by = c('ISO_A3'= 'Country Code'))
@@ -169,48 +170,48 @@ mod_map_tab_module_server <- function(id) {
           
           
           # get region location (from manually created data in "create_data.R" file in data-raw folder)
-          loc <- infrasap::map_location %>% filter(region == rn)
+          loc <- infrasap::map_location %>% dplyr::filter(region == rn)
           lat <- loc$lat
           lon <- loc$lon
           zoom_level <- loc$zoom
           
           # generate map
-          map_palette <- colorNumeric(palette = brewer.pal(11, "Greens"), domain=map@data$value, na.color="transparent")
+          map_palette <- leaflet::colorNumeric(palette = RColorBrewer::brewer.pal(11, "Greens"), domain=map@data$value, na.color="transparent")
           map_text <- paste(
             "Indicator: ",  ic,"<br>",
             "Country: ", as.character(map@data$`Country Name`),"<br/>",
             'Value: ', paste0(round(map@data$value, digits = 2)),  "<br/>",
             "Year: ", as.character(yr),"<br/>",
-            sep="") %>%
+            sep = "") %>%
             lapply(htmltools::HTML)
           
-          world_map <- leaflet(map, options = leafletOptions(minZoom = 1, maxZoom = 10, preferCanvas = TRUE)) %>%
-            addProviderTiles('Esri.WorldShadedRelief') %>%
-            addPolygons(
+          world_map <- leaflet::leaflet(map, options = leaflet::leafletOptions(minZoom = 1, maxZoom = 10, preferCanvas = TRUE)) %>%
+            leaflet::addProviderTiles('Esri.WorldShadedRelief') %>%
+            leaflet::addPolygons(
               color = 'black',
-              fillColor = ~map_palette(value),
-              stroke=TRUE,
+              fillColor = ~map_palette(value), 
+              stroke = TRUE,
               fillOpacity = 0.9,
-              weight=1,
+              weight = 1,
               label = map_text,
-              highlightOptions = highlightOptions(
+              highlightOptions = leaflet::highlightOptions( 
                 weight = 1,
                 fillColor = 'white',
                 fillOpacity = 1,
                 color = "white",
-                opacity = 1.0,
+                opacity = 1.0, 
                 bringToFront = TRUE,
                 sendToBack = TRUE
               ),
-              labelOptions = labelOptions(
+              labelOptions = leaflet::labelOptions(
                 noHide = FALSE,
                 style = list("font-weight" = "normal", padding = "3px 8px"),
                 textsize = "13px",
                 direction = "auto"
-              )
-            ) %>% setView(lat=lat, lng=lon , zoom=zoom_level) %>%
-            addLegend(pal=map_palette, title = yr, values=~value, opacity=0.9, position = "bottomleft", na.label = "NA" )
-        }
+              ) 
+            ) %>% leaflet::setView(lat = lat, lng = lon , zoom = zoom_level) %>%
+            leaflet::addLegend(pal = map_palette, title = yr, values = ~value, opacity=0.9, position = "bottomleft", na.label = "NA" )
+        } 
         world_map %>% htmlwidgets::onRender(
                                       "function(el, x) {
                                         L.control.zoom({
@@ -225,49 +226,49 @@ mod_map_tab_module_server <- function(id) {
     
     
     # MAP
-    output$world_map <- renderLeaflet({
+    output$world_map <- leaflet::renderLeaflet({
       
       mapToShow()
       
     })
     
     
-    map_title <- reactiveValues(
+    map_title <- shiny::reactiveValues(
       ic_name_map = NULL,
       ic_name_region = NULL,
       ic_name_sector = NULL,
       ic_name_year = NULL
     )
     
-    observe({
-      req(input$world_ind, input$world_region, input$world_sector, input$world_year)
+    shiny::observe({
+      shiny::req(input$world_ind, input$world_region, input$world_sector, input$world_year)
       
-      map_title$ic_name_map <- as.character(str_replace_all(string = input$world_ind, pattern = " ", replacement = "_"))
-      map_title$ic_name_region <- as.character(str_replace_all(string = input$world_region, pattern = " ", replacement = "_"))
-      map_title$ic_name_sector <- as.character(str_replace_all(string = input$world_sector, pattern = " ", replacement = "_"))
+      map_title$ic_name_map <- as.character(stringr::str_replace_all(string = input$world_ind, pattern = " ", replacement = "_"))
+      map_title$ic_name_region <- as.character(stringr::str_replace_all(string = input$world_region, pattern = " ", replacement = "_"))
+      map_title$ic_name_sector <- as.character(stringr::str_replace_all(string = input$world_sector, pattern = " ", replacement = "_"))
       map_title$ic_name_year <- as.character(input$world_year)
       
     })
     
     
-    filenameReact <- reactive({
-      rr <- tags$div(
-        HTML(as.character(str_glue('<h4 style="margin: 0;">{input$world_ind}</h4> 
-                                    <h6 style="margin: 0;">Region: {input$world_region}</h6>
-                                    <h6 style="margin: 0;">Sector: {input$world_sector}</h6>
-                                    <h6 style="margin: 0;">Year: {input$world_year}</h6>')
+    filenameReact <- shiny::reactive({
+      rr <- shiny::div(
+        shiny::HTML(as.character(stringr::str_glue('<h4 style="margin: 0;">{input$world_ind}</h4> 
+                                                    <h6 style="margin: 0;">Region: {input$world_region}</h6>
+                                                    <h6 style="margin: 0;">Sector: {input$world_sector}</h6>
+                                                    <h6 style="margin: 0;">Year: {input$world_year}</h6>')
                           )
              )
       )
       
-      mapToShow() %>% addControl(rr, position = "topleft")
+      mapToShow() %>% leaflet::addControl(rr, position = "topleft") 
       
     })
     
     
-    output$downloadMap <- downloadHandler(
+    output$downloadMap <- shiny::downloadHandler(
       filename =  function() {
-        as.character(str_glue("{map_title$ic_name_map}.png"))
+        as.character(stringr::str_glue("{map_title$ic_name_map}.png"))
       },
       
       content = function(file) {

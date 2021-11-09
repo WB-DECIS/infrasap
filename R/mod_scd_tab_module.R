@@ -8,49 +8,30 @@
 #'
 #' @importFrom shiny NS tagList 
 mod_scd_tab_module_ui <- function(id){
-  ns <- NS(id)
-  tagList(
-    # fluidRow(
-    #   column(6,
-    #          selectInput(ns('scd_country'),
-    #                      label = 'Select a country',
-    #                      choices = sort(unique(scd_dat$`Country Name`)),
-    #                      selected = 'Kenya')
-    #   ),
-    #   column(6,
-    #          selectInput(ns('scd_sector'),
-    #                      label = 'Select a sector',
-    #                      choices = c('Energy', 
-    #                                  'Digital Development',
-    #                                  'Transport', 
-    #                                  'Transport Road', 
-    #                                  'Transport Railways', 
-    #                                  'Transport Port'),
-    #                      selected = 'Energy')
-    #   )
-    # ),
-    fluidRow(
-      column(4,
-             selectInput(ns('scd_country'),
-                         label = 'Select a country',
-                         choices = sort(unique(scd_dat$`Country Name`)),
-                         selected = 'Kenya')
+  ns <- shiny::NS(id)
+  htmltools::tagList(
+    shiny::fluidRow(
+      shiny::column(4,
+                    shiny::selectInput(ns('scd_country'),
+                                       label = 'Select a country',
+                                       choices = sort(unique(scd_dat$`Country Name`)),
+                                       selected = 'Kenya')
       ),
-      column(4,
-             uiOutput(ns('scd_bm_ui'))
+      shiny::column(4,
+                    shiny::uiOutput(ns('scd_bm_ui'))
       ),
-      column(4,
-             uiOutput(ns('scd_countries_ui'))
+      shiny::column(4,
+                    shiny::uiOutput(ns('scd_countries_ui'))
       )
     ),
     
-    br(), 
-    br(),
+    shiny::br(), 
+    shiny::br(),
     
-    fluidRow(
-      column(12,
-             div(id = "scd_table_style_id",
-                 DT::dataTableOutput(ns('scd_table')) %>% withSpinner(type = 7,color = "#28323d")
+    shiny::fluidRow(
+      shiny::column(12,
+                    shiny::div(id = "scd_table_style_id",
+                    DT::dataTableOutput(ns('scd_table')) %>% shinycssloaders::withSpinner(type = 7,color = "#28323d")
              )
       )
     )
@@ -61,7 +42,7 @@ mod_scd_tab_module_ui <- function(id){
 #'
 #' @noRd 
 mod_scd_tab_module_server <- function(id){
-  moduleServer( id, function(input, output, session){
+  shiny::moduleServer(id, function(input, output, session){
     ns <- session$ns
  
     
@@ -69,25 +50,25 @@ mod_scd_tab_module_server <- function(id){
     
     
     #------- Initialize the Memory ----------
-    selected_vals = reactiveValues(scd_country_name = 'Kenya', 
-                                   scd_benchmark_name = NULL,
-                                   scd_countries_name = NULL,
-                                   scd_year_name = NULL
+    selected_vals = shiny::reactiveValues(scd_country_name = 'Kenya', 
+                                          scd_benchmark_name = NULL,
+                                          scd_countries_name = NULL,
+                                          scd_year_name = NULL
     )
     
     
     # get benchmarks for country selected
-    output$scd_bm_ui <- renderUI({
+    output$scd_bm_ui <- shiny::renderUI({
       cn <- input$scd_country
       
       # get benchmark info for country selected
       bm_cn<- infrasap::scd_dat %>%
         # filter(`Country Name` == "Kenya") %>%
-        filter(`Country Name` == cn) %>%
-        select(4:12) %>%
-        distinct() %>%
-        gather() %>%
-        drop_na() %>%
+        dplyr::filter(`Country Name` == cn) %>%
+        dplyr::select(4:12) %>%
+        dplyr::distinct() %>%
+        tidyr::gather() %>%
+        tidyr::drop_na() %>%
         .$value
       
       # only keep choices that have corresponding data on in benchmarks
@@ -99,45 +80,45 @@ mod_scd_tab_module_server <- function(id){
       bm_keep <- 'East Asia & Pacific|Europe & Central Asia|Latin America & Caribbean|Middle East & North Africa|North America|South Asia|Sub-Saharan Africa|High income|Low income|Lower middle income|Upper middle income|Fragile|Isolated|Low Human Capital|Low Population Density|Mountainous|OECD members|Oil Exporter'
       bm_choices <- bm[grepl(bm_keep, bm)]
       bm_selected <- infrasap::dat_country_income_region %>%
-        filter(`Country Name` == input$scd_country)
+        dplyr::filter(`Country Name` == input$scd_country)
       
       # Check after deployment (Sometimes AWS )
       bm_choices <- list(
-        "Region" = bm_choices[str_detect(bm_choices, 'Asia|America|Africa')],
-        "Income Groups" = bm_choices[str_detect(bm_choices, 'income')],
-        'Exogenous' = bm_choices[!str_detect(bm_choices,'Asia|America|Africa|income')]
+        "Region" = bm_choices[stringr::str_detect(bm_choices, 'Asia|America|Africa')],
+        "Income Groups" = bm_choices[stringr::str_detect(bm_choices, 'income')],
+        'Exogenous' = bm_choices[!stringr::str_detect(bm_choices,'Asia|America|Africa|income')]
       )
       # bm_choices %>% print()
       
-      selectizeInput(inputId = ns('scd_benchmark'),
-                     label = 'Select a benchmark',
-                     choices = bm_choices,
-                     # selected = bm_cn[1],
-                     # selected = bm_choices[[1]][1],
-                     selected = bm_selected$Region,
-                     multiple = TRUE,
-                     options = list(
-                       'plugins' = list('remove_button'),
-                       'create' = TRUE,
-                       'persist' = FALSE
-                     )
+      shiny::selectizeInput(inputId = ns('scd_benchmark'),
+                             label = 'Select a benchmark',
+                             choices = bm_choices,
+                             # selected = bm_cn[1],
+                             # selected = bm_choices[[1]][1],
+                             selected = bm_selected$Region,
+                             multiple = TRUE,
+                             options = list(
+                               'plugins' = list('remove_button'),
+                               'create' = TRUE,
+                               'persist' = FALSE
+                             )
       )
       
       
       
     }) # /output$scd_bm_ui
     
-    observeEvent(input$scd_country, {
+    shiny::observeEvent(input$scd_country, {
       bn_selected_cr <- infrasap::dat_country_income_region %>%
-        filter(`Country Name` == input$scd_country)
+        dplyr::filter(`Country Name` == input$scd_country)
 
-      updateSelectInput(session, "scd_benchmark",
-                        selected = c(bn_selected_cr$Region)
+      shiny::updateSelectInput(session, "scd_benchmark",
+                               selected = c(bn_selected_cr$Region)
       )
     })
 
     # ui output for years based on inputs selected
-    output$scd_year_ui <- renderUI({
+    output$scd_year_ui <- shiny::renderUI({
       cn <- input$scd_country
       bm <- input$scd_benchmark
       
@@ -147,50 +128,50 @@ mod_scd_tab_module_server <- function(id){
         # get country data
         df <- infrasap::scd_dat %>% 
           # filter(`Country Name`== "Kenya") %>% 
-          filter(`Country Name`== cn) %>%
+          dplyr::filter(`Country Name`== cn) %>%
           # filter(`Indicator Sector` %in% sc) %>%
-          select(`Country Name`,`Indicator Name`,`1990`:`2020`) %>% 
-          gather(key = 'key', value = 'value',-`Indicator Name`, -`Country Name`) %>% 
-          drop_na()
+          dplyr::select(`Country Name`,`Indicator Name`,`1990`:`2020`) %>% 
+          tidyr::gather(key = 'key', value = 'value',-`Indicator Name`, -`Country Name`) %>% 
+          tidyr::drop_na()
         
         
         # get benchmark data
         df_bm <- infrasap::scd_bm %>%
-          filter(Grouping %in% bm) %>%
+          dplyr::filter(Grouping %in% bm) %>%
           # filter(Sector %in% sc) %>%
-          select(Indicator, `1990`:`2020`) %>%
-          gather(key = 'key', value = 'value',-`Indicator`) %>% 
-          drop_na()
+          dplyr::select(Indicator, `1990`:`2020`) %>%
+          tidyr::gather(key = 'key', value = 'value',-`Indicator`) %>% 
+          tidyr::drop_na()
         
         # get intersection of indicators
-        int_ic <- intersect(df$`Indicator Name`, df_bm$Indicator)
+        int_ic <- dplyr::intersect(df$`Indicator Name`, df_bm$Indicator)
         
         # subset data by common intersection
-        df <- df %>% filter(`Indicator Name` %in% int_ic)
-        df_bm <- df_bm%>% filter(`Indicator` %in% int_ic)
+        df <- df %>% dplyr::filter(`Indicator Name` %in% int_ic)
+        df_bm <- df_bm %>% dplyr::filter(`Indicator` %in% int_ic)
         
-        year_choices <- intersect(unique(df$key), unique(df_bm$key))
+        year_choices <- dplyr::intersect(unique(df$key), unique(df_bm$key))
         
-        selectInput(ns('scd_year'), 
-                    label = 'Select year',
-                    choices = c("Latest year available", year_choices), 
-                    selected  = year_choices[length(year_choices)]
+        shiny::selectInput(ns('scd_year'), 
+                           label = 'Select year',
+                           choices = c("Latest year available", year_choices), 
+                           selected  = year_choices[length(year_choices)]
         )
         
       }
       
     }) # /output$scd_year_ui
     
-    output$scd_countries_ui <- renderUI({
+    output$scd_countries_ui <- shiny::renderUI({
       cn <- input$scd_country
       
       
       df <- infrasap::scd_dat %>%
-        filter(`Country Name`==cn) %>%
-        # filter(`Indicator Sector` %in% sc ) %>%
-        select(`Indicator Name`,`Region`) %>%
-        drop_na() %>%
-        select(`Region`, `Indicator Name`)
+              dplyr::filter(`Country Name`==cn) %>%
+              # filter(`Indicator Sector` %in% sc ) %>%
+              dplyr::select(`Indicator Name`,`Region`) %>%
+              tidyr::drop_na() %>%
+              dplyr::select(`Region`, `Indicator Name`)
       
       ic <- sort(unique(df$`Indicator Name`))
       rn <- unique(df$Region)
@@ -198,10 +179,10 @@ mod_scd_tab_module_server <- function(id){
       # subset data by region pillar and sector to get countries from that region with available data
       df <- infrasap::scd_dat %>%
         # filter(`Indicator Sector` %in% sc ) %>%
-        filter(Region == rn) %>%
-        filter(`Indicator Name` %in% ic) %>%
-        select(`Country Name`) %>%
-        drop_na()
+        dplyr::filter(Region == rn) %>%
+        dplyr::filter(`Indicator Name` %in% ic) %>%
+        dplyr::select(`Country Name`) %>%
+        tidyr::drop_na()
       
       # get region names 
       cnames <- sort(unique(df$`Country Name`))
@@ -216,17 +197,17 @@ mod_scd_tab_module_server <- function(id){
       cnames <- c(cnames, all_cnames)
       
       
-      selectizeInput(inputId = ns('scd_countries'),
-                     label = 'Select countries for comparison',
-                     choices = cnames[cnames != input$scd_country],
-                     selected = cnames[1],
-                     multiple = TRUE,
-                     options = list(
-                       maxItems = 5,
-                       'plugins' = list('remove_button'),
-                       'create' = TRUE,
-                       'persist' = FALSE
-                     )
+      shiny::selectizeInput(inputId = ns('scd_countries'),
+                             label = 'Select countries for comparison',
+                             choices = cnames[cnames != input$scd_country],
+                             selected = cnames[1],
+                             multiple = TRUE,
+                             options = list(
+                               maxItems = 5,
+                               'plugins' = list('remove_button'),
+                               'create' = TRUE,
+                               'persist' = FALSE
+                             )
       )
       
       
@@ -234,7 +215,7 @@ mod_scd_tab_module_server <- function(id){
     })
     
     
-    table_reactive <- reactive({
+    table_reactive <- shiny::reactive({
       cn <- input$scd_country
       bm <- input$scd_benchmark
       cc <- input$scd_countries
@@ -248,13 +229,13 @@ mod_scd_tab_module_server <- function(id){
       # get data based on inputs
       # infrasap::scd_dat_names_unique %>% select(`Indicator Name`, `Indicator Sector`) %>% distinct()
       df <- infrasap::scd_dat %>% 
-        filter(`Country Name`%in% cn) %>% 
+        dplyr::filter(`Country Name`%in% cn) %>% 
         # filter(`Indicator Sector` %in% sc) %>%
-        select(`Country Name`,`Indicator Name`, `Type of Benchmark`, yr) 
+        dplyr::select(`Country Name`,`Indicator Name`, `Type of Benchmark`, yr) 
       
         
       df <- df %>% 
-        mutate(`Type of Benchmark` = dplyr::if_else(is.na(`Type of Benchmark`), 'Upper', `Type of Benchmark`))
+        dplyr::mutate(`Type of Benchmark` = dplyr::if_else(is.na(`Type of Benchmark`), 'Upper', `Type of Benchmark`))
       
       available_years <- c()
       range <- c((as.numeric(yr) - 1):(as.numeric(get_year_scd(cn = cn, bm = bm))))
@@ -266,7 +247,7 @@ mod_scd_tab_module_server <- function(id){
         ) 
       
       
-      map(1:length(range), function(x) {
+      purrr::map(1:length(range), function(x) {
         df <<- fill_missing_values_in_years_scd(df = df,
                                                 based_year = yr,
                                                 year_step_back = range[x],
@@ -286,33 +267,33 @@ mod_scd_tab_module_server <- function(id){
       available_years_in_use <- available_years_in_use[!is.na(available_years_in_use)]
       yr <- as.character(max(unique(df$year_pop), na.rm = TRUE))
       
-      df_years_col <- df %>% select(`Indicator Name`, `year_pop`)
+      df_years_col <- df %>% dplyr::select(`Indicator Name`, `year_pop`)
       
       # benchmark data 
       # TO DO ADD Benchmark length for multiple choices
       df <- infrasap::scd_bm %>% 
-        filter(Grouping %in% bm) %>%
+        dplyr::filter(Grouping %in% bm) %>%
         # filter(Sector %in% sc) %>%
-        select(Grouping, Indicator, available_years_in_use) %>%
+        dplyr::select(Grouping, Indicator, available_years_in_use) %>%
         dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
       
       df <- df %>%
-        mutate(year_tooltip = year_pop)
+        dplyr::mutate(year_tooltip = year_pop)
       
       
-      df <- df %>% select(-available_years)
+      df <- df %>% dplyr::select(-available_years)
       
-      map(1:length(available_years_in_use), function(b){
+      purrr::map(1:length(available_years_in_use), function(b){
         df <<- df %>%
-          mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(str_glue("{available_years_in_use[b]}.x")), year_pop)
+          dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), year_pop)
           )
       })[length(available_years_in_use)]
       
       df <- df %>%
-        rename(
-          !!col_sym_conv((df %>% select(`Country Name`) %>% pull() %>% unique())) := !!col_sym_conv(str_glue("{yr}.y"))
-        ) %>% select(-contains(".x"), -contains(".y"), -`Country Name`) %>% distinct() %>%
-        pivot_wider(names_from = `Grouping`, values_from = `year_pop`)
+        dplyr::rename(
+          !!col_sym_conv((df %>% dplyr::select(`Country Name`) %>% dplyr::pull() %>% unique())) := !!col_sym_conv(stringr::str_glue("{yr}.y"))
+        ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"), -`Country Name`) %>% dplyr::distinct() %>%
+        tidyr::pivot_wider(names_from = `Grouping`, values_from = `year_pop`)
       
       
       # Countries list to compare
@@ -330,7 +311,7 @@ mod_scd_tab_module_server <- function(id){
             dplyr::full_join(
               country_to_compare_scd(cc[1], available_years_in_use, df_years_col)
             ) %>% 
-            distinct() 
+            dplyr::distinct() 
           
           ### List removal from column
           df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], replace_null_to_na)
@@ -347,7 +328,7 @@ mod_scd_tab_module_server <- function(id){
             dplyr::full_join(
               country_to_compare_scd(cc[2], available_years_in_use, df_years_col)
             ) %>% 
-            distinct()
+            dplyr::distinct()
           
           
           ### List removal from column
@@ -370,7 +351,7 @@ mod_scd_tab_module_server <- function(id){
             dplyr::full_join(
               country_to_compare_scd(cc[3], available_years_in_use, df_years_col)
             ) %>% 
-            distinct()
+            dplyr::distinct()
           
           ### List removal from column
           df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], replace_null_to_na)
@@ -400,7 +381,7 @@ mod_scd_tab_module_server <- function(id){
             dplyr::full_join(
               country_to_compare_scd(cc[4], available_years_in_use, df_years_col)
             ) %>%
-            distinct()
+            dplyr::distinct()
           
           ### List removal from column
           df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], replace_null_to_na)
@@ -436,7 +417,7 @@ mod_scd_tab_module_server <- function(id){
             dplyr::full_join(
               country_to_compare_scd(cc[5], available_years_in_use, df_years_col)
             ) %>%
-            distinct()
+            dplyr::distinct()
           
           ### List removal from column
           df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], replace_null_to_na)
@@ -465,15 +446,15 @@ mod_scd_tab_module_server <- function(id){
       
 
       df <- df %>% 
-        select(year_tooltip, `Indicator`, cn, everything()) 
+        dplyr::select(year_tooltip, `Indicator`, cn, everything()) 
       
       
       
       if((!is.null(cc)) && (length(cc) > 0)){
         # map(1:length(cc), function(x){
-        map(1:length(input$scd_countries), function(x){
+        purrr::map(1:length(input$scd_countries), function(x){
           df <<- scd_color_encode(df = df, 
-                                  value = str_glue('value_c{x}'), 
+                                  value = stringr::str_glue('value_c{x}'), 
                                   cn = input$scd_country,
                                   bm = input$scd_countries[x]
                                   # cn = cn, 
@@ -484,9 +465,9 @@ mod_scd_tab_module_server <- function(id){
       
       if((!is.null(bm)) && (length(bm) > 0)){
         # map(1:length(bm), function(x){
-        map(1:length(input$scd_benchmark), function(x){
+        purrr::map(1:length(input$scd_benchmark), function(x){
           df <<- scd_color_encode(df = df, 
-                                  value = str_glue('value_b{x}'), 
+                                  value = stringr::str_glue('value_b{x}'), 
                                   cn = input$scd_country,
                                   bm = input$scd_benchmark[x]
                                   # cn = cn, 
@@ -496,35 +477,35 @@ mod_scd_tab_module_server <- function(id){
       }
       
       
-      df <- df %>% select(-`Type of Benchmark`)
+      df <- df %>% dplyr::select(-`Type of Benchmark`)
       
       # get rid of string named `NA`
       df <- df[names(df) != "NA"]
       
-      a <- infrasap::scd_dat %>% select(`grouping`, `Indicator Name`) %>% distinct()
-      b <- infrasap::scd_bm %>% select(`Indicator`) %>% distinct()
-      df_ind <- a %>% full_join(b, by = c("Indicator Name" = "Indicator"))
-      df <- df %>% full_join(df_ind, by = c("Indicator" = "Indicator Name"))
+      a <- infrasap::scd_dat %>% dplyr::select(`grouping`, `Indicator Name`) %>% dplyr::distinct()
+      b <- infrasap::scd_bm %>% dplyr::select(`Indicator`) %>% dplyr::distinct()
+      df_ind <- a %>% dplyr::full_join(b, by = c("Indicator Name" = "Indicator"))
+      df <- df %>% dplyr::full_join(df_ind, by = c("Indicator" = "Indicator Name"))
       
       # print(infrasap::scd_indicators)
       # print(df)
       # glimpse(df)
       
-      df <- infrasap::scd_indicators %>% left_join(df, by = c("Indicator Name" = "Indicator", 
-                                                              "grouping" = "grouping")) %>%
-            rename(Indicator = `Indicator Name`)
+      df <- infrasap::scd_indicators %>% dplyr::left_join(df, by = c("Indicator Name" = "Indicator", 
+                                                                     "grouping" = "grouping")) %>%
+            dplyr::rename(Indicator = `Indicator Name`)
       
       df <- df %>% 
-              select(year_tooltip, `grouping`, everything()) %>%
-              mutate(`grouping` = forcats::as_factor(`grouping`)) %>%
-              mutate(`grouping` = forcats::lvls_revalue(`grouping`, c(
-                                                                    'Economic Linkages',
-                                                                    'Poverty and Equity',
-                                                                    'Quality of Infrastructure',
-                                                                    'Governance',
-                                                                    'Finance',
-                                                                    'Climate change'))) %>%
-              arrange(`grouping`)
+              dplyr::select(year_tooltip, `grouping`, dplyr::everything()) %>%
+              dplyr::mutate(`grouping` = forcats::as_factor(`grouping`)) %>%
+              dplyr::mutate(`grouping` = forcats::lvls_revalue(`grouping`, c(
+                                                                            'Economic Linkages',
+                                                                            'Poverty and Equity',
+                                                                            'Quality of Infrastructure',
+                                                                            'Governance',
+                                                                            'Finance',
+                                                                            'Climate change'))) %>%
+              dplyr::arrange(`grouping`)
       
       
       return(df)
@@ -536,7 +517,7 @@ mod_scd_tab_module_server <- function(id){
     output$scd_table <- DT::renderDataTable({
       bm <- input$scd_benchmark
       cc <- input$scd_countries
-      req(table_reactive())
+      shiny::req(table_reactive())
       df <- table_reactive()
       
       hiddenColNum <- c()
@@ -544,43 +525,20 @@ mod_scd_tab_module_server <- function(id){
       # print(df)
       
       if(!is.null(bm)){
-        map(1:length(input$scd_benchmark), function(x){
-          hiddenColNum <<- c(hiddenColNum, which( colnames(df)== as.character(str_glue('value_b{x}'))))
+        purrr::map(1:length(input$scd_benchmark), function(x){
+          hiddenColNum <<- c(hiddenColNum, which(colnames(df) == as.character(stringr::str_glue('value_b{x}'))))
         })
       }
       
       if(!is.null(cc)){
-        map(1:length(input$scd_countries), function(x){
-          hiddenColNum <<- c(hiddenColNum, which( colnames(df)== as.character(str_glue('value_c{x}'))))
+        purrr::map(1:length(input$scd_countries), function(x){
+          hiddenColNum <<- c(hiddenColNum, which( colnames(df) == as.character(stringr::str_glue('value_c{x}'))))
         })
       }
       
       hiddenColNum <- hiddenColNum-1
       
-      df <- df %>% mutate(across(where(is.numeric), ~round(., 2))) 
-                # %>%
-                # arrange(factor(`grouping`, 
-                #                levels = c('Economic Linkages', 
-                #                           'Poverty and Equity', 
-                #                           'Quality of Infrastructure', 
-                #                           'Governance', 
-                #                           'Finance', 
-                #                           'Climate change')
-                # ))
-      
-      # print(
-      #   factor(df$`grouping`, 
-      #          levels = c('Economic Linkages', 
-      #                     'Poverty and Equity', 
-      #                     'Quality of Infrastructure', 
-      #                     'Governance', 
-      #                     'Finance', 
-      #                     'Climate change')
-      #   )
-      # )
-      # 
-      # print(df)
-      
+      df <- df %>% dplyr::mutate(dplyr::across(where(is.numeric), ~round(., 2))) 
       
       
       
@@ -591,7 +549,7 @@ mod_scd_tab_module_server <- function(id){
                               escape=FALSE,
                               options = list(pageLength = nrow(df),
                                              ordering = FALSE,
-                                             rowCallback = JS(
+                                             rowCallback = DT::JS(
                                                "function(row, data) {",
                                                "var full_text = 'This row values extracted from ' + data[0] +  ' year'",
                                                "$('td', row).attr('title', full_text);",
@@ -617,10 +575,10 @@ mod_scd_tab_module_server <- function(id){
       
       
       if(!is.null(cc)) {
-        map(1:length(input$scd_countries), function(x) {
-          dtable <<- dtable %>% formatStyle(
-            as.character(input$scd_countries[x]), as.character(str_glue('value_c{x}')),
-            backgroundColor = styleEqual(
+        purrr::map(1:length(input$scd_countries), function(x) {
+          dtable <<- dtable %>% DT::formatStyle(
+            as.character(input$scd_countries[x]), as.character(stringr::str_glue('value_c{x}')),
+            backgroundColor = DT::styleEqual(
               c(0, 1, 2, 3),
               c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
             )
@@ -629,10 +587,10 @@ mod_scd_tab_module_server <- function(id){
       }
       
       if(!is.null(bm)) {
-        map(1:length(input$scd_benchmark), function(x) {
-          dtable <<- dtable %>% formatStyle(
-            as.character(input$scd_benchmark[x]), as.character(str_glue('value_b{x}')),
-            backgroundColor = styleEqual(
+        purrr::map(1:length(input$scd_benchmark), function(x) {
+          dtable <<- dtable %>% DT::formatStyle(
+            as.character(input$scd_benchmark[x]), as.character(stringr::str_glue('value_b{x}')),
+            backgroundColor = DT::styleEqual(
               c(0, 1, 2, 3),
               c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
             )
