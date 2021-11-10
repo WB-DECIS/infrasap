@@ -807,8 +807,16 @@ mod_infrasap_tab_module_server <- function(id){
             df <- df %>% dplyr::mutate(year_tooltip_b = year_tooltip) %>% dplyr::select(-year_tooltip) %>% dplyr::rename(year_tooltip = year_tooltip_b)
             
             
-            if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
-              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital_transport_energy__governance)
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__governance)
+            }
+            
+            if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__governance)
+            }
+            
+            if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
             }
             
             
@@ -1174,8 +1182,16 @@ mod_infrasap_tab_module_server <- function(id){
             df[[cn]] <- round(df[[cn]], 2)
             df[[bm]] <- round(df[[bm]], 2)
             
-            if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
-              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital_transport_energy__governance)
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__governance)
+            }
+            
+            if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__governance)
+            }
+            
+            if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
             }
             
             
@@ -1517,8 +1533,16 @@ mod_infrasap_tab_module_server <- function(id){
             
             df <- dplyr::full_join(df_r, df_i)
             
-            if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
-              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital_transport_energy__governance)
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__governance)
+            }
+            
+            if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__governance)
+            }
+            
+            if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
             }
             
             
@@ -1785,8 +1809,16 @@ mod_infrasap_tab_module_server <- function(id){
             df[[cn]] <- round(df[[cn]], 2)
             df[[bm]] <- round(df[[bm]], 2)
             
-            if(input$db_sector %in% c('Energy', 'Transport', 'Digital') && input$db_pillar %in% c('Governance')) {
-              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital_transport_energy__governance)
+            if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__governance)
+            }
+            
+            if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__governance)
+            }
+            
+            if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Governance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
             }
             
 
@@ -2437,32 +2469,32 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     
-    # output$report_pdf <- downloadHandler(
-    #   # For PDF output, change this to "report.pdf"
-    #   filename = "report.pdf",
-    #   content = function(file) {
-    #     # Copy the report file to a temporary directory before processing it, in
-    #     # case we don't have write permissions to the current working dir (which
-    #     # can happen when deployed).
-    #     tempReport <- file.path(tempdir(), "infrasap_pillar_table_pdf.Rmd")
-    #     file.copy("infrasap_pillar_table_pdf.Rmd", tempReport, overwrite = TRUE)
-    #     
-    #     # Set up parameters to pass to Rmd document
-    #     params <- list(country = input$db_country,
-    #                    benchmark = input$db_benchmark,
-    #                    table_data = infrasap_table(),
-    #                    country_to_compare = input$country_to_compare_id
-    #     )
-    #     
-    #     # Knit the document, passing in the `params` list, and eval it in a
-    #     # child of the global environment (this isolates the code in the document
-    #     # from the code in this app).
-    #     rmarkdown::render(tempReport, output_file = file,
-    #                       params = params,
-    #                       envir = new.env(parent = globalenv())
-    #     )
-    #   }
-    # )
+    output$report_pdf <- downloadHandler(
+      # For PDF output, change this to "report.pdf"
+      filename = "report.pdf",
+      content = function(file) {
+        # Copy the report file to a temporary directory before processing it, in
+        # case we don't have write permissions to the current working dir (which
+        # can happen when deployed).
+        tempReport <- file.path(tempdir(), "infrasap_pillar_table_pdf.Rmd")
+        file.copy("infrasap_pillar_table_pdf.Rmd", tempReport, overwrite = TRUE)
+        
+        # Set up parameters to pass to Rmd document
+        params <- list(country = input$db_country,
+                       benchmark = input$db_benchmark,
+                       table_data = infrasap_table(),
+                       country_to_compare = input$country_to_compare_id
+        )
+        
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(tempReport, output_file = file,
+                          params = params,
+                          envir = new.env(parent = globalenv())
+        )
+      }
+    )
     
     
     # /Module Body /end

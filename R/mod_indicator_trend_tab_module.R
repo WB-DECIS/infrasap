@@ -59,7 +59,7 @@ mod_indicator_trend_tab_module_ui <- function(id){
                plotly::plotlyOutput(ns('data_chart'),
                             width = '900px', 
                             height = "auto"
-                            ) %>% shinycssloaders::withSpinner(type = 7,color = "#28323d")
+                            ) %>% shinycssloaders::withSpinner(type = 7,color = "#154164")
         )
       ),
       

@@ -42,7 +42,7 @@ app_ui <- function(request) {
         sidebarMenu(
           id = 'tabs',
           menuItem(
-            text="Global Indicators Dashboard",
+            text="Global Infrastructure Dashboard",
             tabName="landing_page"),
           menuItem(
             text = 'About',
@@ -60,7 +60,7 @@ app_ui <- function(request) {
           padding: 0px 0px 0px 0px;
           overflow: hidden;
           color: white;
-          margin-right: 20%;
+          margin-right: 10%;
                                             
         }
     '))),

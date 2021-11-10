@@ -31,7 +31,7 @@ mod_scd_tab_module_ui <- function(id){
     shiny::fluidRow(
       shiny::column(12,
                     shiny::div(id = "scd_table_style_id",
-                    DT::dataTableOutput(ns('scd_table')) %>% shinycssloaders::withSpinner(type = 7,color = "#28323d")
+                    DT::dataTableOutput(ns('scd_table')) %>% shinycssloaders::withSpinner(type = 7,color = "#154164")
              )
       )
     )

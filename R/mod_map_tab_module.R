@@ -73,7 +73,7 @@ mod_map_tab_module_ui <- function(id){
       shiny::fluidRow(
         shiny::column(12, 
                align = 'center',
-               leaflet::leafletOutput(ns('world_map'), height = 700, width = 1000) %>% shinycssloaders::withSpinner(type = 7, color = "#28323d")
+               leaflet::leafletOutput(ns('world_map'), height = 700, width = 1000) %>% shinycssloaders::withSpinner(type = 7, color = "#154164")
         )
       )
     )
