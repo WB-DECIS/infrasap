@@ -75,7 +75,7 @@ country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_y
 
 
 # get years for data
-get_last_year <- function(cn, sc, bm) {
+get_last_year <- function(cn, sc, bm = NULL) {
   
   infrasap_dat_mod_modified <- infrasap::dat
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
@@ -83,28 +83,53 @@ get_last_year <- function(cn, sc, bm) {
   infrsap_dat_bm_mod_modfied <- infrasap::dat_bm
   infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "National"] <- "Cross-cutting"
   
-  temp <- infrasap_dat_mod_modified %>% 
-    dplyr::filter(`Country Name` == cn) %>% 
-    dplyr::filter(`Indicator Sector` %in% sc) %>%
-    dplyr::select(`Country Name`, `1990`:`2020`, bm ) 
-  
-  # get type of benchmark to subset benchmark data by
-  # bm_type <- unique(temp[,bm]) %>% pull()
-  bm_type <- unique(temp[,bm])
-  
-  # remove columns that have all NA
-  temp <- temp[,colSums(is.na(temp))<nrow(temp)]
-  temp <- temp %>% dplyr::select(-`Country Name`, -bm)
-  
-  # get years for benchmark 
-  temp_bm <- infrsap_dat_bm_mod_modfied %>%
-    dplyr::filter(Grouping == bm_type) %>% 
-    dplyr::filter(`Sector` %in% sc)
-  temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
-  
-  # get intersection of years to populate year input
-  year_choices <- intersect(names(temp), names(temp_bm))
-  year_choices <- year_choices[length(year_choices)]
+  if(is.null(bm)) {
+    temp <- infrasap_dat_mod_modified %>% 
+      dplyr::filter(`Country Name` == cn) %>% 
+      dplyr::filter(`Indicator Sector` %in% sc) %>%
+      dplyr::select(`Country Name`, `1990`:`2020` ) 
+    
+    # get type of benchmark to subset benchmark data by
+    # bm_type <- unique(temp[,bm]) %>% pull()
+    # bm_type <- unique(temp[,bm])
+    
+    # remove columns that have all NA
+    temp <- temp[,colSums(is.na(temp)) < nrow(temp)]
+    temp <- temp %>% dplyr::select(-`Country Name`)
+    
+    # get years for benchmark 
+    temp_bm <- infrsap_dat_bm_mod_modfied %>%
+      # dplyr::filter(Grouping == bm_type) %>% 
+      dplyr::filter(`Sector` %in% sc)
+    temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
+    
+    # get intersection of years to populate year input
+    year_choices <- intersect(names(temp), names(temp_bm))
+    year_choices <- year_choices[length(year_choices)]
+  } else {
+    temp <- infrasap_dat_mod_modified %>% 
+      dplyr::filter(`Country Name` == cn) %>% 
+      dplyr::filter(`Indicator Sector` %in% sc) %>%
+      dplyr::select(`Country Name`, `1990`:`2020`, bm ) 
+    
+    # get type of benchmark to subset benchmark data by
+    # bm_type <- unique(temp[,bm]) %>% pull()
+    bm_type <- unique(temp[,bm])
+    
+    # remove columns that have all NA
+    temp <- temp[,colSums(is.na(temp))<nrow(temp)]
+    temp <- temp %>% dplyr::select(-`Country Name`, -bm)
+    
+    # get years for benchmark 
+    temp_bm <- infrsap_dat_bm_mod_modfied %>%
+      dplyr::filter(Grouping == bm_type) %>% 
+      dplyr::filter(`Sector` %in% sc)
+    temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
+    
+    # get intersection of years to populate year input
+    year_choices <- intersect(names(temp), names(temp_bm))
+    year_choices <- year_choices[length(year_choices)]
+  }
   
   return(year_choices)
   
