@@ -42,7 +42,7 @@ app_ui <- function(request) {
         sidebarMenu(
           id = 'tabs',
           menuItem(
-            text="Global Indicators Dashboard",
+            text="Global Infrastructure Dashboard",
             tabName="landing_page"),
           menuItem(
             text = 'About',
@@ -60,14 +60,14 @@ app_ui <- function(request) {
           padding: 0px 0px 0px 0px;
           overflow: hidden;
           color: white;
-          margin-right: 20%;
+          margin-right: 10%;
                                             
         }
     '))),
         tags$script(HTML('
             $(document).ready(function() {
               $(".headerTitleCust").remove()
-              $("header").find("nav").append(\'<div class="headerTitleCust"> Infrastructure Global Indicators Dashboard</div>\');
+              $("header").find("nav").append(\'<div class="headerTitleCust"> Global Infrastructure Dashboard</div>\');
             })
            ')),
         tabItems(

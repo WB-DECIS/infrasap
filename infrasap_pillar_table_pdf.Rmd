@@ -1,0 +1,393 @@
+---
+title: "Infrasap Pillar "
+author: "Databrew"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+header-includes:
+  - \PassOptionsToPackage{x11names}{xcolor} 
+  - \usepackage{pifont}
+  - \usepackage[T1]{fontenc}
+  - \usepackage{anyfontsize}
+  - \usepackage{inputenc}
+  - \usepackage{booktabs}
+  - \usepackage{xcolor}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+
+classoption: landscape
+params:
+  country: NA,
+  benchmark: NA
+  table_data: NA
+  country_to_compare: NA
+
+---
+
+``` {r include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+library(dplyr)
+library(kableExtra)
+library(stringr)
+library(dplyr)
+```
+
+
+
+```{r}
+# Helper: convert string to symbol (to asign variable name via parameter)
+col_sym_conv <- function(x) {
+  rlang::sym(x)
+}
+
+## Three countries to compare ----
+
+if(length(params$benchmark) == 2 && length(params$country_to_compare) == 3) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    Region = case_when(
+      value_r == 0 ~ cell_spec(Region, background = "#d3d3d370"),
+      value_r == 1 ~ cell_spec(Region, background = "#fb9494"),
+      value_r == 2 ~ cell_spec(Region, background = "#ffff6b"),
+      value_r == 3 ~ cell_spec(Region, background = "#9be27d")
+  )) %>%
+  mutate(
+    IncomeGroup = case_when(
+      value_i == 0 ~ cell_spec(IncomeGroup, background = "#d3d3d370"),
+      value_i == 1 ~ cell_spec(IncomeGroup, background = "#fb9494"),
+      value_i == 2 ~ cell_spec(IncomeGroup, background = "#ffff6b"),
+      value_i == 3 ~ cell_spec(IncomeGroup, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[2]) := case_when(
+      value_c2 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#d3d3d370"),
+      value_c2 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#fb9494"),
+      value_c2 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#ffff6b"),
+      value_c2 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[3]) := case_when(
+      value_c3 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#d3d3d370"),
+      value_c3 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#fb9494"),
+      value_c3 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#ffff6b"),
+      value_c3 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:9) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+if(params$benchmark == 'Region' && length(params$benchmark) == 1 && length(params$country_to_compare) == 3) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    Region = case_when(
+      value == 0 ~ cell_spec(Region, background = "#d3d3d370"),
+      value == 1 ~ cell_spec(Region, background = "#fb9494"),
+      value == 2 ~ cell_spec(Region, background = "#ffff6b"),
+      value == 3 ~ cell_spec(Region, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[2]) := case_when(
+      value_c2 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#d3d3d370"),
+      value_c2 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#fb9494"),
+      value_c2 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#ffff6b"),
+      value_c2 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[3]) := case_when(
+      value_c3 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#d3d3d370"),
+      value_c3 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#fb9494"),
+      value_c3 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#ffff6b"),
+      value_c3 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:8) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+
+if(params$benchmark == 'IncomeGroup' && length(params$benchmark) == 1 && length(params$country_to_compare) == 3) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    IncomeGroup = case_when(
+      value == 0 ~ cell_spec(IncomeGroup, background = "#d3d3d370"),
+      value == 1 ~ cell_spec(IncomeGroup, background = "#fb9494"),
+      value == 2 ~ cell_spec(IncomeGroup, background = "#ffff6b"),
+      value == 3 ~ cell_spec(IncomeGroup, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[2]) := case_when(
+      value_c2 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#d3d3d370"),
+      value_c2 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#fb9494"),
+      value_c2 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#ffff6b"),
+      value_c2 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[3]) := case_when(
+      value_c3 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#d3d3d370"),
+      value_c3 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#fb9494"),
+      value_c3 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#ffff6b"),
+      value_c3 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[3]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:8) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+
+## Two countries to compare ----
+
+if(length(params$benchmark) == 2 && length(params$country_to_compare) == 2) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    Region = case_when(
+      value_r == 0 ~ cell_spec(Region, background = "#d3d3d370"),
+      value_r == 1 ~ cell_spec(Region, background = "#fb9494"),
+      value_r == 2 ~ cell_spec(Region, background = "#ffff6b"),
+      value_r == 3 ~ cell_spec(Region, background = "#9be27d")
+  )) %>%
+  mutate(
+    IncomeGroup = case_when(
+      value_i == 0 ~ cell_spec(IncomeGroup, background = "#d3d3d370"),
+      value_i == 1 ~ cell_spec(IncomeGroup, background = "#fb9494"),
+      value_i == 2 ~ cell_spec(IncomeGroup, background = "#ffff6b"),
+      value_i == 3 ~ cell_spec(IncomeGroup, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[2]) := case_when(
+      value_c2 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#d3d3d370"),
+      value_c2 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#fb9494"),
+      value_c2 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#ffff6b"),
+      value_c2 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:8) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+if(params$benchmark == 'Region' && length(params$benchmark) == 1 && length(params$country_to_compare) == 2) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    Region = case_when(
+      value == 0 ~ cell_spec(Region, background = "#d3d3d370"),
+      value == 1 ~ cell_spec(Region, background = "#fb9494"),
+      value == 2 ~ cell_spec(Region, background = "#ffff6b"),
+      value == 3 ~ cell_spec(Region, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[2]) := case_when(
+      value_c2 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#d3d3d370"),
+      value_c2 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#fb9494"),
+      value_c2 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#ffff6b"),
+      value_c2 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:7) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+
+if(params$benchmark == 'IncomeGroup'  && length(params$benchmark) == 1 && length(params$country_to_compare) == 2) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    IncomeGroup = case_when(
+      value == 0 ~ cell_spec(IncomeGroup, background = "#d3d3d370"),
+      value == 1 ~ cell_spec(IncomeGroup, background = "#fb9494"),
+      value == 2 ~ cell_spec(IncomeGroup, background = "#ffff6b"),
+      value == 3 ~ cell_spec(IncomeGroup, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[2]) := case_when(
+      value_c2 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#d3d3d370"),
+      value_c2 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#fb9494"),
+      value_c2 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#ffff6b"),
+      value_c2 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[2]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:7) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+
+## One country to compare ----
+
+if(length(params$benchmark) == 2 && length(params$country_to_compare) == 1) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    Region = case_when(
+      value_r == 0 ~ cell_spec(Region, background = "#d3d3d370"),
+      value_r == 1 ~ cell_spec(Region, background = "#fb9494"),
+      value_r == 2 ~ cell_spec(Region, background = "#ffff6b"),
+      value_r == 3 ~ cell_spec(Region, background = "#9be27d")
+  )) %>%
+  mutate(
+    IncomeGroup = case_when(
+      value_i == 0 ~ cell_spec(IncomeGroup, background = "#d3d3d370"),
+      value_i == 1 ~ cell_spec(IncomeGroup, background = "#fb9494"),
+      value_i == 2 ~ cell_spec(IncomeGroup, background = "#ffff6b"),
+      value_i == 3 ~ cell_spec(IncomeGroup, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:7) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+if(params$benchmark == 'Region' && length(params$benchmark) == 1 && length(params$country_to_compare) == 1) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    Region = case_when(
+      value == 0 ~ cell_spec(Region, background = "#d3d3d370"),
+      value == 1 ~ cell_spec(Region, background = "#fb9494"),
+      value == 2 ~ cell_spec(Region, background = "#ffff6b"),
+      value == 3 ~ cell_spec(Region, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:6) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+
+if(params$benchmark == 'IncomeGroup'  && length(params$benchmark) == 1 && length(params$country_to_compare) == 1) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    IncomeGroup = case_when(
+      value == 0 ~ cell_spec(IncomeGroup, background = "#d3d3d370"),
+      value == 1 ~ cell_spec(IncomeGroup, background = "#fb9494"),
+      value == 2 ~ cell_spec(IncomeGroup, background = "#ffff6b"),
+      value == 3 ~ cell_spec(IncomeGroup, background = "#9be27d")
+  )) %>%
+  mutate(
+    !!col_sym_conv(params$country_to_compare[1]) := case_when(
+      value_c1 == 0 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#d3d3d370"),
+      value_c1 == 1 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#fb9494"),
+      value_c1 == 2 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#ffff6b"),
+      value_c1 == 3 ~ cell_spec(!!col_sym_conv(params$country_to_compare[1]), background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:6) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+
+## Compare to benchmark without countries ----
+
+if(length(params$benchmark) == 2 && length(params$country_to_compare) == 0 && is.null(params$country_to_compare)) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    Region = case_when(
+      value_r == 0 ~ cell_spec(Region, background = "#d3d3d370"),
+      value_r == 1 ~ cell_spec(Region, background = "#fb9494"),
+      value_r == 2 ~ cell_spec(Region, background = "#ffff6b"),
+      value_r == 3 ~ cell_spec(Region, background = "#9be27d")
+  )) %>%
+  mutate(
+    IncomeGroup = case_when(
+      value_i == 0 ~ cell_spec(IncomeGroup, background = "#d3d3d370"),
+      value_i == 1 ~ cell_spec(IncomeGroup, background = "#fb9494"),
+      value_i == 2 ~ cell_spec(IncomeGroup, background = "#ffff6b"),
+      value_i == 3 ~ cell_spec(IncomeGroup, background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(1:6) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+if(params$benchmark == 'Region' && length(params$benchmark) == 1 && length(params$country_to_compare) == 0 && is.null(params$country_to_compare)) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    Region = case_when(
+      value == 0 ~ cell_spec(Region, background = "#d3d3d370"),
+      value == 1 ~ cell_spec(Region, background = "#fb9494"),
+      value == 2 ~ cell_spec(Region, background = "#ffff6b"),
+      value == 3 ~ cell_spec(Region, background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(-contains('tooltip')) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+
+if(params$benchmark == 'IncomeGroup' && length(params$benchmark) == 1 && length(params$country_to_compare) == 0 && is.null(params$country_to_compare)) {
+  params$table_data %>%
+  mutate(!!col_sym_conv(params$country) := cell_spec(!!col_sym_conv(params$country), background = "#085fb5cf", color = "#ffffff")) %>%
+  mutate(
+    IncomeGroup = case_when(
+      value == 0 ~ cell_spec(IncomeGroup, background = "#d3d3d370"),
+      value == 1 ~ cell_spec(IncomeGroup, background = "#fb9494"),
+      value == 2 ~ cell_spec(IncomeGroup, background = "#ffff6b"),
+      value == 3 ~ cell_spec(IncomeGroup, background = "#9be27d")
+  )) %>%
+  select(-contains('value')) %>%
+  select(-contains('tooltip')) %>%
+  kbl(format="markdown", escape = FALSE, booktabs = TRUE)
+}
+
+
+```
