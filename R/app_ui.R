@@ -67,7 +67,7 @@ app_ui <- function(request) {
         tags$script(HTML('
             $(document).ready(function() {
               $(".headerTitleCust").remove()
-              $("header").find("nav").append(\'<div class="headerTitleCust"> Infrastructure Global Indicators Dashboard</div>\');
+              $("header").find("nav").append(\'<div class="headerTitleCust"> Global Infrastructure Dashboard</div>\');
             })
            ')),
         tabItems(

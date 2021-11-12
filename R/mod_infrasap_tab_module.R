@@ -68,6 +68,7 @@ mod_infrasap_tab_module_ui <- function(id){
       )
     ),
     div(id = "inrasaptablecomp",
+             uiOutput(ns('emptyDataTableMSG')),
              DT::dataTableOutput(ns('db_table'))
     )
 
@@ -254,10 +255,10 @@ mod_infrasap_tab_module_server <- function(id){
       
       sc <- input$db_sector
 
-      regionF <- dat %>%
+      regionF <- infrasap_dat_mod_modified %>%
         dplyr::filter(`Country Name` == input$db_country) %>% dplyr::select(Region) %>% dplyr::distinct() %>% dplyr::pull()
       
-      selectedCountryOptions <- dat %>%
+      selectedCountryOptions <- infrasap_dat_mod_modified %>%
         dplyr::filter(Region == regionF) %>% 
         dplyr::filter(`Indicator Sector` %in% sc) %>%
         dplyr::filter(`Indicator Pillar` == input$db_pillar) %>%
@@ -274,8 +275,10 @@ mod_infrasap_tab_module_server <- function(id){
       sc <- input$db_sector
 
       countryList <- infrasap_dat_mod_modified %>%
+        # dplyr::filter(`Indicator Sector` %in% "Cross-cutting") %>%
         dplyr::filter(`Indicator Sector` %in% sc) %>%
         dplyr::filter(`Indicator Pillar` == input$db_pillar) %>%
+        # dplyr::filter(`Indicator Pillar` == "Finance") %>%
         dplyr::select(`Country Name`) %>% dplyr::distinct() %>% dplyr::pull()
       
       
@@ -2031,10 +2034,11 @@ mod_infrasap_tab_module_server <- function(id){
             
             if(length(input$db_benchmark) == 0 & is.null(input$db_benchmark)) {
               
-              cn <- "Kenya"
-              sc <- "Energy"
-              pi <- "Finance"
-              yr <- "2019"
+              # cn <- "Kenya"
+              # sc <- "Energy"
+              # # pi <- "Finance"
+              # pi <- "Connectivity"
+              # yr <- "2019"
               
               
               # get infrasap data based on inputs to get the benchmark type and join
@@ -2602,6 +2606,24 @@ mod_infrasap_tab_module_server <- function(id){
       
     })
     
+    observe({
+      df_length_check <-  infrasap_dat_mod_modified %>%
+        dplyr::filter(`Country Name` == input$db_country) %>%
+        dplyr::filter(`Indicator Sector` %in% input$db_sector) %>%
+        dplyr::filter(`Indicator Pillar` == input$db_pillar) 
+      
+      if(nrow(df_length_check) < 1) {
+        output$emptyDataTableMSG <- renderUI({
+            tagList(h1(class = "header-style-no-data", "No data available"))
+          
+        })
+      } else {
+        output$emptyDataTableMSG <- renderUI({
+          NULL
+        })
+      }
+    })
+    
     
     
     # Render the table with the traffic light
@@ -2960,7 +2982,7 @@ mod_infrasap_tab_module_server <- function(id){
                                         options = list(
                                           rowsGroup = list(0, 1), # merge cells of column 1, 2
                                           dom='Bfrti',
-                                          columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11))),
+                                          columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9))),
                                           pageLength = -1,
                                           ordering=F,
                                           buttons = list(
@@ -3035,7 +3057,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           options = list(
                                             rowsGroup = list(0, 1), # merge cells of column 1, 2
                                             dom='Bfrti',
-                                            columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9))),
+                                            columnDefs = list(list(visible=FALSE, targets=c(5, 7))),
                                             pageLength = -1,
                                             ordering=F,
                                             buttons = list(
@@ -3097,7 +3119,7 @@ mod_infrasap_tab_module_server <- function(id){
                                             options = list(
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(5, 7))),
+                                              columnDefs = list(list(visible=FALSE, targets=c(5))),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -3516,32 +3538,32 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     
-    # output$report_pdf <- downloadHandler(
-    #   # For PDF output, change this to "report.pdf"
-    #   filename = "report.pdf",
-    #   content = function(file) {
-    #     # Copy the report file to a temporary directory before processing it, in
-    #     # case we don't have write permissions to the current working dir (which
-    #     # can happen when deployed).
-    #     tempReport <- file.path(tempdir(), "infrasap_pillar_table_pdf.Rmd")
-    #     file.copy("infrasap_pillar_table_pdf.Rmd", tempReport, overwrite = TRUE)
-    #     
-    #     # Set up parameters to pass to Rmd document
-    #     params <- list(country = input$db_country,
-    #                    benchmark = input$db_benchmark,
-    #                    table_data = infrasap_table(),
-    #                    country_to_compare = input$country_to_compare_id
-    #     )
-    #     
-    #     # Knit the document, passing in the `params` list, and eval it in a
-    #     # child of the global environment (this isolates the code in the document
-    #     # from the code in this app).
-    #     rmarkdown::render(tempReport, output_file = file,
-    #                       params = params,
-    #                       envir = new.env(parent = globalenv())
-    #     )
-    #   }
-    # )
+    output$report_pdf <- downloadHandler(
+      # For PDF output, change this to "report.pdf"
+      filename = "report.pdf",
+      content = function(file) {
+        # Copy the report file to a temporary directory before processing it, in
+        # case we don't have write permissions to the current working dir (which
+        # can happen when deployed).
+        tempReport <- file.path(tempdir(), "infrasap_pillar_table_pdf.Rmd")
+        file.copy("infrasap_pillar_table_pdf.Rmd", tempReport, overwrite = TRUE)
+        
+        # Set up parameters to pass to Rmd document
+        params <- list(country = input$db_country,
+                       benchmark = input$db_benchmark,
+                       table_data = infrasap_table(),
+                       country_to_compare = input$country_to_compare_id
+        )
+        
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(tempReport, output_file = file,
+                          params = params,
+                          envir = new.env(parent = globalenv())
+        )
+      }
+    )
     
     
     # /Module Body /end
