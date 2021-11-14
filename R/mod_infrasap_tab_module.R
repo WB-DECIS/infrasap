@@ -281,19 +281,34 @@ mod_infrasap_tab_module_server <- function(id){
         # dplyr::filter(`Indicator Pillar` == "Finance") %>%
         dplyr::select(`Country Name`) %>% dplyr::distinct() %>% dplyr::pull()
       
-      
-      selectizeInput(inputId = ns('country_to_compare_id'),
-                     label = 'Countries to compare to',
-                     choices = sort(unique(countryList)),
-                     selected = countriesOptionsInput(),
-                     multiple = TRUE,
-                     options = list(
-                       maxItems = 3,
-                       'plugins' = list('remove_button'),
-                       'create' = TRUE,
-                       'persist' = FALSE
-                     )
-      )
+      if(is.null(selected_vals$db_countries_name)) {
+        selectizeInput(inputId = ns('country_to_compare_id'),
+                       label = 'Countries to compare to',
+                       choices = sort(unique(countryList)),
+                       selected = countriesOptionsInput(),
+                       multiple = TRUE,
+                       options = list(
+                         maxItems = 3,
+                         'plugins' = list('remove_button'),
+                         'create' = TRUE,
+                         'persist' = FALSE
+                       )
+        )
+      } else {
+        selectizeInput(inputId = ns('country_to_compare_id'),
+                       label = 'Countries to compare to',
+                       choices = sort(unique(countryList)),
+                       selected = selected_vals$db_countries_name,
+                       multiple = TRUE,
+                       options = list(
+                         maxItems = 3,
+                         'plugins' = list('remove_button'),
+                         'create' = TRUE,
+                         'persist' = FALSE
+                       )
+        )
+      }
+
       
     })
     
@@ -303,14 +318,16 @@ mod_infrasap_tab_module_server <- function(id){
       updateSelectizeInput(session,
                            "country_to_compare_id",
                            choices = sort(unique(dat$`Country Name`))[sort(unique(dat$`Country Name`)) != input$db_country],
-                           selected = countriesOptionsInput()
+                           # selected = countriesOptionsInput()
+                           selected = selected_vals$db_countries_name
       )
       
       if(input$db_country %in% input$country_to_compare_id) {
         updateSelectizeInput(session,
                              "country_to_compare_id",
                              choices = sort(unique(dat$`Country Name`))[sort(unique(dat$`Country Name`)) != input$db_country],
-                             selected = countriesOptionsInput()
+                             # selected = countriesOptionsInput()
+                             selected = selected_vals$db_countries_name[selected_vals$db_countries_name != input$db_country]
         )
       }
       
@@ -422,8 +439,8 @@ mod_infrasap_tab_module_server <- function(id){
             # Find the column where the latest year value saved 
             year_find_max_vector <- as.character(c(2020:2015))
             for (i in 1:length(year_find_max_vector)) {
-              if((names(df_r)[str_detect(names(df_r), pattern = year_find_max_vector[i])] %>% length()) > 0) {
-                if((names(df_r)[str_detect(names(df_r), pattern = year_find_max_vector[i])] %>% length()) == 1) {
+              if((names(df_r)[stringr::str_detect(names(df_r), pattern = year_find_max_vector[i])] %>% length()) > 0) {
+                if((names(df_r)[stringr::str_detect(names(df_r), pattern = year_find_max_vector[i])] %>% length()) == 1) {
                   yr_max_column <- year_find_max_vector[i]
                 } else {
                   yr_max_column <- as.character(stringr::str_glue("{year_find_max_vector[i]}.y"))
@@ -575,8 +592,8 @@ mod_infrasap_tab_module_server <- function(id){
             
             year_find_max_vector <- as.character(c(2020:2015))
             for (i in 1:length(year_find_max_vector)) {
-              if((names(df_i)[str_detect(names(df_i), pattern = year_find_max_vector[i])] %>% length()) > 0) {
-                if((names(df_i)[str_detect(names(df_i), pattern = year_find_max_vector[i])] %>% length()) == 1) {
+              if((names(df_i)[stringr::str_detect(names(df_i), pattern = year_find_max_vector[i])] %>% length()) > 0) {
+                if((names(df_i)[stringr::str_detect(names(df_i), pattern = year_find_max_vector[i])] %>% length()) == 1) {
                   yr_max_column <- year_find_max_vector[i]
                 } else {
                   yr_max_column <- as.character(stringr::str_glue("{year_find_max_vector[i]}.y"))
@@ -967,8 +984,8 @@ mod_infrasap_tab_module_server <- function(id){
               # Find the column where the latest year value saved 
               year_find_max_vector <- as.character(c(2020:2015))
               for (i in 1:length(year_find_max_vector)) {
-                if((names(df)[str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) > 0) {
-                  if((names(df)[str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) == 1) {
+                if((names(df)[stringr::str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) > 0) {
+                  if((names(df)[stringr::str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) == 1) {
                     yr_max_column <- year_find_max_vector[i]
                   } else {
                     yr_max_column <- as.character(stringr::str_glue("{year_find_max_vector[i]}.y"))
@@ -1369,8 +1386,8 @@ mod_infrasap_tab_module_server <- function(id){
               # Find the column where the latest year value saved 
               year_find_max_vector <- as.character(c(2020:2015))
               for (i in 1:length(year_find_max_vector)) {
-                if((names(df)[str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) > 0) {
-                  if((names(df)[str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) == 1) {
+                if((names(df)[stringr::str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) > 0) {
+                  if((names(df)[stringr::str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) == 1) {
                     yr_max_column <- year_find_max_vector[i]
                   } else {
                     yr_max_column <- as.character(stringr::str_glue("{year_find_max_vector[i]}.y"))
@@ -3538,32 +3555,32 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     
-    # output$report_pdf <- downloadHandler(
-    #   # For PDF output, change this to "report.pdf"
-    #   filename = "report.pdf",
-    #   content = function(file) {
-    #     # Copy the report file to a temporary directory before processing it, in
-    #     # case we don't have write permissions to the current working dir (which
-    #     # can happen when deployed).
-    #     tempReport <- file.path(tempdir(), "infrasap_pillar_table_pdf.Rmd")
-    #     file.copy("infrasap_pillar_table_pdf.Rmd", tempReport, overwrite = TRUE)
-    #     
-    #     # Set up parameters to pass to Rmd document
-    #     params <- list(country = input$db_country,
-    #                    benchmark = input$db_benchmark,
-    #                    table_data = infrasap_table(),
-    #                    country_to_compare = input$country_to_compare_id
-    #     )
-    #     
-    #     # Knit the document, passing in the `params` list, and eval it in a
-    #     # child of the global environment (this isolates the code in the document
-    #     # from the code in this app).
-    #     rmarkdown::render(tempReport, output_file = file,
-    #                       params = params,
-    #                       envir = new.env(parent = globalenv())
-    #     )
-    #   }
-    # )
+    output$report_pdf <- downloadHandler(
+      # For PDF output, change this to "report.pdf"
+      filename = "report.pdf",
+      content = function(file) {
+        # Copy the report file to a temporary directory before processing it, in
+        # case we don't have write permissions to the current working dir (which
+        # can happen when deployed).
+        tempReport <- file.path(tempdir(), "infrasap_pillar_table_pdf.Rmd")
+        file.copy("infrasap_pillar_table_pdf.Rmd", tempReport, overwrite = TRUE)
+        
+        # Set up parameters to pass to Rmd document
+        params <- list(country = input$db_country,
+                       benchmark = input$db_benchmark,
+                       table_data = infrasap_table(),
+                       country_to_compare = input$country_to_compare_id
+        )
+        
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(tempReport, output_file = file,
+                          params = params,
+                          envir = new.env(parent = globalenv())
+        )
+      }
+    )
     
     
     # /Module Body /end

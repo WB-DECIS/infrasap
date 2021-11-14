@@ -298,6 +298,34 @@ replace_null_to_na <- function(x) {
   }
 }
 
+countries_to_compare_into_one_string <- function(input_countries_vector) {
+  if(length(input_countries_vector) > 0) {
+    input_countries_vector <- input_countries_vector %>% stringr::str_flatten(', ')
+    return(as.character(stringr::str_glue('({input_countries_vector})')))
+  } else {
+    return("")
+  }
+}
+
+
+
+add_article_to_selected_country <- function(selected_country) {
+  if(selected_country == "Bahamas, The") {
+      selected_country <- "the Bahamas"
+  }
+  
+  if(selected_country == "Gambia, The") {
+    selected_country <- "the Gambia"
+  }
+  
+  if(selected_country %in% infrasap::scd_dat_countries_with_article) {
+    selected_country <- as.character(stringr::str_glue('the {selected_country}'))
+  }
+  
+  return(selected_country)
+  
+}
+
 
 ## Factors to arrange pillar tab ------------------------------------
 # infrasap::dat$`Indicator Sub-Pillar` %>% unique()
