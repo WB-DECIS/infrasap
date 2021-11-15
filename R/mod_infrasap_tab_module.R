@@ -9,67 +9,67 @@
 #' @importFrom shiny NS tagList 
 mod_infrasap_tab_module_ui <- function(id){
   ns <- NS(id)
-  tagList(
+  htmltools::tagList(
  
-    div(class = "controlSection",
-        fluidRow(
+    shiny::div(class = "controlSection",
+               shiny::fluidRow(
           
-          column(4, 
-                 selectInput(inputId = ns('db_country'),
-                             label = 'Select country',
-                             choices = sort(unique(dat$`Country Name`)),
-                             selected = 'Kenya')
+                 shiny::column(4, 
+                               shiny::selectInput(inputId = ns('db_country'),
+                                                   label = 'Select country',
+                                                   choices = sort(unique(dat$`Country Name`)),
+                                                   selected = 'Kenya')
           ),
-          column(4, 
-                 selectInput(inputId = ns('db_sector'),
-                             label = 'Select sector',
-                             choices = c('Energy', 
-                                         'Cross-cutting',
-                                         'Digital Development',
-                                         'Transport'),
-                             selected = 'Energy')
+          shiny::column(4, 
+                        shiny::selectInput(inputId = ns('db_sector'),
+                                           label = 'Select sector',
+                                           choices = c('Energy', 
+                                                       'Cross-cutting',
+                                                       'Digital Development',
+                                                       'Transport'),
+                                           selected = 'Energy')
                  
           ),
-          column(4, 
-                 selectInput(inputId = ns('db_pillar'),
-                             label = 'Select a pillar',
-                             choices = c('Connectivity', 'Finance', 'Governance'),
-                             selected = 'Connectivity')
+          shiny::column(4, 
+                        shiny::selectInput(inputId = ns('db_pillar'),
+                                           label = 'Select a pillar',
+                                           choices = c('Connectivity', 'Finance', 'Governance'),
+                                           selected = 'Connectivity')
           )
           
         ),
-        fluidRow(
+        shiny::fluidRow(
           
-          column(4, 
-                 uiOutput(ns('countriestc')),
-                 downloadButton(ns("report_pdf"), "Generate report")
+          shiny::column(4, 
+                        shiny::uiOutput(ns('countriestc')),
+                        shiny::downloadButton(ns("report_pdf"), "Generate report")
           ),
-          column(4, 
-                 selectizeInput(inputId = ns('db_benchmark'),
-                                label = 'Select benchmark',
-                                choices = NULL,
-                                selected = NULL,
-                                multiple = TRUE,
-                                options = list(
-                                  maxItems = 3,
-                                  'plugins' = list('remove_button'),
-                                  'create' = TRUE,
-                                  'persist' = FALSE
-                                )
+          shiny::column(4, 
+                        shiny::selectizeInput(inputId = ns('db_benchmark'),
+                                              label = 'Select benchmark',
+                                              choices = NULL,
+                                              selected = NULL,
+                                              multiple = TRUE,
+                                              options = list(
+                                                maxItems = 3,
+                                                'plugins' = list('remove_button'),
+                                                'create' = TRUE,
+                                                'persist' = FALSE
+                                              )
                  )
           ),
-          column(4, 
-                 selectInput(inputId = ns('db_year'),
-                             label = 'Select year',
-                             choices = NULL,
-                             selected = NULL
-                 ),
+          shiny::column(4, 
+                        shiny::selectInput(inputId = ns('db_year'),
+                                     label = 'Select year',
+                                     choices = NULL,
+                                     selected = NULL
+                         )
           )
       )
     ),
-    div(id = "inrasaptablecomp",
-             uiOutput(ns('emptyDataTableMSG')),
-             DT::dataTableOutput(ns('db_table'))
+    shiny::div(id = "inrasaptablecomp",
+               shiny::uiOutput(ns('emptyDataTableMSG')),
+               DT::dataTableOutput(ns('db_table'))
     )
 
   )
@@ -86,23 +86,23 @@ mod_infrasap_tab_module_server <- function(id){
   infrsap_dat_bm_mod_modfied <- infrasap::dat_bm
   infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "National"] <- "Cross-cutting"
   
-  moduleServer( id, function(input, output, session){
+  shiny::moduleServer( id, function(input, output, session){
     ns <- session$ns
     
     
     # Module Body
     
     #------- Initialize the Memory ----------
-    selected_vals = reactiveValues(db_country_name = 'Kenya', 
-                                   db_sector_name = 'Energy',
-                                   db_pillar_name = 'Connectivity',
-                                   db_benchmark_name = 'Region',
-                                   db_countries_name = NULL,
-                                   db_year_name = "Latest year available"
+    selected_vals = shiny::reactiveValues(db_country_name = 'Kenya', 
+                                          db_sector_name = 'Energy',
+                                          db_pillar_name = 'Connectivity',
+                                          db_benchmark_name = 'Region',
+                                          db_countries_name = NULL,
+                                          db_year_name = "Latest year available"
     )
     
-    observe({
-      req(input$db_country, input$db_sector, input$db_year, input$db_benchmark, input$country_to_compare_id, input$db_pillar)
+    shiny::observe({
+      shiny::req(input$db_country, input$db_sector, input$db_year, input$db_benchmark, input$country_to_compare_id, input$db_pillar)
       
       selected_vals$db_country_name <- input$db_country
       selected_vals$db_sector_name <- input$db_sector
@@ -113,14 +113,14 @@ mod_infrasap_tab_module_server <- function(id){
       
     })
     
-    observeEvent(input$db_sector, {
+    shiny::observeEvent(input$db_sector, {
       if(input$db_sector == 'Cross-cutting') {
-        updateSelectInput(session,
+        shiny::updateSelectInput(session,
                           'db_pillar',
                           choices = c('Finance')
                           )
       } else {
-        updateSelectInput(session,
+        shiny::updateSelectInput(session,
                           'db_pillar',
                           choices = c('Connectivity', 'Finance', 'Governance'),
                           selected = selected_vals$db_pillar_name
@@ -130,7 +130,7 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     # Update year field data according to selections in the other fields
-    observe({
+    shiny::observe({
       
       cn <- input$db_country
       sc <- input$db_sector
@@ -161,7 +161,7 @@ mod_infrasap_tab_module_server <- function(id){
         temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
         
         # get intersection of years to populate year input
-        year_choices <- intersect(names(temp), names(temp_bm))
+        year_choices <- dplyr::intersect(names(temp), names(temp_bm))
         
         if(selected_vals$db_year_name %in% year_choices){
           seleted_year <- selected_vals$db_year_name
@@ -169,10 +169,10 @@ mod_infrasap_tab_module_server <- function(id){
           seleted_year <- "Latest year available"
         }
         year_choices <- sort(year_choices, decreasing = T)
-        updateSelectInput(session = session, 
-                          inputId = "db_year",
-                          choices = c("Latest year available", year_choices),
-                          selected = seleted_year
+        shiny::updateSelectInput(session = session, 
+                                  inputId = "db_year",
+                                  choices = c("Latest year available", year_choices),
+                                  selected = seleted_year
         )
         
         
@@ -181,7 +181,7 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     # Update benchmark field data according to selections in the fields
-    observe({
+    shiny::observe({
       
       cn <- input$db_country
       
@@ -190,28 +190,31 @@ mod_infrasap_tab_module_server <- function(id){
       
       # get sector names for this country
       temp <- infrasap_dat_mod_modified %>% 
-        dplyr::filter(`Country Name` == cn) %>% 
-        dplyr::mutate(group=1) %>%
-        dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% dplyr::distinct() %>% 
-        tidyr::gather(key='key', value='value') %>% tidyr::drop_na() %>%
-        dplyr::inner_join(temp_bm, by=c('value'='Grouping')) %>%
-        dplyr::group_by(key, value) %>% dplyr::summarise(counts = dplyr::n()) 
+                  dplyr::filter(`Country Name` == cn) %>% 
+                  dplyr::mutate(group=1) %>%
+                  dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% 
+                  dplyr::distinct() %>% 
+                  tidyr::gather(key='key', value='value') %>% 
+                  tidyr::drop_na() %>%
+                  dplyr::inner_join(temp_bm, by=c('value'='Grouping')) %>%
+                  dplyr::group_by(key, value) %>% 
+                  dplyr::summarise(counts = dplyr::n()) 
       temp <- dplyr::inner_join(temp,temp_bm, by=c('value'='Grouping'))
       temp <- temp %>% dplyr::group_by(key, value) %>% dplyr::summarise(counts = dplyr::n())
       # get a list of benchmarks for the country selected
       bm_list <- sort(unique(temp$key))[temp$key %in% c("IncomeGroup", "Region")]
       
-      updateSelectizeInput(session = session, 
-                           inputId = "db_benchmark",
-                           choices = bm_list,
-                           selected = selected_vals$db_benchmark_name
+      shiny::updateSelectizeInput(session = session, 
+                                   inputId = "db_benchmark",
+                                   choices = bm_list,
+                                   selected = selected_vals$db_benchmark_name
       )
       
     })
     
     
     # Create benchmark field
-    output$db_benchmark_ui <- renderUI({
+    output$db_benchmark_ui <- shiny::renderUI({
       cn <- input$db_country
       
       # get benchmark data
@@ -219,29 +222,32 @@ mod_infrasap_tab_module_server <- function(id){
       
       # get sector names for this country
       temp <- infrasap_dat_mod_modified %>% 
-        dplyr::filter(`Country Name` == cn) %>% 
-        dplyr::mutate(group=1) %>%
-        dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% dplyr::distinct() %>% 
-        tidyr::gather(key='key', value='value') %>% tidyr::drop_na() %>%
-        dplyr::inner_join(temp_bm, by=c('value'='Grouping')) %>%
-        dplyr::group_by(key, value) %>% dplyr::summarise(counts = dplyr::n()) 
+                dplyr::filter(`Country Name` == cn) %>% 
+                dplyr::mutate(group=1) %>%
+                dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% 
+                dplyr::distinct() %>% 
+                tidyr::gather(key='key', value='value') %>% 
+                tidyr::drop_na() %>%
+                dplyr::inner_join(temp_bm, by=c('value'='Grouping')) %>%
+                dplyr::group_by(key, value) %>%
+                dplyr::summarise(counts = dplyr::n()) 
       temp <- dplyr::inner_join(temp,temp_bm, by=c('value'='Grouping'))
       temp <- temp %>% dplyr::group_by(key, value) %>% dplyr::summarise(counts = dplyr::n())
       # get a list of benchmarks for the country selected
       bm_list <- sort(unique(temp$key))[temp$key %in% c("IncomeGroup", "Region")]
-      fluidRow(
-        column(12,
-               selectizeInput(inputId = ns('db_benchmark'),
-                              label = 'Select benchmark',
-                              choices = bm_list,
-                              selected = 'Region',
-                              multiple = TRUE,
-                              options = list(
-                                maxItems = 3,
-                                'plugins' = list('remove_button'),
-                                'create' = TRUE,
-                                'persist' = FALSE
-                              )
+      shiny::fluidRow(
+        shiny::column(12,
+                      shiny::selectizeInput(inputId = ns('db_benchmark'),
+                                            label = 'Select benchmark',
+                                            choices = bm_list,
+                                            selected = 'Region',
+                                            multiple = TRUE,
+                                            options = list(
+                                              maxItems = 3,
+                                              'plugins' = list('remove_button'),
+                                              'create' = TRUE,
+                                              'persist' = FALSE
+                                            )
                )
                
         )
@@ -250,8 +256,8 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     # Array of countries selected
-    countriesOptionsInput <- reactive({
-      req(input$db_country)
+    countriesOptionsInput <- shiny::reactive({
+      shiny::req(input$db_country)
       
       sc <- input$db_sector
 
@@ -270,8 +276,8 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     # Create countries field
-    output$countriestc <- renderUI({
-      req(countriesOptionsInput())
+    output$countriestc <- shiny::renderUI({
+      shiny::req(countriesOptionsInput())
       sc <- input$db_sector
 
       countryList <- infrasap_dat_mod_modified %>%
@@ -282,30 +288,30 @@ mod_infrasap_tab_module_server <- function(id){
         dplyr::select(`Country Name`) %>% dplyr::distinct() %>% dplyr::pull()
       
       if(is.null(selected_vals$db_countries_name)) {
-        selectizeInput(inputId = ns('country_to_compare_id'),
-                       label = 'Countries to compare to',
-                       choices = sort(unique(countryList)),
-                       selected = countriesOptionsInput(),
-                       multiple = TRUE,
-                       options = list(
-                         maxItems = 3,
-                         'plugins' = list('remove_button'),
-                         'create' = TRUE,
-                         'persist' = FALSE
-                       )
+        shiny::selectizeInput(inputId = ns('country_to_compare_id'),
+                                       label = 'Countries to compare to',
+                                       choices = sort(unique(countryList)),
+                                       selected = countriesOptionsInput(),
+                                       multiple = TRUE,
+                                       options = list(
+                                         maxItems = 3,
+                                         'plugins' = list('remove_button'),
+                                         'create' = TRUE,
+                                         'persist' = FALSE
+                                       )
         )
       } else {
-        selectizeInput(inputId = ns('country_to_compare_id'),
-                       label = 'Countries to compare to',
-                       choices = sort(unique(countryList)),
-                       selected = selected_vals$db_countries_name,
-                       multiple = TRUE,
-                       options = list(
-                         maxItems = 3,
-                         'plugins' = list('remove_button'),
-                         'create' = TRUE,
-                         'persist' = FALSE
-                       )
+        shiny::selectizeInput(inputId = ns('country_to_compare_id'),
+                                         label = 'Countries to compare to',
+                                         choices = sort(unique(countryList)),
+                                         selected = selected_vals$db_countries_name,
+                                         multiple = TRUE,
+                                         options = list(
+                                           maxItems = 3,
+                                           'plugins' = list('remove_button'),
+                                           'create' = TRUE,
+                                           'persist' = FALSE
+                                         )
         )
       }
 
@@ -314,27 +320,27 @@ mod_infrasap_tab_module_server <- function(id){
     
     
     # Update country to compare field data according to selections in the fields
-    observeEvent(input$db_country,{
-      updateSelectizeInput(session,
-                           "country_to_compare_id",
-                           choices = sort(unique(dat$`Country Name`))[sort(unique(dat$`Country Name`)) != input$db_country],
-                           # selected = countriesOptionsInput()
-                           selected = selected_vals$db_countries_name
+    shiny::observeEvent(input$db_country,{
+      shiny::updateSelectizeInput(session,
+                                 "country_to_compare_id",
+                                 choices = sort(unique(dat$`Country Name`))[sort(unique(dat$`Country Name`)) != input$db_country],
+                                 # selected = countriesOptionsInput()
+                                 selected = selected_vals$db_countries_name
       )
       
       if(input$db_country %in% input$country_to_compare_id) {
-        updateSelectizeInput(session,
-                             "country_to_compare_id",
-                             choices = sort(unique(dat$`Country Name`))[sort(unique(dat$`Country Name`)) != input$db_country],
-                             # selected = countriesOptionsInput()
-                             selected = selected_vals$db_countries_name[selected_vals$db_countries_name != input$db_country]
+        shiny::updateSelectizeInput(session,
+                                   "country_to_compare_id",
+                                   choices = sort(unique(dat$`Country Name`))[sort(unique(dat$`Country Name`)) != input$db_country],
+                                   # selected = countriesOptionsInput()
+                                   selected = selected_vals$db_countries_name[selected_vals$db_countries_name != input$db_country]
         )
       }
       
     })
     
     # reactive data frame to prepare data for tables
-    infrasap_table <- reactive({
+    infrasap_table <- shiny::reactive({
       cn <- input$db_country
       sc <- input$db_sector
       bm <- input$db_benchmark
@@ -1060,7 +1066,7 @@ mod_infrasap_tab_module_server <- function(id){
                 
                 
                 df <- df %>%
-                  rename(
+                  dplyr::rename(
                     Indicator =`Indicator Name`
                   ) %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
@@ -2107,7 +2113,7 @@ mod_infrasap_tab_module_server <- function(id){
                 
                 
                 df <- df %>%
-                  rename(
+                  dplyr::rename(
                     `Indicator` = `Indicator Name`
                   ) %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
@@ -2334,7 +2340,7 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
               }
               
-              print(df)
+              # print(df)
               
               return(df)
               
@@ -2630,12 +2636,12 @@ mod_infrasap_tab_module_server <- function(id){
         dplyr::filter(`Indicator Pillar` == input$db_pillar) 
       
       if(nrow(df_length_check) < 1) {
-        output$emptyDataTableMSG <- renderUI({
-            tagList(h1(class = "header-style-no-data", "No data available"))
+        output$emptyDataTableMSG <- shiny::renderUI({
+            htmltools::tagList(shiny::h1(class = "header-style-no-data", "No data available"))
           
         })
       } else {
-        output$emptyDataTableMSG <- renderUI({
+        output$emptyDataTableMSG <- shiny::renderUI({
           NULL
         })
       }
@@ -2659,7 +2665,7 @@ mod_infrasap_tab_module_server <- function(id){
                                   extensions = 'Buttons',
                                   rownames = FALSE,
                                   options = list(
-                                    rowCallback = JS(
+                                    rowCallback = DT::JS(
                                       "function(row, data) {",
                                       "var full_text = 'This row values extracted from ' + data[14] +  ' year'",
                                       "$('td', row).attr('title', full_text);",
@@ -3555,7 +3561,7 @@ mod_infrasap_tab_module_server <- function(id){
     })
     
     
-    output$report_pdf <- downloadHandler(
+    output$report_pdf <- shiny::downloadHandler(
       # For PDF output, change this to "report.pdf"
       filename = "report.pdf",
       content = function(file) {

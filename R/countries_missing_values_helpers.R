@@ -127,7 +127,7 @@ get_last_year <- function(cn, sc, bm = NULL) {
     temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
     
     # get intersection of years to populate year input
-    year_choices <- intersect(names(temp), names(temp_bm))
+    year_choices <- dplyr::intersect(names(temp), names(temp_bm))
     year_choices <- year_choices[length(year_choices)]
   }
   
@@ -142,7 +142,7 @@ join_df_with_ordered_layout <- function(df_main, df_layout) {
                                        'Indicator Topic' = 'Topic',
                                        'Indicator Name' = 'Indicator')
                                       ) %>%
-                      rename(
+                      dplyr::rename(
                              `Sub-Pillar` = `Indicator Sub-Pillar`,
                              `Topic` = `Indicator Topic`,
                              `Indicator` = `Indicator Name`
@@ -207,7 +207,7 @@ get_year_scd <- function(cn, bm, year_position = NULL){
   temp_bm <- temp_bm[,colSums(is.na(temp_bm)) < nrow(temp_bm)]
   
   # get intersection of years to populate year input
-  year_choices <- intersect(names(temp), names(temp_bm))
+  year_choices <- dplyr::intersect(names(temp), names(temp_bm))
   
   if(!is.null(year_position)) {
     year_choices <- year_choices[length(year_choices)]
