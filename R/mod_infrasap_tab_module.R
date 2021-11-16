@@ -3570,31 +3570,31 @@ mod_infrasap_tab_module_server <- function(id){
     #     # can happen when deployed).
     #     tempReport <- file.path(tempdir(), "infrasap_pillar_table_pdf.Rmd")
     #     file.copy("infrasap_pillar_table_pdf.Rmd", tempReport, overwrite = TRUE)
-    #     
+    # 
     #     # Set up parameters to pass to Rmd document
     #     params <- list(country = input$db_country,
     #                    benchmark = input$db_benchmark,
     #                    table_data = infrasap_table(),
     #                    country_to_compare = input$country_to_compare_id
     #     )
-        
-        # Knit the document, passing in the `params` list, and eval it in a
-        # child of the global environment (this isolates the code in the document
-        # from the code in this app).
-        rmarkdown::render(tempReport, output_file = file,
-                          params = params,
-                          envir = new.env(parent = globalenv())
-        )
-      }
-    )
-    
-    
+    # 
+    #     # Knit the document, passing in the `params` list, and eval it in a
+    #     # child of the global environment (this isolates the code in the document
+    #     # from the code in this app).
+    #     rmarkdown::render(tempReport, output_file = file,
+    #                       params = params,
+    #                       envir = new.env(parent = globalenv())
+    #     )
+    #   }
+    # )
+
+
     # /Module Body /end
-    
- 
+
+
   })
 }
-    
+
 ## To be copied in the UI
 # mod_infrasap_tab_module_ui("infrasap_tab_module_ui_1")
     
