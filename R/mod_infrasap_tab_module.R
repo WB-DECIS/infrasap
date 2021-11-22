@@ -80,7 +80,8 @@ mod_infrasap_tab_module_ui <- function(id){
 #' @noRd 
 mod_infrasap_tab_module_server <- function(id){
   
-  infrasap_dat_mod_modified <- infrasap::dat
+  infrasap_dat_mod_modified <- infrasap::dat %>%
+    dplyr::filter(`irf_data` == FALSE)
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   
   infrsap_dat_bm_mod_modfied <- infrasap::dat_bm
@@ -117,7 +118,7 @@ mod_infrasap_tab_module_server <- function(id){
       if(input$db_sector == 'Cross-cutting') {
         shiny::updateSelectInput(session,
                           'db_pillar',
-                          choices = c('Finance')
+                          choices = c('Finance', 'Governance')
                           )
       } else {
         shiny::updateSelectInput(session,
@@ -346,7 +347,6 @@ mod_infrasap_tab_module_server <- function(id){
       bm <- input$db_benchmark
       yr <- input$db_year
       pi <- input$db_pillar
-      
       # cn <- "Kenya"
       # sc <- c("National", "Energy")
       # bm <- "Region"
@@ -431,7 +431,6 @@ mod_infrasap_tab_module_server <- function(id){
             
             df_r <- df_r %>%
               dplyr::mutate(year_tooltip = year_pop)
-            
             
             purrr::map(1:length(available_years_in_use), function(b){
               df_r <<- df_r %>%
@@ -585,7 +584,6 @@ mod_infrasap_tab_module_server <- function(id){
               dplyr::right_join(df_i, by = c('Indicator'='Indicator Name'))
             
             df_i <- df_i %>% dplyr::select(-available_years)
-            
             
             
             purrr::map(1:length(available_years_in_use), function(b){
@@ -892,6 +890,9 @@ mod_infrasap_tab_module_server <- function(id){
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
             }
             
+            if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
+            }
             
             return(df)
  
@@ -960,7 +961,7 @@ mod_infrasap_tab_module_server <- function(id){
               available_years_in_use <- as.character(unique(df$year_pop))
               available_years_in_use <- available_years_in_use[!is.na(available_years_in_use)]
               yr <- as.character(max(unique(df$year_pop), na.rm = TRUE))
-              
+
               df_years_col <- df %>% dplyr::select(`Indicator Name`, `year_pop`)
               
               # get benchmark type for benchmark selected
@@ -1299,6 +1300,9 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
               }
               
+              if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
+                df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
+              }
               print(df)
               
               return(df)
@@ -1378,7 +1382,6 @@ mod_infrasap_tab_module_server <- function(id){
               
               
               df <- df %>% dplyr::select(-available_years)
-              
               
               
               purrr::map(1:length(available_years_in_use), function(b){
@@ -1695,6 +1698,10 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
               }
               
+              if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
+                df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
+              }
+
               return(df)
               
             }
@@ -2050,6 +2057,9 @@ mod_infrasap_tab_module_server <- function(id){
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
             }
             
+            if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
+              df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
+            }
             
             return(df)
             
@@ -2340,6 +2350,9 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
               }
               
+              if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
+                df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
+              }
               # print(df)
               
               return(df)
@@ -2617,6 +2630,9 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
               }
               
+              if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
+                df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
+              }
               return(df)
               
             }
