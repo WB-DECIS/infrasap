@@ -127,7 +127,7 @@ get_last_year <- function(cn, sc, bm = NULL) {
     temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
     
     # get intersection of years to populate year input
-    year_choices <- intersect(names(temp), names(temp_bm))
+    year_choices <- dplyr::intersect(names(temp), names(temp_bm))
     year_choices <- year_choices[length(year_choices)]
   }
   
@@ -142,7 +142,7 @@ join_df_with_ordered_layout <- function(df_main, df_layout) {
                                        'Indicator Topic' = 'Topic',
                                        'Indicator Name' = 'Indicator')
                                       ) %>%
-                      rename(
+                      dplyr::rename(
                              `Sub-Pillar` = `Indicator Sub-Pillar`,
                              `Topic` = `Indicator Topic`,
                              `Indicator` = `Indicator Name`
@@ -207,7 +207,7 @@ get_year_scd <- function(cn, bm, year_position = NULL){
   temp_bm <- temp_bm[,colSums(is.na(temp_bm)) < nrow(temp_bm)]
   
   # get intersection of years to populate year input
-  year_choices <- intersect(names(temp), names(temp_bm))
+  year_choices <- dplyr::intersect(names(temp), names(temp_bm))
   
   if(!is.null(year_position)) {
     year_choices <- year_choices[length(year_choices)]
@@ -296,6 +296,34 @@ replace_null_to_na <- function(x) {
   } else {
     return(x)
   }
+}
+
+countries_to_compare_into_one_string <- function(input_countries_vector) {
+  if(length(input_countries_vector) > 0) {
+    input_countries_vector <- input_countries_vector %>% stringr::str_flatten(', ')
+    return(as.character(stringr::str_glue('({input_countries_vector})')))
+  } else {
+    return("")
+  }
+}
+
+
+
+add_article_to_selected_country <- function(selected_country) {
+  if(selected_country == "Bahamas, The") {
+      selected_country <- "the Bahamas"
+  }
+  
+  if(selected_country == "Gambia, The") {
+    selected_country <- "the Gambia"
+  }
+  
+  if(selected_country %in% infrasap::scd_dat_countries_with_article) {
+    selected_country <- as.character(stringr::str_glue('the {selected_country}'))
+  }
+  
+  return(selected_country)
+  
 }
 
 

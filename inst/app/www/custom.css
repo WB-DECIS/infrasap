@@ -394,7 +394,6 @@ html, body {width:100%;height:100%}
     visibility: hidden !important;
 }
 
-
 .selectize-dropdown .optgroup-header {
     font-size: 16px !important;
     font-weight: 600 !important;
@@ -410,4 +409,8 @@ a.sidebar-toggle {
 
 .header-style-no-data {
     color: #154164 !important;
+}
+
+.sidebar-menu>li>a {
+    padding: 12px 5px 12px 10px !important;
 }

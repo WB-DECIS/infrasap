@@ -30,6 +30,7 @@ mod_scd_tab_module_ui <- function(id){
     
     shiny::fluidRow(
       shiny::column(12,
+                    shiny::uiOutput(ns("scd_tab_table_help_text")),
                     shiny::div(id = "scd_table_style_id",
                     DT::dataTableOutput(ns('scd_table')) %>% shinycssloaders::withSpinner(type = 7,color = "#154164")
              )
@@ -512,6 +513,16 @@ mod_scd_tab_module_server <- function(id){
       
     })
     
+    output$scd_tab_table_help_text <- shiny::renderUI({
+      htmltools::HTML(
+        as.character(stringr::str_glue('<h4 style="color: #808080; text-align: justify; margin-bottom: 20px; line-height: 1.5;">
+                                        The table below displays indicator data from the latest year available for {add_article_to_selected_country(input$scd_country)}. 
+                                        Comparison countries {countries_to_compare_into_one_string(input$scd_countries)} display data for the same year. 
+                                        The year of data for each indicator can be seen by hovering the mouse over the data.
+                                        </h4>
+                                        '))
+      )
+    })
     
     # Table for scd 
     output$scd_table <- DT::renderDataTable({
@@ -539,8 +550,10 @@ mod_scd_tab_module_server <- function(id){
       hiddenColNum <- hiddenColNum-1
       
       df <- df %>% dplyr::mutate(dplyr::across(where(is.numeric), ~round(., 2))) 
+              # %>%
+                # mutate(!!col_sym_conv(input$scd_country) := as.character(str_glue('<span>{Kenya}<sub>{year_tooltip}</sub></span>')))
       
-      
+      # df[[input$scd_country]] <- as.character(str_glue('<span>{ df[[input$scd_country]]}<sub>{ df$year_tooltip}</sub></span>'))
       
       # datatable(df) 
       dtable <- DT::datatable(df,
