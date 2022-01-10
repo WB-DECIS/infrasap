@@ -36,9 +36,10 @@ app_ui <- function(request) {
     
     dashboardPage(
       
-      dashboardHeader (title = tags$a(tags$img(src='www/logo2.jpg', alt = '', height = '50'))),
+      dashboardHeader (title = tags$a(tags$img(src='www/logo2.jpg', alt = '', height = '50')),
+                       titleWidth = 260),
       dashboardSidebar(
-        width = 230,
+        width = 260,
         sidebarMenu(
           id = 'tabs',
           menuItem(
@@ -70,6 +71,11 @@ app_ui <- function(request) {
               $("header").find("nav").append(\'<div class="headerTitleCust"> Global Infrastructure Dashboard</div>\');
             })
            ')),
+        # change tab color when selected
+        tags$style(HTML("
+        .tabbable > .nav > li > a    {background-color: #DCDCDC;  color:black}
+         .tabbable > .nav > li[class=active]  > a {background-color: skyblue; color:white}
+      ")),
         tabItems(
           tabItem(
             tabName="landing_page",
