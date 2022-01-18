@@ -17,7 +17,7 @@ mod_infrasap_tab_module_ui <- function(id){
                  shiny::column(4, 
                                shiny::selectInput(inputId = ns('db_country'),
                                                    label = 'Select country',
-                                                   choices = sort(unique(dat$`Country Name`)),
+                                                   choices = sort(unique(infrasap::dat$`Country Name`)),
                                                    selected = 'Kenya')
           ),
           shiny::column(4, 
@@ -324,7 +324,7 @@ mod_infrasap_tab_module_server <- function(id){
     shiny::observeEvent(input$db_country,{
       shiny::updateSelectizeInput(session,
                                  "country_to_compare_id",
-                                 choices = sort(unique(dat$`Country Name`))[sort(unique(dat$`Country Name`)) != input$db_country],
+                                 choices = sort(unique(infrasap::dat$`Country Name`))[sort(unique(infrasap::dat$`Country Name`)) != input$db_country],
                                  # selected = countriesOptionsInput()
                                  selected = selected_vals$db_countries_name
       )
@@ -332,7 +332,7 @@ mod_infrasap_tab_module_server <- function(id){
       if(input$db_country %in% input$country_to_compare_id) {
         shiny::updateSelectizeInput(session,
                                    "country_to_compare_id",
-                                   choices = sort(unique(dat$`Country Name`))[sort(unique(dat$`Country Name`)) != input$db_country],
+                                   choices = sort(unique(infrasap::dat$`Country Name`))[sort(unique(infrasap::dat$`Country Name`)) != input$db_country],
                                    # selected = countriesOptionsInput()
                                    selected = selected_vals$db_countries_name[selected_vals$db_countries_name != input$db_country]
         )
@@ -2653,7 +2653,7 @@ mod_infrasap_tab_module_server <- function(id){
       
       if(nrow(df_length_check) < 1) {
         output$emptyDataTableMSG <- shiny::renderUI({
-            htmltools::tagList(shiny::h1(class = "header-style-no-data", "No data available"))
+            htmltools::tagList(shiny::h3(class = "header-style-no-data", "No data available"))
           
         })
       } else {

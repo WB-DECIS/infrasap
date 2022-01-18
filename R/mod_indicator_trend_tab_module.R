@@ -17,7 +17,7 @@ mod_indicator_trend_tab_module_ui <- function(id){
                                              shiny::column(6,
                                                            shiny::selectInput(inputId = ns('data_country'), 
                                                                               label = '1. Select country',
-                                                                              choices = sort(unique(dat$`Country Name`)),
+                                                                              choices = sort(unique(infrasap::dat$`Country Name`)),
                                                                               selected = 'Jordan'
                                                            ),
                                                            shiny::uiOutput(ns('data_indicator_ui'))
@@ -84,7 +84,6 @@ mod_indicator_trend_tab_module_ui <- function(id){
 #'
 #' @noRd 
 mod_indicator_trend_tab_module_server <- function(id) {
-  
   # Rename sector name
   infrasap_dat_mod_modified <- infrasap::dat
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "Transport"] <- "Transport cross-cutting"
@@ -164,7 +163,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
     
     # Compare to UI
     output$data_compare_to_ui <- shiny::renderUI({
-      if(input$ports_compare_to_indicator_type == "to_regional_bench" && input$data_sector == 'Transport Port') {
+      if(!is.null(input$ports_compare_to_indicator_type) && (input$ports_compare_to_indicator_type == "to_regional_bench" && input$data_sector == 'Transport Port')) {
          shiny::selectizeInput(ns('data_compare_to'),
                                label = NULL,
                                choices = NULL,
@@ -769,7 +768,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
             return(df)
             
           } else {
-            
             # get benchmark data
             df_bm <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(Indicator == ic) %>%
@@ -1342,7 +1340,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
     
     # button group
     output$btn_data_access <- shiny::renderUI({
-      if(input$data_sector != "Transport Road") {
+      if(!is.null(input$data_sector) && input$data_sector != "Transport Road") {
         div(id = "btn_groups",
             shiny::downloadButton(session$ns('downloadDataFilteredCSV'), 'Download Table'),
             shiny::uiOutput(session$ns('buttonByIndicator')),

@@ -14,7 +14,7 @@ mod_scd_tab_module_ui <- function(id){
       shiny::column(4,
                     shiny::selectInput(ns('scd_country'),
                                        label = 'Select a country',
-                                       choices = sort(unique(scd_dat$`Country Name`)),
+                                       choices = sort(unique(infrasap::scd_dat$`Country Name`)),
                                        selected = 'Kenya')
       ),
       shiny::column(4,
@@ -45,8 +45,7 @@ mod_scd_tab_module_ui <- function(id){
 mod_scd_tab_module_server <- function(id){
   shiny::moduleServer(id, function(input, output, session){
     ns <- session$ns
- 
-    
+
     # Module Body
     
     
@@ -61,7 +60,6 @@ mod_scd_tab_module_server <- function(id){
     # get benchmarks for country selected
     output$scd_bm_ui <- shiny::renderUI({
       cn <- input$scd_country
-      
       # get benchmark info for country selected
       bm_cn<- infrasap::scd_dat %>%
         # filter(`Country Name` == "Kenya") %>%
@@ -176,7 +174,7 @@ mod_scd_tab_module_server <- function(id){
       
       ic <- sort(unique(df$`Indicator Name`))
       rn <- unique(df$Region)
-      
+
       # subset data by region pillar and sector to get countries from that region with available data
       df <- infrasap::scd_dat %>%
         # filter(`Indicator Sector` %in% sc ) %>%
@@ -247,7 +245,7 @@ mod_scd_tab_module_server <- function(id){
           year_pop = dplyr::if_else(!is.na(!!col_sym_conv(yr)), as.numeric(yr), !!col_sym_conv(yr))
         ) 
       
-      
+
       purrr::map(1:length(range), function(x) {
         df <<- fill_missing_values_in_years_scd(df = df,
                                                 based_year = yr,
@@ -289,14 +287,13 @@ mod_scd_tab_module_server <- function(id){
           dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), year_pop)
           )
       })[length(available_years_in_use)]
-      
       df <- df %>%
         dplyr::rename(
           !!col_sym_conv((df %>% dplyr::select(`Country Name`) %>% dplyr::pull() %>% unique())) := !!col_sym_conv(stringr::str_glue("{yr}.y"))
         ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"), -`Country Name`) %>% dplyr::distinct() %>%
         tidyr::pivot_wider(names_from = `Grouping`, values_from = `year_pop`)
-      
-      
+      # value now contains list of values for indicator "Capital Budget Execution Ratio" in bm col.
+
       # Countries list to compare
       if((!is.null(cc)) && (length(cc) > 0)){
         
@@ -534,7 +531,7 @@ mod_scd_tab_module_server <- function(id){
       hiddenColNum <- c()
       
       # print(df)
-      
+
       if(!is.null(bm)){
         purrr::map(1:length(input$scd_benchmark), function(x){
           hiddenColNum <<- c(hiddenColNum, which(colnames(df) == as.character(stringr::str_glue('value_b{x}'))))
