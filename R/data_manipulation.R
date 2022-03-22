@@ -25,7 +25,7 @@ dat_modified$`Indicator Sector`[dat_modified$`Indicator Sector` == "Transport"] 
 dat_modified$`Indicator Sector`[dat_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
 
 ## reshape the data
-vars <- as.character(1990:2020)
+vars <- as.character(1990:2020) ## remember to edit this
 dat_modified <- reshape_func(dat_modified, vars)
 
 
