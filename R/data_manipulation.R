@@ -25,7 +25,8 @@ dat_modified$`Indicator Sector`[dat_modified$`Indicator Sector` == "Transport"] 
 dat_modified$`Indicator Sector`[dat_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
 
 ## reshape the data
-vars <- as.character(1990:2020) ## remember to edit this
+# vars <- as.character(1990:2020) ## remember to edit this
+vars <- grep("^19|^20", names(dat_modified), value = TRUE)
 dat_modified <- reshape_func(dat_modified, vars)
 
 
@@ -39,7 +40,9 @@ rm(dat_bm)
 dat_bm_modified$Sector[dat_bm_modified$Sector == "Transport"] <- "Transport cross-cutting"
 dat_bm_modified$Sector[dat_bm_modified$Sector == "National"] <- "Cross-cutting"
 
-vars <- as.character(1990:2020)
+# vars <- as.character(1990:2020)
+
+vars <- grep("^19|^20", names(dat_bm_modified), value = TRUE)
 
 ## reshape the data
 dat_bm_modified <- reshape_func(dat_bm_modified, vars)
@@ -70,7 +73,9 @@ psba_data <- psba_data %>%
   rename(PSBA_Value = Value)
 
 
-vars <- as.character(1990:2030)
+# vars <- as.character(1990:2030)
+vars <- grep("^19|^20", names(dat_ports_modified), value = TRUE)
+
 other_ports_data <- dat_ports_modified %>% select(all_of(initial_vars), all_of(vars))
 other_ports_data <- reshape_func(other_ports_data, vars)
 
@@ -87,8 +92,69 @@ rm(dat_ports_bm)
 
 
 ## reshape the data
-vars <- as.character(1990:2030)
+# vars <- as.character(1990:2030)
+
+vars <- grep("^19|^20", names(dat_ports_bm_modified), value = TRUE)
 dat_ports_bm_modified <- dat_ports_bm_modified %>% 
   reshape_func( vars)
 
-rm(dat_ports_datasets, rba_data, psba_data, other_ports_data, initial_vars, psba_cols, rba_cols, vars, reshape_func)
+
+#5. Append the main data and benchmark data
+
+## 5.1 other sectors
+regions_nonports <- sort(unique(dat_modified$Region)) 
+income_groups_nonports <- sort(unique(dat_modified$IncomeGroup)) 
+mountainous_nonports <- sort(unique(dat_modified$Mountainous))
+isolation_nonports <- sort(unique(dat_modified$Isolated))
+oilexporters_nonports <- sort(unique(dat_modified$`Oil Exporter`))
+humcapital_nonports <- sort(unique(dat_modified$`Human Capital`))
+fragility_nonports <- sort(unique(dat_modified$Fragile))
+popdensity_nonports <- sort(unique(dat_modified$`Low Population Density`))
+oecd_nonports <- sort(unique(dat_modified$`OECD Member`))
+
+dat_modified <- dat_modified %>% 
+  mutate(Grouping2 = "country")
+
+dat_bm_modified <- dat_bm_modified %>% 
+                     mutate(Grouping2 = ifelse(Grouping %in%regions_nonports, "region", 
+                                        ifelse(Grouping %in%income_groups_nonports, "income_group",
+                                        ifelse(Grouping %in%mountainous_nonports, "mountainous",             
+                                        ifelse(Grouping %in%isolation_nonports, "isolation",
+                                        ifelse(Grouping %in%oilexporters_nonports, "oilexporters",
+                                        ifelse(Grouping %in%humcapital_nonports, "humcapital",
+                                        ifelse(Grouping %in%fragility_nonports, "fragility",
+                                        ifelse(Grouping %in% popdensity_nonports, "popdensity",
+                                        ifelse(Grouping %in% oecd_nonports, "oecdmember",
+                                                      "others")))))))))) %>% 
+                    rename(`Indicator Name` = Indicator,
+                           `Indicator Sector` = Sector)
+
+dat_appended <- bind_rows(dat_modified, dat_bm_modified)
+
+dat_appended <- dat_appended %>% 
+                 select(`Country Code`, `Country Name`, `Indicator Name`, `Indicator Sector`,Grouping,
+                        Grouping2, Year, Value, everything())
+
+## 5.2 ports
+regions_ports <- sort(unique(dat_ports_modified$Region)) 
+portsize <- sort(unique(dat_ports_modified$`Port Size`)) 
+
+dat_ports_modified <- dat_ports_modified %>% 
+  mutate(Grouping2 = "country")
+
+dat_ports_bm_modified <- dat_ports_bm_modified %>% 
+  mutate(Grouping2 = ifelse(Grouping %in%regions_ports, "region", 
+                            ifelse(Grouping %in%portsize, "portsize", "others")))
+
+dat_ports_appended <- bind_rows(dat_ports_modified, dat_ports_bm_modified)
+
+dat_ports_appended <- dat_ports_appended %>% 
+  select(`Country Code`, `Country Name`, `Indicator Name`, Grouping,
+         Grouping2, Year, Value, everything())
+
+rm(dat_ports_datasets, rba_data, psba_data, other_ports_data, initial_vars, psba_cols, 
+   rba_cols, vars, reshape_func)
+rm(list = ls(pattern="_nonports$"))
+rm(list = ls(pattern="_modified$"))
+rm(portsize, regions_ports)
+
