@@ -11,6 +11,10 @@ mod_indicator_trend_tab_module_ui <- function(id){
   
   ns <- shiny::NS(id)
   htmltools::tagList(
+    tags$style(type="text/css",
+               ".shiny-output-error { visibility: hidden; }",
+               ".shiny-output-error:before { visibility: hidden; }"
+    ),
     shiny::div(class = "controlSection",
                
                ## First row consists of country, sectors and indicator input tabs
@@ -39,14 +43,14 @@ mod_indicator_trend_tab_module_ui <- function(id){
                
               ## Third row ... refer to the note in the server section.
                 shiny::fluidRow(
-                                shiny::column(4,shiny::uiOutput(ns('row3_1'))),
-                                shiny::column(8,shiny::uiOutput(ns('row3_2')))
+                                shiny::column(4, shiny::uiOutput(ns('row3_1'))),
+                                shiny::column(8, shiny::uiOutput(ns('row3_2')))
                            ),
               
               ## Graph and table output
                   shiny::fluidRow(
-                   shiny::uiOutput(ns('graph_output')),
-                    shiny::uiOutput(ns('table_output'))
+                    shiny::column(8, offset = 2, shiny::uiOutput(ns('graph_output'))),
+                    shiny::column(8, offset = 2, shiny::uiOutput(ns('table_output')))
                     ),
               
               ## Download buttons
@@ -186,10 +190,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
           uiOutput(ns("level3_comparisons"))
         }else{
           NULL
-          # shiny::selectInput(ns('data_selection_type_year'), 
-          #                     label = 'Type of selection: ',
-          #                     choices = c('Select latest year available', 'Select a range of years'),
-          #                     selected = 'Select a range of years')
         }
       })
       
@@ -265,7 +265,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
                           selected = 'Select a range of years')
       })
  
-    ## Reactive object that will determine the years to be displayed on the year slider (pending) ------------------------------------------------------------------
+## Reactive object that will determine the years to be displayed on the year slider (and luckily the 
+## data to be displayed.) ------------------------------------------------------------------
     
     output_data <- reactive({
       cn <- input$data_country
@@ -274,6 +275,13 @@ mod_indicator_trend_tab_module_server <- function(id) {
       level1 <-input$level1_dropdown
       level2 <- input$level2_dropdown
       level3 <- input$level3_dropdown
+
+      # cn <- "Jordan"
+      # sc <- "Cross-cutting"
+      # ic <- "Bank nonperforming loans to total gross loans (%)"
+      # level1 <- "None"
+      # level2 <- ""
+      # level3 <- ""
       
       # cn <- "Jordan"
       # sc <- "Transport Port"
@@ -281,66 +289,64 @@ mod_indicator_trend_tab_module_server <- function(id) {
       # level1 <- "Aqaba"
       # level2 <- "None"
       # level3 <- ""
-
-      if(!grepl('Port', sc)) { 
-        if(level1 == "None"){
+      
+      if(!grepl('Port', sc)) {
+        if(level1 == "None"){ ## 1
           out <- dat_appended %>% 
                   filter(`Country Name` %in% cn & `Indicator Sector` %in% sc & `Indicator Name` %in% ic) 
         }else{
           
-        if(grepl('countries', level1)){
+        if(grepl('countries', level1)){ ## 2
           out <- dat_appended %>% 
             filter(`Country Name` %in% c(cn, level2) & `Indicator Sector` %in% sc & `Indicator Name` %in% ic) %>% 
             filter(Year %in% Year[`Country Name` %in% cn])
         }else{
           
-          if(grepl('indicators', level1)){
+          if(grepl('indicators', level1)){ ## 3
             out <- dat_appended %>% 
               filter(`Country Name` %in% cn & `Indicator Sector` %in% sc & `Indicator Name` %in% c(ic, level2)) %>% 
               filter(Year %in% Year[`Indicator Sector` %in% sc])
           }
           else{
             
-            if(grepl('benchmark', level1)){
-              if(grepl('Region', level2)){
+            if(grepl('benchmark', level1)){ 
+              if(grepl('Region', level2)){ ## 4
                 out <- dat_appended %>% 
                         filter((`Country Name` %in% cn | Grouping %in% level3)  & `Indicator Sector` %in% sc & `Indicator Name` %in% ic) %>% 
                         filter(Year %in% Year[`Country Name` %in% cn])
               }else{
-                if(grepl('Income', level2)){
+                if(grepl('Income', level2)){ ## 5
                   out <- dat_appended %>% 
                     filter((`Country Name` %in% cn | Grouping %in% level3)  & `Indicator Sector` %in% sc & `Indicator Name` %in% ic) %>% 
                     filter(Year %in% Year[`Country Name` %in% cn])
                  }
                 }
-               }else
-                 out <- data.frame()
+               }
               }
              }
             }
-           }else
-           {
+           }else{
            
             if(grepl('Port', sc)) { 
-             if(level2 == "None"){
+             if(level2 == "None"){ ## 6
                out <- dat_ports_appended %>% 
                  filter(`Country Name` %in% cn & `Indicator Name` %in% ic) %>% 
                  filter(`Sub-national Unit Name` %in% level1) 
              }else{
                
-               if(grepl('Other ports', level2)){
+               if(grepl('Other ports', level2)){ ## 7
                  out <- dat_ports_appended %>% 
                    filter(`Country Name` %in% cn & `Indicator Name` %in% ic) %>% 
                    filter(`Sub-national Unit Name` %in% c(level1, level3)) %>% 
                    filter(Year %in% Year[`Sub-national Unit Name` %in% level1])
                }else{
-                 if(grepl('Regional', level2)){
+                 if(grepl('Regional', level2)){ ## 8
                    out <- dat_ports_appended %>% 
                      filter((`Country Name` %in% cn | Grouping %in% level3) & `Indicator Name` %in% ic) %>% 
                      filter(`Sub-national Unit Name` %in% level1) %>% 
                      filter(Year %in% Year[`Sub-national Unit Name` %in% level1])
                  }else{ 
-                   if(grepl('Volume', level2)){
+                   if(grepl('Volume', level2)){ ## 9
                      out <- dat_ports_appended %>% 
                        filter((`Country Name` %in% cn | Grouping %in% level3) & `Indicator Name` %in% ic) %>% 
                        filter(`Sub-national Unit Name` %in% level1) %>% 
@@ -349,9 +355,13 @@ mod_indicator_trend_tab_module_server <- function(id) {
                  }
                }
              }
-            }
+            }else{
+             out <- NULL
            }
-    })
+           }
+    
+      return(out)
+      })
       
     ## row 3_2 : (if sector is 'Transport Port' and no comparison is needed, or sector is anything else, comparison is needed and 
     ## the comparison is by other other benchmarks, the second element on row 3 is the year slider)
@@ -398,11 +408,143 @@ mod_indicator_trend_tab_module_server <- function(id) {
 
 #----------------------------------------------- Data output ----------------------------------------------------------
       
-## Reactive object that will hold the data (pending) ------------------------------------------------------------------
+## Reactive object that will hold the output ------------------------------------------------------------------
 
+infrasap_output <- reactive({
+  cn <- input$data_country
+  sc <- input$data_sector
+  ic <- input$data_indicator
+  level1 <-input$level1_dropdown
+  level2 <- input$level2_dropdown
+  level3 <- input$level3_dropdown
+  selection <- input$data_selection_type_year
+  tselection <- input$tselection
+  
+
+
+  min_year <- shiny::reactive({
+    as.numeric(input$tselection[1])
+  })
+  
+  
+  max_year <- shiny::reactive({
+    if(length(input$tselection)>1){
+      as.numeric(input$tselection[2])
+    }else{
+      as.numeric(input$tselection[1])
+    }
+    
+  })
+  
+# 
+# dat <- out  
+# min_year_reactive <- min(out$Year, na.rm = TRUE)
+# max_year_reactive <- max(out$Year, na.rm = TRUE)
+
+  if(!grepl('Port', sc)) {
+    sector = "other"
+    if(level1 == "None"){ ## 1
+      dat <- output_data()
+      selection <- selection
+      min_year_reactive <- min_year()
+      max_year_reactive <- max_year()
+      return <- no_comparison_output(dat, sector, selection, min_year_reactive, max_year_reactive)
+    }else{
+      
+      if(grepl('countries', level1)){ ## 2
+        dat <- output_data()
+        return <- NULL
+        
+      }else{
+        
+        if(grepl('indicators', level1)){ ## 3
+          dat <- output_data()
+          return <- NULL
+          
+        }else{
+          
+          if(grepl('benchmark', level1)){ 
+            if(grepl('Region', level2)){ ## 4
+              dat <- output_data()
+              return <- NULL
+              
+            }else{
+              if(grepl('Income', level2)){ ## 5
+                dat <- output_data()
+                return <- NULL
+                
+              }
+            }
+          }
+        }
+      }
+    }
+  }else{
+    
+    if(grepl('Port', sc)) { 
+      sector = "ports"
+      
+      if(level2 == "None"){ ## 6
+        dat <- output_data()
+        selection <- selection
+        min_year_reactive <- min_year()
+        max_year_reactive <- max_year()
+        return <- no_comparison_output(dat, sector, selection, min_year_reactive, max_year_reactive)
+        
+      }else{
+        
+        if(grepl('Other ports', level2)){ ## 7
+          dat <- output_data()
+          return <- NULL
+          
+        }else{
+          if(grepl('Regional', level2)){ ## 8
+            dat <- output_data()
+            return <- NULL
+            
+          }else{ 
+            if(grepl('Volume', level2)){ ## 9
+              dat <- output_data()
+              return <- NULL
+              
+            }
+          }
+        }
+      }
+    }else{
+      return <- NULL
+    }
+  }
+
+})
+   
+      
 ## Plot output (pending) -----------------------------------------------------------------------------------------------
+output$graph_output <- renderUI({
+  plotly::plotlyOutput(ns("graph_output2")) %>% 
+    shinycssloaders::withSpinner(type = 7,color = "#002244")
+})
+output$graph_output2 <- plotly::renderPlotly({
+  infrasap_output()[[2]]
+})      
+      
 
 ## Table output (pending) ----------------------------------------------------------------------------------------------   
+
+output$table_output <- renderUI({
+  shiny::fluidRow(
+       DT::DTOutput(ns('table_output2'))
+    )
+})
+
+
+output$table_output2 <- DT::renderDT({
+  DT::datatable(infrasap_output()[[3]],
+                options = 
+                  list(pageLength=10, 
+                       scrollX='400px')) 
+})   
+
 
 ## Download buttons ----------------------------------------------------------------------------------------------------
 
@@ -418,6 +560,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
       #   download_bttns(ns("ddata"),"Download Indicator Data")
       # }) 
       
+  #})
   })
 }
     

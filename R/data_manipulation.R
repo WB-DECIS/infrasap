@@ -133,7 +133,8 @@ dat_appended <- bind_rows(dat_modified, dat_bm_modified)
 
 dat_appended <- dat_appended %>% 
                  select(`Country Code`, `Country Name`, `Indicator Name`, `Indicator Sector`,Grouping,
-                        Grouping2, Year, Value, everything())
+                        Grouping2, Year, Value, everything())%>% 
+  mutate(Year = as.numeric(Year))
 
 ## 5.2 ports
 regions_ports <- sort(unique(dat_ports_modified$Region)) 
@@ -150,7 +151,8 @@ dat_ports_appended <- bind_rows(dat_ports_modified, dat_ports_bm_modified)
 
 dat_ports_appended <- dat_ports_appended %>% 
   select(`Country Code`, `Country Name`, `Indicator Name`, Grouping,
-         Grouping2, Year, Value, everything())
+         Grouping2, Year, Value, everything()) %>% 
+  mutate(Year = as.numeric(Year))
 
 rm(dat_ports_datasets, rba_data, psba_data, other_ports_data, initial_vars, psba_cols, 
    rba_cols, vars, reshape_func)
