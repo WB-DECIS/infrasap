@@ -269,6 +269,13 @@ mod_indicator_trend_tab_module_server <- function(id) {
 ## data to be displayed.) ------------------------------------------------------------------
     
     output_data <- reactive({
+      
+      req(input$data_country)
+      req(input$data_sector)
+      req(input$data_indicator)
+      req(input$level1_dropdown)
+
+      
       cn <- input$data_country
       sc <- input$data_sector
       ic <- input$data_indicator
@@ -411,6 +418,15 @@ mod_indicator_trend_tab_module_server <- function(id) {
 ## Reactive object that will hold the output ------------------------------------------------------------------
 
 infrasap_output <- reactive({
+  
+  req(input$data_country)
+  req(input$data_sector)
+  req(input$data_indicator)
+  req(input$level1_dropdown)
+
+  req(input$data_selection_type_year)
+  req(input$tselection)
+  
   cn <- input$data_country
   sc <- input$data_sector
   ic <- input$data_indicator
@@ -521,7 +537,7 @@ infrasap_output <- reactive({
       
 ## Plot output (pending) -----------------------------------------------------------------------------------------------
 output$graph_output <- renderUI({
-  plotly::plotlyOutput(ns("graph_output2")) %>% 
+  plotly::plotlyOutput(ns("graph_output2"), height = "600") %>% 
     shinycssloaders::withSpinner(type = 7,color = "#002244")
 })
 output$graph_output2 <- plotly::renderPlotly({
