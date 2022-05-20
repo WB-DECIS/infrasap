@@ -32,6 +32,10 @@ app_ui <- function(request) {
   options(scipen = '999')
   
   tagList(
+    tags$style(type="text/css",
+               ".shiny-output-error { visibility: hidden; }",
+               ".shiny-output-error:before { visibility: hidden; }"
+    ),
     mobile_golem_add_external_resources(),
     
     dashboardPage(
