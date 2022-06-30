@@ -155,7 +155,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
 
 
       shiny::conditionalPanel(condition = paste0("input['", ns("level1_dropdown"), "'] != 'None' "),
-                              shiny::uiOutput(ns("row2_2b")))
+                                         shiny::uiOutput(ns("row2_2b")))
       
     })
     
@@ -169,12 +169,12 @@ mod_indicator_trend_tab_module_server <- function(id) {
       sc <- input$data_sector
       ic <- input$data_indicator
      
-   
-
-    if(!grepl('Transport Port', sc)) {
       
       shiny::req(input$level1_dropdown)
       level1 <-input$level1_dropdown
+
+    if(!grepl('Transport Port', sc)) {
+
       
         if(level1 %in% 'Other countries'){
           choices0 <- sort(dat_appended %>% dplyr::filter(`Indicator Name`%in% ic) %>% dplyr::filter(!`Country Name`  %in% cn) %>% dplyr::distinct(`Country Name`) %>% dplyr::pull())
@@ -190,7 +190,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
           )
         }else{
           if(level1 %in% 'Other benchmarks'){
-            choices0 <- c("Regions", "Income groups")
+            choices0 <- c(sort(unique(dat_appended$Region)), sort(unique(dat_appended$IncomeGroup)))
             label0 <- "Select benchmark"
             selected_choice <- choices0[1]
             shiny::conditionalPanel(condition = paste0("input['", ns("level1_dropdown"), "'] != 'None' "),
@@ -246,9 +246,11 @@ mod_indicator_trend_tab_module_server <- function(id) {
       sc <- input$data_sector
 
 
-      shiny::conditionalPanel(condition = paste0("input['", ns("level2_dropdown"), "'] != 'None'", "&", 
+      shiny::conditionalPanel(condition = paste0("input['", ns("level2_dropdown"), "'] != 'None'", "&",
+                                                  "input['", ns("level1_dropdown"), "'] != 'None'", "&", 
                                                  "input['", ns("level1_dropdown"), "'] != 'Other countries'", "&",
-                                                 "input['", ns("level1_dropdown"), "'] != 'Other indicators'"),
+                                                 "input['", ns("level1_dropdown"), "'] != 'Other indicators'", "&",
+                                                 "input['", ns("level1_dropdown"), "'] != 'Other benchmarks'"),
                               shiny::uiOutput(ns("row2_3b")))
 
     })
@@ -265,8 +267,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
             level1 <-input$level1_dropdown
             level2 <- input$level2_dropdown
 
-            if(!grepl('Transport Port', sc)) {
-              if(level1 %in% "Other countries" | level1 %in% "Other indicators"){
+      if(!grepl('Transport Port', sc)) {
+      if(level1 %in% "Other countries" | level1 %in% "Other indicators" | level1 %in% 'Other benchmarks'){
                 choices <- "None"
                 label <- ""
                 selected_choice <- choices[1]
@@ -276,37 +278,10 @@ mod_indicator_trend_tab_module_server <- function(id) {
                                    selected = selected_choice,
                                    multiple = TRUE
                 )
-              }else{
-
-              if(level1 %in% "Other benchmarks"){
-
-                if(level2 %in% "Regions"){
-                  choices <- sort(unique(dat_appended$Region))
-                  label <- "Select region"
-                  selected_choice <- choices[1]
-                  shiny::selectInput(ns('level3_dropdown'),
-                                     label = label,
-                                     choices = choices,
-                                     selected = selected_choice,
-                                     multiple = TRUE
-                  )
-                }else{
-                  if(level2 %in% "Income groups"){
-                    choices <- sort(unique(dat_appended$IncomeGroup))
-                    label <- "Select income group"
-                    selected_choice <- choices[1]
-                    shiny::selectInput(ns('level3_dropdown'),
-                                       label = label,
-                                       choices = choices,
-                                       selected = selected_choice,
-                                       multiple = TRUE
-                    )
-                  }
-                }
-              }
-
               }
             }else{
+              
+              if(grepl('Transport Port', sc)) {
                           if(grepl("Other ports", level2)){
                             choices <- sort(dat_ports_appended %>% dplyr::filter(`Country Name` %in% cn & !`Sub-national Unit Name`  %in% level1) %>% dplyr::distinct(`Sub-national Unit Name`) %>% dplyr::pull())
                             label <- "Select port"
@@ -345,7 +320,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
                             }
                           }
                       
-                }
+              }
+            }
 
     })
 
@@ -371,7 +347,7 @@ output_data <- reactive({
   shiny::req(input$data_country)
   shiny::req(input$data_sector)
   shiny::req(input$data_indicator)
-  shiny::req(input$level1_dropdown)
+  # shiny::req(input$level1_dropdown)
 
 
   cname <- input$data_country
@@ -385,8 +361,9 @@ output_data <- reactive({
   if(!grepl('Transport Port', sect)) {
 
     shiny::req(input$level1_dropdown)
-    l1 <-input$level1_dropdown
+    l1 <- input$level1_dropdown
 
+    
     if(l1 %in% "None"){ ## 1
       out <- dat_appended %>%
        dplyr::filter(`Country Name` %in% cname & `Indicator Sector` %in% sect & `Indicator Name` %in% ind) %>%
@@ -396,12 +373,13 @@ output_data <- reactive({
       if(grepl('countries', l1)){ ## 2
         shiny::req(input$level2_dropdown)
         l2 <- input$level2_dropdown
+        
         out <- dat_appended %>%
           dplyr::filter(`Country Name` %in% c(cname, l2) & `Indicator Sector` %in% sect & `Indicator Name` %in% ind) %>%
           dplyr::filter(Year %in% Year[`Country Name` %in% cname]) %>%
           dplyr::select(`Country Name`, `Indicator Name`, Year, Value) %>%
-          dplyr::rename(Grouping = `Country Name`) %>% 
-          dplyr::mutate(Grouping = as.factor(Grouping)) %>% 
+          dplyr::rename(Grouping = `Country Name`) %>%
+          dplyr::mutate(Grouping = as.factor(Grouping)) %>%
           dplyr::mutate(Grouping = forcats::fct_relevel(Grouping, cname))
       }else{
 
@@ -409,48 +387,29 @@ output_data <- reactive({
 
           shiny::req(input$level2_dropdown)
           l2 <- input$level2_dropdown
+          
           out <- dat_appended %>%
             dplyr::filter(`Country Name` %in% cname & `Indicator Sector` %in% sect & `Indicator Name` %in% c(ind, l2)) %>%
             dplyr::filter(Year %in% Year[`Indicator Name` %in% ind]) %>%
             dplyr::select(`Country Name`, `Indicator Name`, Year, Value) %>%
-            dplyr::rename(Grouping = `Indicator Name`) %>% 
-            dplyr::mutate(Grouping = as.factor(Grouping)) %>% 
+            dplyr::rename(Grouping = `Indicator Name`) %>%
+            dplyr::mutate(Grouping = as.factor(Grouping)) %>%
             dplyr::mutate(Grouping = forcats::fct_relevel(Grouping, ind))
         }else{
-
-          if(grepl('benchmark', l1)){
-
-            shiny::req(input$level2_dropdown)
-            l2 <- input$level2_dropdown
-
-            if(grepl('Region', l2)){ ## 4
-              shiny::req(input$level3_dropdown)
-              l3 <- input$level3_dropdown
-
-              out <- dat_appended %>%
-                dplyr::filter((`Country Name` %in% cname | Grouping %in% l3)  & `Indicator Sector` %in% sect & `Indicator Name` %in% ind) %>%
-                dplyr::filter(Year %in% Year[`Country Name` %in% cname]) %>%
-                dplyr::mutate(Grouping = ifelse(is.na(Grouping), `Country Name`, Grouping))%>%
-                dplyr::select(Grouping, `Indicator Name`, Year, Value) %>% 
-                dplyr::mutate(Grouping = as.factor(Grouping)) %>% 
-                dplyr::mutate(Grouping = forcats::fct_relevel(Grouping, cname))
-
-            }else{
-              if(grepl('Income', l2)){ ## 5
-
-                shiny::req(input$level3_dropdown)
-                l3 <- input$level3_dropdown
-
-                out <- dat_appended %>%
-                  dplyr::filter((`Country Name` %in% cname | Grouping %in% l3)  & `Indicator Sector` %in% sect & `Indicator Name` %in% ind) %>%
-                  dplyr::filter(Year %in% Year[`Country Name` %in% cname]) %>%
-                  dplyr::mutate(Grouping = ifelse(is.na(Grouping), `Country Name`, Grouping))%>%
-                  dplyr::select(Grouping, `Indicator Name`, Year, Value) %>% 
-                  dplyr::mutate(Grouping = as.factor(Grouping)) %>% 
-                  dplyr::mutate(Grouping = forcats::fct_relevel(Grouping, cname))
-              }
-            }
-          }
+        if(grepl('benchmark', l1)){
+          
+          
+          shiny::req(input$level2_dropdown)
+          l2 <- input$level2_dropdown
+          
+          out <- dat_appended %>%
+            dplyr::filter(`Country Name` %in% cname & `Indicator Sector` %in% sect & `Indicator Name` %in% c(ind, l2)) %>%
+            dplyr::filter(Year %in% Year[`Indicator Name` %in% ind]) %>%
+            dplyr::select(`Country Name`, `Indicator Name`, Year, Value) %>%
+            dplyr::rename(Grouping = `Indicator Name`) %>%
+            dplyr::mutate(Grouping = as.factor(Grouping)) %>%
+            dplyr::mutate(Grouping = forcats::fct_relevel(Grouping, ind))
+        }
         }
       }
     }
@@ -460,7 +419,7 @@ output_data <- reactive({
 
       shiny::req(input$level1_dropdown)
       l1 <- input$level1_dropdown
-
+      
       shiny::req(input$level2_dropdown)
       l2 <- input$level2_dropdown
 
@@ -472,6 +431,7 @@ output_data <- reactive({
       }else{
 
         if(grepl('Other ports', l2)){ ## 7
+          
           shiny::req(input$level3_dropdown)
           l3 <- input$level3_dropdown
 
@@ -480,8 +440,8 @@ output_data <- reactive({
             dplyr::filter(`Sub-national Unit Name` %in% c(l1, l3)) %>%
             dplyr::filter(Year %in% Year[`Sub-national Unit Name` %in% l1])%>%
             dplyr::select(`Country Name`, `Indicator Name`, `Sub-national Unit Name`, Year, Value) %>%
-            dplyr::rename(Grouping = `Sub-national Unit Name`)%>% 
-            dplyr::mutate(Grouping = as.factor(Grouping)) %>% 
+            dplyr::rename(Grouping = `Sub-national Unit Name`)%>%
+            dplyr::mutate(Grouping = as.factor(Grouping)) %>%
             dplyr::mutate(Grouping = forcats::fct_relevel(Grouping, l1))
 
         }else{
@@ -494,8 +454,8 @@ output_data <- reactive({
               dplyr::filter(`Sub-national Unit Name` %in% l1 | Grouping %in% l3) %>%
               dplyr::filter(Year %in% Year[`Sub-national Unit Name` %in% l1]) %>%
               dplyr::mutate(Grouping = ifelse(is.na(Grouping), `Sub-national Unit Name`, Grouping)) %>%
-              dplyr::select(Grouping, Year, Value) %>% 
-              dplyr::mutate(Grouping = as.factor(Grouping)) %>% 
+              dplyr::select(Grouping, Year, Value) %>%
+              dplyr::mutate(Grouping = as.factor(Grouping)) %>%
               dplyr::mutate(Grouping = forcats::fct_relevel(Grouping, l1))
 
           }else{
@@ -508,17 +468,19 @@ output_data <- reactive({
                 dplyr::filter(`Sub-national Unit Name` %in% l1 | Grouping %in% l3) %>%
                 dplyr::filter(Year %in% Year[`Sub-national Unit Name` %in% l1])%>%
                 dplyr::mutate(Grouping = ifelse(is.na(Grouping), `Sub-national Unit Name`, Grouping)) %>%
-                dplyr::select(Grouping, Year, Value)%>% 
-                dplyr::mutate(Grouping = as.factor(Grouping)) %>% 
+                dplyr::select(Grouping, Year, Value)%>%
+                dplyr::mutate(Grouping = as.factor(Grouping)) %>%
                 dplyr::mutate(Grouping = forcats::fct_relevel(Grouping, l1))
 
-            }
+            }else
+              out <- NULL
           }
         }
       }
-    }
+    }else
+      out <- NULL
 
-  }
+    }
 
   return(out)
   })
@@ -527,12 +489,12 @@ output_data <- reactive({
     ## the comparison is by other other benchmarks, the second element on row 3 is the year slider)
 
       output$row3_2 <- renderUI({
-        # cn <- input$data_country
-        # sc <- input$data_sector
-        # ic <- input$data_indicator
-        # level1 <-input$level1_dropdown
-        # level2 <- input$level2_dropdown
-        # level3 <- input$level3_dropdown
+        
+        req(input$data_country)
+        req(input$data_sector)
+        req(input$data_indicator)
+        req(input$level1_dropdown)
+
 
         if(nrow(output_data()) > 0){
 
@@ -575,11 +537,12 @@ infrasap_output <- reactive({
   req(input$data_country)
   req(input$data_sector)
   req(input$data_indicator)
- req(input$level1_dropdown)
- # req(input$level2_dropdown)
- # req(input$level3_dropdown)
+  req(input$level1_dropdown)
+  req(input$data_selection_type)
+  req(input$tselection)
 
-  dat <- output_data()
+
+  # dat <- output_data()
   cn <- input$data_country
   sc <- input$data_sector
   ic <- input$data_indicator
@@ -592,15 +555,15 @@ infrasap_output <- reactive({
 
 
   min_year <- shiny::reactive({
-    as.numeric(input$tselection[1])
+    as.numeric(tselection[1])
   })
 
 
   max_year <- shiny::reactive({
-    if(length(input$tselection)>1){
-      as.numeric(input$tselection[2])
+    if(length(tselection)>1){
+      as.numeric(tselection[2])
     }else{
-      as.numeric(input$tselection[1])
+      as.numeric(tselection[1])
     }
 
   })
@@ -610,29 +573,52 @@ infrasap_output <- reactive({
 
 
     if(all(!grepl('Transport Port', sc) & level1 %in% "None")) {
-      dat <- output_data()
+
       sector <- input$data_sector
       selection <- input$data_selection_type
       min_year_reactive <- min_year()
       max_year_reactive <- max_year()
+      
+      if (selection %in% "Select a range of years") {
+        dat <- output_data() %>% dplyr::filter(Year >= min_year_reactive & Year <= max_year_reactive)
+      } else {
+        dat <- output_data() %>% dplyr::filter(Year %in% max(Year, na.rm = TRUE))
+      }
+      
       output <- no_comparison_output(dat, sector, selection, min_year_reactive, max_year_reactive)
     }else{
-      req(input$level2_dropdown)
+     
       if(all(grepl('Transport Port', sc) & level2 %in% "None")){
-        dat <- output_data()
+
+
         sector <- input$data_sector
         selection <- input$data_selection_type
         min_year_reactive <- min_year()
         max_year_reactive <- max_year()
+        
+        
+        if (selection %in% "Select a range of years") {
+          dat <- output_data() %>% dplyr::filter(Year >= min_year_reactive & Year <= max_year_reactive)
+        } else {
+          dat <- output_data() %>% dplyr::filter(Year %in% max(Year, na.rm = TRUE))
+        }
+        
         output <- no_comparison_output(dat, sector, selection, min_year_reactive, max_year_reactive)
       }else{
-        req(input$level2_dropdown)
-        if(all((!grepl('Transport Port', sc) & !level1 %in% "None") |
+      if(all((!grepl('Transport Port', sc) & !level1 %in% "None") |
             (grepl('Transport Port', sc) & !level2 %in% "None"))){
-      dat <- output_data()
+
       selection <- input$data_selection_type
       min_year_reactive <- min_year()
       max_year_reactive <- max_year()
+      
+      
+      if (selection %in% "Select a range of years") {
+        dat <- output_data() %>% dplyr::filter(Year >= min_year_reactive & Year <= max_year_reactive)
+      } else {
+        dat <- output_data() %>% dplyr::filter(Year %in% max(Year, na.rm = TRUE))
+      }
+      
         output <- comparison_output(dat, selection, min_year_reactive, max_year_reactive)
       }
       }
@@ -642,18 +628,32 @@ infrasap_output <- reactive({
   return(output)
 })
 
-#
+      
 ## Plot output (pending) -----------------------------------------------------------------------------------------------
 output$graph_output <- renderUI({
+# 
+#   shiny::validate(
+#     shiny::need(nrow(infrasap_output()[[3]]) > 0, message = FALSE)
+#   )
+
+
   plotly::plotlyOutput(ns("graph_output2")) %>%
     shinycssloaders::withSpinner(type = 7,color = "#002244")
 })
+      
 output$graph_output2 <- plotly::renderPlotly({
+
 
   req(input$data_country)
   req(input$data_sector)
   req(input$data_indicator)
   req(input$level1_dropdown)
+  # req(input$tselection)
+
+  shiny::validate(
+    shiny::need(nrow(infrasap_output()[[3]]) > 0, message = FALSE)
+  )
+
   infrasap_output()[[2]]
 })
 
@@ -683,19 +683,18 @@ output$table_output2 <- DT::renderDT({
 
 ## Download buttons ----------------------------------------------------------------------------------------------------
 
-      # output$download_table <- renderUI({
-      #   download_bttns(ns("dchart"),"Download Chart")
-      # })
-      #
-      # output$download_chart <- renderUI({
-      #   download_bttns(ns("dtable"),"Download Table")
-      # })
-      #
-      # output$download_data <- renderUI({
-      #   download_bttns(ns("ddata"),"Download Indicator Data")
-      # })
+      output$download_table <- renderUI({
+        download_bttns(ns("dchart"),"Download Chart")
+      })
 
-  #})
+      output$download_chart <- renderUI({
+        download_bttns(ns("dtable"),"Download Table")
+      })
+
+      output$download_data <- renderUI({
+        download_bttns(ns("ddata"),"Download Indicator Data")
+      })
+
   })
 }
 

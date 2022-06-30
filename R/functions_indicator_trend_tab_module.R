@@ -164,6 +164,7 @@ no_comparison_output <- function(dat, sector, selection, min_year_reactive, max_
     
   ## The years to be displayed will depend on the option chosen in the "Type of selection" tab
   if(selection %in% "Select a range of years"){
+    
     df2 <- df1 %>% dplyr::filter(Year >= min_year_reactive & Year <= max_year_reactive)
   }else{
     df2 <- df1 %>% dplyr::filter(Year %in% max(Year, na.rm = TRUE))
