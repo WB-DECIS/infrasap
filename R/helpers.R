@@ -12,3 +12,11 @@ empty_plot <- function(title = NULL){
     )
   return(p)
 } 
+
+has_port <- function(x) {
+  any(grepl('Port', x))
+}
+
+open_bracket <- function(x) {
+  grepl('(', x, fixed = TRUE)
+}
