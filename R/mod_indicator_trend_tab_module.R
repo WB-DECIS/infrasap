@@ -449,7 +449,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
                                                     } else {
                                                        selected_ic <- ic[1]
                                                     }
-                                                    
                                                     shiny::fluidRow(
                                                                     shiny::column(12,
                                                                                   shiny::selectInput(inputId = ns('data_indicator'),
@@ -648,7 +647,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
     
     # Reactive data set that compiles data based on data inputs
     data_tab <- shiny::reactive({
-      shiny::req(input$data_sector, input$data_indicator)
+      shiny::req(input$data_sector, input$data_indicator, input$data_year)
       # shiny::req(input$data_compare_to)
       # get sector and year
       sc <- input$data_sector
@@ -892,7 +891,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
       if(input$data_selection_type_year == "Select a range of years"){  
         # get available years for the inputs selected
         output$data_year_ui <- shiny::renderUI({
-          shiny::req(input$data_sector, input$data_country, input$data_indicator, input$country_ports, input$data_compare_to)
+          shiny::req(input$data_sector)
           # get sector and year
           sc <- input$data_sector
           sc <- c(sc, 'Cross-cutting')
