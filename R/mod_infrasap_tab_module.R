@@ -183,96 +183,21 @@ mod_infrasap_tab_module_server <- function(id){
     
     # Update benchmark field data according to selections in the fields
     shiny::observe({
-      
-      cn <- input$db_country
-      
-      # get benchmark data
-      temp_bm <- infrsap_dat_bm_mod_modfied
-      
-      # get sector names for this country
-      temp <- infrasap_dat_mod_modified %>% 
-                  dplyr::filter(`Country Name` == cn) %>% 
-                  dplyr::mutate(group=1) %>%
-                  dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% 
-                  dplyr::distinct() %>% 
-                  tidyr::gather(key='key', value='value') %>% 
-                  tidyr::drop_na() %>%
-                  dplyr::inner_join(temp_bm, by=c('value'='Grouping')) %>%
-                  dplyr::group_by(key, value) %>% 
-                  dplyr::summarise(counts = dplyr::n()) 
-      temp <- dplyr::inner_join(temp,temp_bm, by=c('value'='Grouping'))
-      temp <- temp %>% dplyr::group_by(key, value) %>% dplyr::summarise(counts = dplyr::n())
-      # get a list of benchmarks for the country selected
-      bm_list <- sort(unique(temp$key))[temp$key %in% c("IncomeGroup", "Region")]
-      
+      bm_list <- benchmark_dropdown_manipulation(infrasap_dat_mod_modified, infrsap_dat_bm_mod_modfied, input$db_country)
       shiny::updateSelectizeInput(session = session, 
                                    inputId = "db_benchmark",
                                    choices = bm_list,
-                                   selected = selected_vals$db_benchmark_name
-      )
-      
+                                   selected = selected_vals$db_benchmark_name)
     })
     
-    
+    #Deleting the redundant code about creating db_benchmark selectInput
     # Create benchmark field
-    output$db_benchmark_ui <- shiny::renderUI({
-      cn <- input$db_country
-      
-      # get benchmark data
-      temp_bm <- infrsap_dat_bm_mod_modfied
-      
-      # get sector names for this country
-      temp <- infrasap_dat_mod_modified %>% 
-                dplyr::filter(`Country Name` == cn) %>% 
-                dplyr::mutate(group=1) %>%
-                dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% 
-                dplyr::distinct() %>% 
-                tidyr::gather(key='key', value='value') %>% 
-                tidyr::drop_na() %>%
-                dplyr::inner_join(temp_bm, by=c('value'='Grouping')) %>%
-                dplyr::group_by(key, value) %>%
-                dplyr::summarise(counts = dplyr::n()) 
-      temp <- dplyr::inner_join(temp,temp_bm, by=c('value'='Grouping'))
-      temp <- temp %>% dplyr::group_by(key, value) %>% dplyr::summarise(counts = dplyr::n())
-      # get a list of benchmarks for the country selected
-      bm_list <- sort(unique(temp$key))[temp$key %in% c("IncomeGroup", "Region")]
-      shiny::fluidRow(
-        shiny::column(12,
-                      shiny::selectizeInput(inputId = ns('db_benchmark'),
-                                            label = 'Select benchmark',
-                                            choices = bm_list,
-                                            selected = 'Region',
-                                            multiple = TRUE,
-                                            options = list(
-                                              maxItems = 3,
-                                              'plugins' = list('remove_button'),
-                                              'create' = TRUE,
-                                              'persist' = FALSE
-                                            )
-               )
-               
-        )
-      )
-      
-    })
+    # output$db_benchmark_ui <- shiny::renderUI({....})
     
     # Array of countries selected
     countriesOptionsInput <- shiny::reactive({
       shiny::req(input$db_country)
-      
-      sc <- input$db_sector
-
-      regionF <- infrasap_dat_mod_modified %>%
-        dplyr::filter(`Country Name` == input$db_country) %>% dplyr::select(Region) %>% dplyr::distinct() %>% dplyr::pull()
-      
-      selectedCountryOptions <- infrasap_dat_mod_modified %>%
-        dplyr::filter(Region == regionF) %>% 
-        dplyr::filter(`Indicator Sector` %in% sc) %>%
-        dplyr::filter(`Indicator Pillar` == input$db_pillar) %>%
-        dplyr::filter(`Country Name` != input$db_country) %>% dplyr::select(`Country Name`) %>% dplyr::distinct() %>% dplyr::slice(1:3) %>% dplyr::pull()
-      
-      
-      
+      selectedCountryOptions <- country_to_compare_vec(infrasap_dat_mod_modified, input$db_country, input$db_sector, input$db_pillar)
       return(selectedCountryOptions)
     })
     

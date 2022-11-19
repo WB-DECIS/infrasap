@@ -20,3 +20,30 @@ has_port <- function(x) {
 open_bracket <- function(x) {
   grepl('(', x, fixed = TRUE)
 }
+
+benchmark_dropdown_manipulation <- function(dat, dat_bm, cn) {
+  # get sector names for this country
+  temp <- dat %>% 
+    dplyr::filter(`Country Name` == cn) %>% 
+    dplyr::mutate(group=1) %>%
+    dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% 
+    dplyr::distinct() %>% 
+    tidyr::gather(key='key', value='value') %>% 
+    tidyr::drop_na() %>%
+    dplyr::inner_join(dat_bm, by=c('value'='Grouping')) %>%
+    dplyr::count(key, value, name = "counts")
+  #Seems redundant and doing the same thing as last two lines above. 
+  #temp <- dplyr::inner_join(temp,dat_bm, by=c('value'='Grouping'))
+  #temp <- temp %>% dplyr::count(key, value, name = "counts") 
+  # get a list of benchmarks for the country selected
+  sort(temp$key[temp$key %in% c("IncomeGroup", "Region")])
+}
+
+country_to_compare_vec <- function(dat, cn, sc, pl) {
+  dat %>%
+    dplyr::filter(Region %in% unique(Region[`Country Name` == cn]),`Indicator Sector` %in% sc, 
+                  `Indicator Pillar` == pl, `Country Name` != cn) %>%
+    dplyr::distinct(`Country Name`) %>% 
+    dplyr::slice(1:3) %>% 
+    dplyr::pull()
+}
