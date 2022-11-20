@@ -56,4 +56,11 @@ get_years <- function(dat, dat_bm) {
     intersect(names(dat_bm))
 }
 
+country_to_compare_list <- function(dat, sc, pl) {
+  dat %>%
+    dplyr::filter(`Indicator Sector` %in% sc, `Indicator Pillar` == pl) %>%
+    dplyr::distinct(`Country Name`) %>% 
+    dplyr::pull()
+}
+
 

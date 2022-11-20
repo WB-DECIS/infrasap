@@ -87,21 +87,15 @@ get_last_year <- function(cn, sc, bm = NULL) {
     temp <- infrasap_dat_mod_modified %>% 
       dplyr::filter(`Country Name` == cn) %>% 
       dplyr::filter(`Indicator Sector` %in% sc) %>%
-      dplyr::select(`Country Name`, `1990`:`2020` ) 
-    
-    # get type of benchmark to subset benchmark data by
-    # bm_type <- unique(temp[,bm]) %>% pull()
-    # bm_type <- unique(temp[,bm])
-    
-    # remove columns that have all NA
-    temp <- temp[,colSums(is.na(temp)) < nrow(temp)]
-    temp <- temp %>% dplyr::select(-`Country Name`)
+      dplyr::select(`Country Name`, `1990`:`2020`) %>%
+      remove_NA_columns() %>%
+      dplyr::select(-`Country Name`)
     
     # get years for benchmark 
     temp_bm <- infrsap_dat_bm_mod_modfied %>%
       # dplyr::filter(Grouping == bm_type) %>% 
-      dplyr::filter(`Sector` %in% sc)
-    temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
+      dplyr::filter(`Sector` %in% sc) %>%
+      remove_NA_columns()
     
     # get intersection of years to populate year input
     year_choices <- intersect(names(temp), names(temp_bm))
@@ -110,29 +104,25 @@ get_last_year <- function(cn, sc, bm = NULL) {
     temp <- infrasap_dat_mod_modified %>% 
       dplyr::filter(`Country Name` == cn) %>% 
       dplyr::filter(`Indicator Sector` %in% sc) %>%
-      dplyr::select(`Country Name`, `1990`:`2020`, bm ) 
+      dplyr::select(`Country Name`, `1990`:`2020`, bm)
     
     # get type of benchmark to subset benchmark data by
     # bm_type <- unique(temp[,bm]) %>% pull()
     bm_type <- unique(temp[,bm])
     
-    # remove columns that have all NA
-    temp <- temp[,colSums(is.na(temp))<nrow(temp)]
+    temp <- remove_NA_columns(temp)
     temp <- temp %>% dplyr::select(-`Country Name`, -bm)
     
     # get years for benchmark 
     temp_bm <- infrsap_dat_bm_mod_modfied %>%
       dplyr::filter(Grouping == bm_type) %>% 
-      dplyr::filter(`Sector` %in% sc)
-    temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
-    
+      dplyr::filter(`Sector` %in% sc) %>%
+      remove_NA_columns()
     # get intersection of years to populate year input
     year_choices <- dplyr::intersect(names(temp), names(temp_bm))
     year_choices <- year_choices[length(year_choices)]
   }
-  
   return(year_choices)
-  
 }
 
 
@@ -191,20 +181,12 @@ get_year_scd <- function(cn, bm, year_position = NULL){
   temp <- infrasap::scd_dat %>%
     dplyr::filter(`Country Name`%in% cn) %>%
     # filter(`Indicator Sector` %in% sc) %>%
-    dplyr::select(`1990`:`2020`)
-    # dplyr::select(`1990`:`2017-2021`)
-
-  # remove columns that have all NA
-  temp <- temp[,colSums(is.na(temp)) < nrow(temp)]
-  
+    dplyr::select(`1990`:`2020`) %>%
+    remove_NA_columns()
   # benchmark data 
   temp_bm <- infrasap::scd_bm %>% 
-    dplyr::filter(Grouping %in% bm) 
-  # %>%
-  #   filter(Sector %in% "Energy") 
-  
-  # remove columns that have all NA
-  temp_bm <- temp_bm[,colSums(is.na(temp_bm)) < nrow(temp_bm)]
+    dplyr::filter(Grouping %in% bm) %>%
+    remove_NA_columns()
   
   # get intersection of years to populate year input
   year_choices <- dplyr::intersect(names(temp), names(temp_bm))
@@ -218,28 +200,21 @@ get_year_scd <- function(cn, bm, year_position = NULL){
   if(is.null(bm)){
     without_bm <- infrasap::scd_dat %>% 
       dplyr::filter(`Country Name`%in% cn) %>%
-      # filter(`Indicator Sector` %in% sc) %>%
-      dplyr::select(`1990`:`2020`)
-      # dplyr::select(`1990`:`2017-2021`)
-    without_bm <- without_bm[,colSums(is.na(without_bm)) < nrow(without_bm)]
+      dplyr::select(`1990`:`2020`) %>%
+      remove_NA_columns()
     
     if(!is.null(year_position)) {
       year_choices <- as.character(without_bm %>% colnames() %>% as.numeric() %>% max(., na.rm = TRUE))
     } else {
       year_choices <- as.character(without_bm %>% colnames() %>% as.numeric() %>% min(., na.rm = TRUE))
     }
-
   }
-  
   return(year_choices)
-
 }
 
 
 # scd fill missing values
 fill_missing_values_in_years_scd <- function(df, based_year, year_step_back, country){
-  
-  
   df <- df %>%
     # Bind cols
     dplyr::bind_cols(
@@ -326,7 +301,10 @@ add_article_to_selected_country <- function(selected_country) {
   
 }
 
-
+remove_NA_columns <- function(dat) {
+  # remove columns that have all NA
+  dat[,colSums(is.na(dat))<nrow(dat)]
+}
 ## Factors to arrange pillar tab ------------------------------------
 # infrasap::dat$`Indicator Sub-Pillar` %>% unique()
 # 

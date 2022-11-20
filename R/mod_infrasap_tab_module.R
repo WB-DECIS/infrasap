@@ -162,14 +162,7 @@ mod_infrasap_tab_module_server <- function(id){
     # Create countries field
     output$countriestc <- shiny::renderUI({
       shiny::req(countriesOptionsInput())
-      sc <- input$db_sector
-
-      countryList <- infrasap_dat_mod_modified %>%
-        # dplyr::filter(`Indicator Sector` %in% "Cross-cutting") %>%
-        dplyr::filter(`Indicator Sector` %in% sc) %>%
-        dplyr::filter(`Indicator Pillar` == input$db_pillar) %>%
-        # dplyr::filter(`Indicator Pillar` == "Finance") %>%
-        dplyr::select(`Country Name`) %>% dplyr::distinct() %>% dplyr::pull()
+      countryList <- country_to_compare_list(infrasap_dat_mod_modified, input$db_sector, input$db_pillar)
       
       if(is.null(selected_vals$db_countries_name)) {
         shiny::selectizeInput(inputId = ns('country_to_compare_id'),
@@ -198,8 +191,6 @@ mod_infrasap_tab_module_server <- function(id){
                                          )
         )
       }
-
-      
     })
     
     
@@ -235,15 +226,11 @@ mod_infrasap_tab_module_server <- function(id){
       # bm <- "Region"
       # yr <- "Latest year availbale"
       # pi <- "Connectivity"
-      
-      
       # add national automatically to sector (as in the excel tool)
       if(is.null(yr)){
         NULL
       } else {
-        
         if(yr == "Latest year available") {
-          
           if(length(input$db_benchmark) == 2 & !is.null(input$db_benchmark)) { 
             # bm <- "Region"
             # cn <- "Kenya"
