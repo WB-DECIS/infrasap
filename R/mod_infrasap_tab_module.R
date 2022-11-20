@@ -10,10 +10,8 @@
 mod_infrasap_tab_module_ui <- function(id){
   ns <- NS(id)
   htmltools::tagList(
- 
     shiny::div(class = "controlSection",
                shiny::fluidRow(
-          
                  shiny::column(4, 
                                shiny::selectInput(inputId = ns('db_country'),
                                                    label = 'Select country',
@@ -36,10 +34,8 @@ mod_infrasap_tab_module_ui <- function(id){
                                            choices = c('Connectivity', 'Finance', 'Governance'),
                                            selected = 'Connectivity')
           )
-          
         ),
         shiny::fluidRow(
-          
           shiny::column(4, 
                         shiny::uiOutput(ns('countriestc')),
                         shiny::downloadButton(ns("report_pdf"), "Generate report")
@@ -62,8 +58,7 @@ mod_infrasap_tab_module_ui <- function(id){
                         shiny::selectInput(inputId = ns('db_year'),
                                      label = 'Select year',
                                      choices = NULL,
-                                     selected = NULL
-                         )
+                                     selected = NULL)
           )
       )
     ),
@@ -71,7 +66,6 @@ mod_infrasap_tab_module_ui <- function(id){
                shiny::uiOutput(ns('emptyDataTableMSG')),
                DT::dataTableOutput(ns('db_table'))
     )
-
   )
 }
     
@@ -89,10 +83,7 @@ mod_infrasap_tab_module_server <- function(id){
   
   shiny::moduleServer( id, function(input, output, session){
     ns <- session$ns
-    
-    
     # Module Body
-    
     #------- Initialize the Memory ----------
     selected_vals = shiny::reactiveValues(db_country_name = 'Kenya', 
                                           db_sector_name = 'Energy',
@@ -104,14 +95,12 @@ mod_infrasap_tab_module_server <- function(id){
     
     shiny::observe({
       shiny::req(input$db_country, input$db_sector, input$db_year, input$db_benchmark, input$country_to_compare_id, input$db_pillar)
-      
       selected_vals$db_country_name <- input$db_country
       selected_vals$db_sector_name <- input$db_sector
       selected_vals$db_benchmark_name <- input$db_benchmark
       selected_vals$db_year_name <- input$db_year
       selected_vals$db_countries_name <- input$country_to_compare_id
       selected_vals$db_pillar_name <- input$db_pillar
-      
     })
     
     shiny::observeEvent(input$db_sector, {
@@ -127,58 +116,27 @@ mod_infrasap_tab_module_server <- function(id){
                           selected = selected_vals$db_pillar_name
         )
       }
-
     })
     
     # Update year field data according to selections in the other fields
     shiny::observe({
-      
-      cn <- input$db_country
-      sc <- input$db_sector
-      bm <- input$db_benchmark
-      
       # add national automatically to sector (as in the excel tool)
-      if(is.null(bm)){
+      if(is.null(input$db_benchmark)) {
         NULL
       } else {
-        # save(cn, sc, bm, file = 'inputs.rda')
-        # get years for data
-        temp <- infrasap_dat_mod_modified %>%
-          dplyr::filter(`Country Name` == cn) %>%
-          dplyr::filter(`Indicator Sector` %in% sc) %>%
-          dplyr::select(`Country Name`, `1990`:`2020`, bm )
-        
-        # get type of benchmark to subset benchmark data by
-        bm_type <- as.character(unique(temp[,bm]))
-        
-        # remove columns that have all NA
-        temp <- temp[,colSums(is.na(temp))<nrow(temp)]
-        temp <- temp %>% dplyr::select(-`Country Name`, -bm)
-        
-        # get years for benchmark
-        temp_bm <- infrsap_dat_bm_mod_modfied %>%
-          dplyr::filter(Grouping == bm_type) %>%
-          dplyr::filter(`Sector` %in% sc)
-        temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
-        
-        # get intersection of years to populate year input
-        year_choices <- dplyr::intersect(names(temp), names(temp_bm))
+        year_choices <- get_years(infrasap_dat_mod_modified, infrsap_dat_bm_mod_modfied)
         
         if(selected_vals$db_year_name %in% year_choices){
-          seleted_year <- selected_vals$db_year_name
+          selected_year <- selected_vals$db_year_name
         } else {
-          seleted_year <- "Latest year available"
+          selected_year <- "Latest year available"
         }
         year_choices <- sort(year_choices, decreasing = T)
         shiny::updateSelectInput(session = session, 
                                   inputId = "db_year",
                                   choices = c("Latest year available", year_choices),
-                                  selected = seleted_year
-        )
-        
-        
+                                  selected = selected_year)
       }
-      
     })
     
     # Update benchmark field data according to selections in the fields

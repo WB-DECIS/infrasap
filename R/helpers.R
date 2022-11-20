@@ -28,8 +28,7 @@ benchmark_dropdown_manipulation <- function(dat, dat_bm, cn) {
     dplyr::mutate(group=1) %>%
     dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% 
     dplyr::distinct() %>% 
-    tidyr::gather(key='key', value='value') %>% 
-    tidyr::drop_na() %>%
+    tidyr::pivot_longer(cols = dplyr::everything(), names_to = "key", values_to = "value", values_drop_na = TRUE) %>%
     dplyr::inner_join(dat_bm, by=c('value'='Grouping')) %>%
     dplyr::count(key, value, name = "counts")
   #Seems redundant and doing the same thing as last two lines above. 
@@ -47,3 +46,14 @@ country_to_compare_vec <- function(dat, cn, sc, pl) {
     dplyr::slice(1:3) %>% 
     dplyr::pull()
 }
+
+
+get_years <- function(dat, dat_bm) {
+  # get intersection of years to populate year input
+  dat %>%
+    dplyr::select(-Mode) %>%
+    names() %>%
+    intersect(names(dat_bm))
+}
+
+
