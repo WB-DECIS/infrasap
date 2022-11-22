@@ -8,6 +8,11 @@ col_sym_conv <- function(x) {
   rlang::sym(x)
 }
 
+remove_NA_columns <- function(dat) {
+  # remove columns that have all NA
+  dat[,colSums(is.na(dat))<nrow(dat)]
+}
+
 fill_missing_values_in_years <- function(df, based_year, year_step_back, country, sector, pillar){
 
 infrasap_dat_mod_modified <- infrasap::dat
@@ -76,7 +81,6 @@ country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_y
 
 # get years for data
 get_last_year <- function(cn, sc, bm = NULL) {
-  
   infrasap_dat_mod_modified <- infrasap::dat
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   
@@ -107,15 +111,14 @@ get_last_year <- function(cn, sc, bm = NULL) {
       dplyr::select(`Country Name`, `1990`:`2020`, bm)
     
     # get type of benchmark to subset benchmark data by
-    # bm_type <- unique(temp[,bm]) %>% pull()
-    bm_type <- unique(temp[,bm])
+    bm_type <- unlist(unique(temp[,bm]))
     
     temp <- remove_NA_columns(temp)
     temp <- temp %>% dplyr::select(-`Country Name`, -bm)
     
     # get years for benchmark 
     temp_bm <- infrsap_dat_bm_mod_modfied %>%
-      dplyr::filter(Grouping == bm_type) %>% 
+      dplyr::filter(Grouping %in% bm_type) %>% 
       dplyr::filter(`Sector` %in% sc) %>%
       remove_NA_columns()
     # get intersection of years to populate year input
@@ -299,11 +302,6 @@ add_article_to_selected_country <- function(selected_country) {
   
   return(selected_country)
   
-}
-
-remove_NA_columns <- function(dat) {
-  # remove columns that have all NA
-  dat[,colSums(is.na(dat))<nrow(dat)]
 }
 ## Factors to arrange pillar tab ------------------------------------
 # infrasap::dat$`Indicator Sub-Pillar` %>% unique()

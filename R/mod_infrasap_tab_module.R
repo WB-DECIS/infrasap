@@ -243,10 +243,9 @@ mod_infrasap_tab_module_server <- function(id){
             if(as.numeric(yr) == 2015){
               range <- c(2015)
             } else {
-              range <- c((as.numeric(yr) - 1):(as.numeric(2015)))
+              range <- (as.numeric(yr) - 1):2015
             }
             range <- as.character(range)
-            
             # get infrasap data based on inputs to get the benchmark type and join
             df_r <- infrasap_dat_mod_modified %>%
               dplyr::filter(`Country Name` == cn) %>%

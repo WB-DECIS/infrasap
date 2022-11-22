@@ -33,10 +33,8 @@ app_ui <- function(request) {
   
   tagList(
     mobile_golem_add_external_resources(),
-    
-    dashboardPage(
-      
-      dashboardHeader (title = tags$a(tags$img(src='www/logo2.jpg', alt = '', height = '50')),
+    dashboardPage(title = "Infrasap dashboard",
+      dashboardHeader(title = tags$a(tags$img(src='www/logo2.jpg', alt = '', height = '50')),
                        titleWidth = 260),
       dashboardSidebar(
         width = 260,
