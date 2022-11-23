@@ -232,11 +232,6 @@ mod_infrasap_tab_module_server <- function(id){
       } else {
         if(yr == "Latest year available") {
           if(length(input$db_benchmark) == 2 & !is.null(input$db_benchmark)) { 
-            # bm <- "Region"
-            # cn <- "Kenya"
-            # sc <- "Energy"
-            # pi <- "Finance"
-            # pi <- "Connectivity"
             yr <- as.character(get_last_year(cn, sc, bm))
             
             available_years <- c()
@@ -247,20 +242,7 @@ mod_infrasap_tab_module_server <- function(id){
             }
             range <- as.character(range)
             # get infrasap data based on inputs to get the benchmark type and join
-            df_r <- infrasap_dat_mod_modified %>%
-              dplyr::filter(`Country Name` == cn) %>%
-              dplyr::filter(`Indicator Sector` %in% sc) %>%
-              dplyr::filter(`Indicator Pillar` == pi) %>%
-              dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr, `Region`)
-            
-            
-            df_r <- df_r %>%
-              dplyr::mutate(
-                year_pop = dplyr::if_else(!is.na(!!col_sym_conv(yr)), as.numeric(yr), !!col_sym_conv(yr))
-              )
-            
-            
-            
+            df_r <- data_for_df_r(infrasap_dat_mod_modified, cn, sc, pi, yr)
             range <- range[range != yr]
             
             a <- purrr::map(1:length(range), function(x){
@@ -271,9 +253,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                     sector = sc,
                                                     pillar = pi)
             })[[length(range)]]
-            
-            # df_r <- a
-            
+
             # Years to delete
             available_years <- as.character(
               range[!(range %in% unique(df_r$year_pop))]
@@ -293,12 +273,8 @@ mod_infrasap_tab_module_server <- function(id){
               dplyr::filter(Grouping == bm_type) %>%
               dplyr::filter(`Sector` %in% sc) %>%
               dplyr::select(`Indicator`, available_years_in_use) %>%
-              dplyr::right_join(df_r, by = c('Indicator'='Indicator Name'))
-            
-            df_r <- df_r %>% dplyr::select(-available_years)
-            
-            
-            df_r <- df_r %>%
+              dplyr::right_join(df_r, by = c('Indicator'='Indicator Name')) %>%
+              dplyr::select(-available_years) %>%
               dplyr::mutate(year_tooltip = year_pop)
             
             purrr::map(1:length(available_years_in_use), function(b){
@@ -308,24 +284,10 @@ mod_infrasap_tab_module_server <- function(id){
             })[length(available_years_in_use)]
             
             df_r <- df_r %>% dplyr::select(-`Region`)
-   
-            
             # Find the column where the latest year value saved 
-            year_find_max_vector <- as.character(c(2020:2015))
-            for (i in 1:length(year_find_max_vector)) {
-              if((names(df_r)[stringr::str_detect(names(df_r), pattern = year_find_max_vector[i])] %>% length()) > 0) {
-                if((names(df_r)[stringr::str_detect(names(df_r), pattern = year_find_max_vector[i])] %>% length()) == 1) {
-                  yr_max_column <- year_find_max_vector[i]
-                } else {
-                  yr_max_column <- as.character(stringr::str_glue("{year_find_max_vector[i]}.y"))
-                }
-                break
-              }
-            }
-            
+            yr_max_column <- year_max_column(df_r, 2020:2015)
             
             df_r <- df_r %>% dplyr::rename(
-              # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
               !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
               `Region` := `year_pop`
             ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"))
@@ -463,17 +425,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             df_i <- df_i %>% dplyr::select(-`IncomeGroup`)
             
-            year_find_max_vector <- as.character(c(2020:2015))
-            for (i in 1:length(year_find_max_vector)) {
-              if((names(df_i)[stringr::str_detect(names(df_i), pattern = year_find_max_vector[i])] %>% length()) > 0) {
-                if((names(df_i)[stringr::str_detect(names(df_i), pattern = year_find_max_vector[i])] %>% length()) == 1) {
-                  yr_max_column <- year_find_max_vector[i]
-                } else {
-                  yr_max_column <- as.character(stringr::str_glue("{year_find_max_vector[i]}.y"))
-                }
-                break
-              }
-            }
+            yr_max_column <- year_max_column(df_i, 2020:2015)
             
             df_i <- df_i %>% dplyr::rename(
               # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
@@ -769,29 +721,14 @@ mod_infrasap_tab_module_server <- function(id){
           } else {
             
             if(length(input$db_benchmark) == 0 & is.null(input$db_benchmark)) {
-
-              
               yr <- as.character(get_last_year(cn, sc))
-              # yr <- as.character(get_last_year("Kenya", "Energy", "Region"))
-              # bm <- NULL
-              # cn <- "Kenya"
-              # sc <- "Energy"
-              # pi <- "Finance"
-              # pi <- "Connectivity"
-              
-              
               
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
-                # dplyr::filter(`Country Name` == "Kenya") %>%
                 dplyr::filter(`Country Name` == cn) %>%
                 dplyr::filter(`Indicator Sector` %in% sc) %>%
-                # dplyr::filter(`Indicator Sector` %in% "Energy") %>%
                 dplyr::filter(`Indicator Pillar` == pi) %>%
-                # dplyr::filter(`Indicator Pillar` == "Finance") %>%
                 dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr )
-              
-              
               
               available_years <- c()
               if(as.numeric(yr) == 2015) {
@@ -858,20 +795,8 @@ mod_infrasap_tab_module_server <- function(id){
               # df <- df %>% dplyr::select(-bm)
               
               # Find the column where the latest year value saved 
-              year_find_max_vector <- as.character(c(2020:2015))
-              for (i in 1:length(year_find_max_vector)) {
-                if((names(df)[stringr::str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) > 0) {
-                  if((names(df)[stringr::str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) == 1) {
-                    yr_max_column <- year_find_max_vector[i]
-                  } else {
-                    yr_max_column <- as.character(stringr::str_glue("{year_find_max_vector[i]}.y"))
-                  }
-                  break
-                }
-              }
-              
-              
-              
+              yr_max_column <- year_max_column(df, 2020:2015)
+
               df <- df %>% dplyr::rename(
                 # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
                 !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
@@ -1262,20 +1187,8 @@ mod_infrasap_tab_module_server <- function(id){
               df <- df %>% dplyr::select(-bm)
               
               # Find the column where the latest year value saved 
-              year_find_max_vector <- as.character(c(2020:2015))
-              for (i in 1:length(year_find_max_vector)) {
-                if((names(df)[stringr::str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) > 0) {
-                  if((names(df)[stringr::str_detect(names(df), pattern = year_find_max_vector[i])] %>% length()) == 1) {
-                    yr_max_column <- year_find_max_vector[i]
-                  } else {
-                    yr_max_column <- as.character(stringr::str_glue("{year_find_max_vector[i]}.y"))
-                  }
-                  break
-                }
-              }
-              
-              
-              
+              yr_max_column <- year_max_column(df, 2020:2015)
+
               df <- df %>% dplyr::rename(
                 # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
                 !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
@@ -1935,13 +1848,6 @@ mod_infrasap_tab_module_server <- function(id){
           } else {
             
             if(length(input$db_benchmark) == 0 & is.null(input$db_benchmark)) {
-              
-              # cn <- "Kenya"
-              # sc <- "Energy"
-              # # pi <- "Finance"
-              # pi <- "Connectivity"
-              # yr <- "2019"
-              
               
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%

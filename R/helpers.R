@@ -63,4 +63,27 @@ country_to_compare_list <- function(dat, sc, pl) {
     dplyr::pull()
 }
 
+data_for_df_r <- function(dat, cn, sc, pl, yr) {
+  dat %>%
+    dplyr::filter(`Country Name` == cn, `Indicator Sector` %in% sc, `Indicator Pillar` == pl) %>%
+    dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr, `Region`) %>%
+    dplyr::mutate(year_pop = dplyr::if_else(!is.na(!!col_sym_conv(yr)), as.numeric(yr), !!col_sym_conv(yr)))
+}
+
+year_max_column <- function(dat, year_vec) {
+  cols <- names(dat)
+  for (i in seq_along(year_vec)) {
+    cn <- sum(grepl(year_vec[i], cols))
+    if(cn > 0) {
+      if(cn == 1) {
+        yr_max_column <- year_vec[i]
+      } else {
+        yr_max_column <- as.character(stringr::str_glue("{year_vec[i]}.y"))
+      }
+      break
+    }
+  }
+  return(yr_max_column)
+}
+
 

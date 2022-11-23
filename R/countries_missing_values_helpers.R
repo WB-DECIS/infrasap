@@ -3,7 +3,7 @@ library(rlang)
 library(dplyr)
 library(stringr)
 
-# Helper: convert string to symbol (to asign variable name via parameter)
+# Helper: convert string to symbol (to assign variable name via parameter)
 col_sym_conv <- function(x) {
   rlang::sym(x)
 }
