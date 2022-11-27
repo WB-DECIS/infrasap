@@ -196,9 +196,12 @@ mod_infrasap_tab_module_server <- function(id){
     
     # Update country to compare field data according to selections in the fields
     shiny::observeEvent(input$db_country,{
+      unq_countries <- unique(infrasap::dat$`Country Name`)
+      unq_countries <- unq_countries[unq_countries != input$db_country]
+      
       shiny::updateSelectizeInput(session,
                                  "country_to_compare_id",
-                                 choices = sort(unique(infrasap::dat$`Country Name`))[sort(unique(infrasap::dat$`Country Name`)) != input$db_country],
+                                 choices = unq_countries,
                                  # selected = countriesOptionsInput()
                                  selected = selected_vals$db_countries_name
       )
@@ -206,12 +209,11 @@ mod_infrasap_tab_module_server <- function(id){
       if(input$db_country %in% input$country_to_compare_id) {
         shiny::updateSelectizeInput(session,
                                    "country_to_compare_id",
-                                   choices = sort(unique(infrasap::dat$`Country Name`))[sort(unique(infrasap::dat$`Country Name`)) != input$db_country],
+                                   choices = unq_countries,
                                    # selected = countriesOptionsInput()
                                    selected = selected_vals$db_countries_name[selected_vals$db_countries_name != input$db_country]
         )
       }
-      
     })
     
     # reactive data frame to prepare data for tables
@@ -306,28 +308,7 @@ mod_infrasap_tab_module_server <- function(id){
             df_r$`Type of Benchmark`[is.na(df_r$`Type of Benchmark`)] <- 'Upper'
             df_r$`Type of Benchmark`[df_r$`Type of Benchmark` =='Ambiguous'] <- 'Upper'
             
-            
-            
-            df_r <- df_r %>%
-              dplyr::mutate(value_r = dplyr::case_when(
-                (df_r %>% dplyr::select(dplyr::contains(cn))) >= Region & (`Type of Benchmark` == "Upper") ~ "3",
-                ((df_r %>% dplyr::select(dplyr::contains(cn))) >= (Region * 0.9) & (df_r %>% dplyr::select(dplyr::contains(cn))) < Region) & (`Type of Benchmark` == "Upper") ~ "2",
-                (df_r %>% dplyr::select(dplyr::contains(cn))) < (Region * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                (df_r %>% dplyr::select(dplyr::contains(cn))) <= Region & (`Type of Benchmark` == "Lower") ~ "3",
-                ((df_r %>% dplyr::select(dplyr::contains(cn))) <= (Region * 1.1) & (df_r %>% dplyr::select(dplyr::contains(cn))) > Region) & (`Type of Benchmark` == "Lower") ~ "2",
-                (df_r %>% dplyr::select(dplyr::contains(cn))) > (Region * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                TRUE ~ "0"
-              )
-              ) %>% 
-              # Fill NAs with grey color
-              dplyr::mutate(value_r = dplyr::case_when(
-                is.na(df_r %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                TRUE ~ value_r
-              )) %>%
-              dplyr::mutate(value_r = value_r %>% as.numeric())
-            
-            
-            
+            df_r <- case_when_for_value_setting(df_r, cn, Region, value_r)
             
             # make table with all combinations of pillar, sub-pillar, and topic
             df_large <- infrasap_dat_mod_modified %>%
@@ -446,26 +427,8 @@ mod_infrasap_tab_module_server <- function(id){
             df_i$`Type of Benchmark`[is.na(df_i$`Type of Benchmark`)] <- 'Upper'
             df_i$`Type of Benchmark`[df_i$`Type of Benchmark` =='Ambiguous'] <- 'Upper'
             
-            df_i <- df_i %>%
-              dplyr::mutate(value_i = dplyr::case_when(
-                (df_i %>% dplyr::select(dplyr::contains(cn))) >= IncomeGroup & (`Type of Benchmark` == "Upper") ~ "3",
-                ((df_i %>% dplyr::select(dplyr::contains(cn))) >= (IncomeGroup * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < IncomeGroup) & (`Type of Benchmark` == "Upper") ~ "2",
-                (df_i %>% dplyr::select(dplyr::contains(cn))) < (IncomeGroup * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                (df_i %>% dplyr::select(dplyr::contains(cn))) <= IncomeGroup & (`Type of Benchmark` == "Lower") ~ "3",
-                ((df_i %>% dplyr::select(dplyr::contains(cn))) <= (IncomeGroup * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > IncomeGroup) & (`Type of Benchmark` == "Lower") ~ "2",
-                (df_i %>% dplyr::select(dplyr::contains(cn))) > (IncomeGroup * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                TRUE ~ "0"
-              )
-              ) %>% 
-              # Fill NAs with grey color
-              dplyr::mutate(value_i = dplyr::case_when(
-                is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                TRUE ~ value_i
-              )) %>%
-              dplyr::mutate(value_i = value_i %>% as.numeric())
-            
-            
-            
+            df_i <- case_when_for_value_setting(df_i, cn, IncomeGroup, value_i)
+
             if(!is.null(input$country_to_compare_id)){
               
               
@@ -502,143 +465,27 @@ mod_infrasap_tab_module_server <- function(id){
                 ) %>% dplyr::distinct()
               }
               
-              
               df_i <- df_i %>%
                 dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
-              
-              
             }
-            
-            
-            
             # Country to compare equals 1
             if(length(input$country_to_compare_id) == 1){
               cn1 <- input$country_to_compare_id
-              df_i <- df_i %>%
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c1
-                )) %>%
-                dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-              
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn1, value_c1)
             }
             
             if(length(input$country_to_compare_id) == 2){
               cn2 <- input$country_to_compare_id
-              df_i <- df_i %>%
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn2[1])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn2[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn2[1])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn2[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c1
-                )) %>%
-                dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-              
-              df_i <- df_i %>%
-                dplyr::mutate(value_c2 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn2[2])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn2[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn2[2])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn2[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c2 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c2
-                )) %>%
-                dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-              
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn2[1], value_c1)
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn2[2], value_c2)
             }
-            
-            
+
             if(length(input$country_to_compare_id) == 3){
               cn3 <- input$country_to_compare_id
-              df_i <- df_i %>%
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn3[1])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn3[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn3[1])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn3[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c1
-                )) %>%
-                dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-              
-              df_i <- df_i %>%
-                dplyr::mutate(value_c2 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn3[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn3[2])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn3[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn3[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn3[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn3[2])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn3[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn3[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c2 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c2
-                )) %>%
-                dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-              
-              df_i <- df_i %>%
-                dplyr::mutate(value_c3 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn3[3])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn3[3])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn3[3]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn3[3])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn3[3])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn3[3])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn3[3]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn3[3])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c3 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c3
-                )) %>%
-                dplyr::mutate(value_c3 = value_c3 %>% as.numeric())
-              
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn3[1], value_c1)
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn3[2], value_c2)
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn3[3], value_c3)
             }
-            
-            
-            
             # join data
             df_i <- dplyr::left_join(df_large, df_i)
             
@@ -648,8 +495,7 @@ mod_infrasap_tab_module_server <- function(id){
                 `Sub-Pillar` = `Indicator Sub-Pillar`,
                 `Topic`= `Indicator Topic`
               )
-            
-            
+
             if(length(input$country_to_compare_id) == 1) {
               # subset data by the columns used in the table
               df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i, input$country_to_compare_id[1], value_c1)
@@ -672,18 +518,14 @@ mod_infrasap_tab_module_server <- function(id){
               }
             }
             
-            
-            
             # round numbers
             df_i[[cn]] <- round(df_i[[cn]], 2)
             df_i[['IncomeGroup']] <- round(df_i[['IncomeGroup']], 2)
-            
-            
+
             df <- dplyr::full_join(df_r, df_i) 
             
             df <- df %>% dplyr::mutate(year_tooltip_b = year_tooltip) %>% dplyr::select(-year_tooltip) %>% dplyr::rename(year_tooltip = year_tooltip_b)
-            
-            
+
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Governance')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__governance)
             }
@@ -696,17 +538,14 @@ mod_infrasap_tab_module_server <- function(id){
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
             }
             
-            
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
             }
-            
-            
+
             if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Connectivity')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
             }
-            
-            
+
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
             }
@@ -716,8 +555,7 @@ mod_infrasap_tab_module_server <- function(id){
             }
             
             return(df)
- 
-            
+
           } else {
             
             if(length(input$db_benchmark) == 0 & is.null(input$db_benchmark)) {
@@ -738,8 +576,7 @@ mod_infrasap_tab_module_server <- function(id){
               }
               
               range <- as.character(range)
-              
-              
+
               df <- df %>%
                 dplyr::mutate(
                   year_pop = dplyr::if_else(!is.na(!!col_sym_conv(yr)), as.numeric(yr), !!col_sym_conv(yr))
@@ -754,10 +591,6 @@ mod_infrasap_tab_module_server <- function(id){
                                                     pillar = pi)
               })[[length(range)]]
               
-              # df <- a
-              
-              # df <- df %>% dplyr::mutate(year_tooltip = year_pop)
-              
               # Years to delete
               available_years <- as.character(
                 as.numeric(range)[!(as.numeric(range) %in% unique(df$year_pop))]
@@ -770,48 +603,18 @@ mod_infrasap_tab_module_server <- function(id){
 
               df_years_col <- df %>% dplyr::select(`Indicator Name`, `year_pop`)
               
-              # get benchmark type for benchmark selected
-              # bm_type <- unique(df[, bm])
-              
-              # get benchmark data based on inputs
-              # df <- infrsap_dat_bm_mod_modfied %>%
-              #   dplyr::filter(Grouping == bm_type) %>%
-              #   dplyr::filter(`Sector` %in% sc) %>%
-              #   dplyr::select(`Indicator`, available_years_in_use) %>%
-              #   dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
-              
-              
-              
               df <- df %>% dplyr::select(-available_years)
-              
-              
-              
-              # purrr::map(1:length(available_years_in_use), function(b){
-              #   df <<- df %>%
-              #     dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), year_pop)
-              #     )
-              # })[length(available_years_in_use)]
-              
-              # df <- df %>% dplyr::select(-bm)
               
               # Find the column where the latest year value saved 
               yr_max_column <- year_max_column(df, 2020:2015)
 
               df <- df %>% dplyr::rename(
-                # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
                 !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
-                # ,
-                # !!col_sym_conv(bm) := `year_pop`
                 year_tooltip = `year_pop`
               ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"), -dplyr::contains(year_find_max_vector)) 
               
-              
-              # get names of the two columns to compare
-              # bm_col <- names(df)[grepl('.x', names(df), fixed = TRUE)]
               data_col <- names(df)[grepl('.y', names(df), fixed = TRUE)]
               
-              # rename columns in data
-              # names(df)[names(df)==bm_col] <- bm
               names(df)[names(df)==data_col] <- cn
               
               # for now (will get more data later), fill NA or ambigious in type of benchmark with Upper
@@ -857,165 +660,31 @@ mod_infrasap_tab_module_server <- function(id){
                   ) %>% dplyr::distinct()
                 }
                 
-                
-                
-                
                 df <- df %>%
                   dplyr::rename(
                     Indicator =`Indicator Name`
                   ) %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
-                
-                
               }
-              
-              # df <- df %>%
-              #   dplyr::mutate(value = dplyr::case_when(
-              #     # TRUE ~ "0",
-              #     (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Upper") ~ "3",
-              #     ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Upper") ~ "2",
-              #     (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-              #     
-              #     (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Lower") ~ "3",
-              #     ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Lower") ~ "2",
-              #     (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-              #     TRUE ~ "0"
-              #   )
-              #   ) %>% 
-              #   # Fill NAs with grey color
-              #   dplyr::mutate(value = dplyr::case_when(
-              #     is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-              #     TRUE ~ value
-              #   )) %>%
-              #   dplyr::mutate(value = value %>% as.numeric())
-               
-              
               
               # Country to compare equals 1 
               if(length(input$country_to_compare_id) == 1) {
                 cn1 <- input$country_to_compare_id
-                # cn1 <- "Angola"
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn1, value_c1)
               }
               
               if(length(input$country_to_compare_id) == 2){
                 cn2 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn2[1])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn2[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn2[1])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn2[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
-                df <- df %>%
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn2[2])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn2[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn2[2])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn2[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c2
-                  )) %>%
-                  dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn2[1], value_c1)
+                df <- case_when_for_value_setting_chr(df, cn, cn2[2], value_c2)
               }
-              
-              
+
               if(length(input$country_to_compare_id) == 3){
                 cn3 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn3[1])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn3[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn3[1])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn3[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
-                
-                df <- df %>%
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn3[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn3[2])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn3[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn3[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn3[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn3[2])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn3[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn3[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c2
-                  )) %>%
-                  dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-                
-                df <- df %>%
-                  dplyr::mutate(value_c3 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn3[3])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn3[3])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn3[3]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn3[3])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn3[3])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn3[3])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn3[3]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn3[3])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c3 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c3
-                  )) %>%
-                  dplyr::mutate(value_c3 = value_c3 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn3[1], value_c1)
+                df <- case_when_for_value_setting_chr(df, cn, cn3[2], value_c2)
+                df <- case_when_for_value_setting_chr(df, cn, cn3[3], value_c3)
               }
-              
-              
               
               # make table with all combinations of pillar, sub-pillar, and topic
               df_large <- infrasap_dat_mod_modified %>%
@@ -1027,8 +696,6 @@ mod_infrasap_tab_module_server <- function(id){
               
               # # join data
               df <- dplyr::left_join(df_large, df)
-              
-              
               
               #Rename columns
               df <- df %>%
@@ -1054,19 +721,13 @@ mod_infrasap_tab_module_server <- function(id){
                     df[[input$country_to_compare_id[3]]] <- round(df[[input$country_to_compare_id[3]]], 2)
                   } else {
                     # subset data by the columns used in the table
-                    
-                    
                     df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, year_tooltip, cn)
-                    
-                    
                   }
                 }
               }
-              
-              
+
               # round numbers
               df[[cn]] <- round(df[[cn]], 2)
-              # df[[bm]] <- round(df[[bm]], 2)
               
               if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Governance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__governance)
@@ -1080,7 +741,6 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
               }
               
-              
               if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
               }
@@ -1089,7 +749,6 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
               }
               
-              
               if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
               }
@@ -1097,20 +756,10 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
-              print(df)
-              
               return(df)
-              
             } else {
               
               yr <- as.character(get_last_year(cn, sc, bm))
-              # yr <- as.character(get_last_year("Kenya", "Energy", "Region"))
-              # bm <- "Region"
-              # cn <- "Kenya"
-              # sc <- "Energy"
-              # # pi <- "Finance"
-              # pi <- "Connectivity"
-              
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
                 # dplyr::filter(`Country Name` == "Kenya") %>%
@@ -1121,8 +770,6 @@ mod_infrasap_tab_module_server <- function(id){
                 # dplyr::filter(`Indicator Pillar` == "Finance") %>%
                 dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`,yr, bm )
               
-              
-              
               available_years <- c()
               if(as.numeric(yr) == 2015) {
                 range <- c(as.numeric(2015))
@@ -1131,7 +778,6 @@ mod_infrasap_tab_module_server <- function(id){
               }
               
               range <- as.character(range)
-              
               
               df <- df %>%
                 dplyr::mutate(
@@ -1146,9 +792,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                     sector = sc,
                                                     pillar = pi)
               })[[length(range)]]
-              
-              # df <- a
-              
+
               df <- df %>% dplyr::mutate(year_tooltip = year_pop)
               
               # Years to delete
@@ -1172,12 +816,9 @@ mod_infrasap_tab_module_server <- function(id){
                 dplyr::filter(`Sector` %in% sc) %>%
                 dplyr::select(`Indicator`, available_years_in_use) %>%
                 dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
-              
-              
-              
+
               df <- df %>% dplyr::select(-available_years)
-              
-              
+
               purrr::map(1:length(available_years_in_use), function(b){
                 df <<- df %>%
                   dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), year_pop)
@@ -1195,8 +836,6 @@ mod_infrasap_tab_module_server <- function(id){
                 !!col_sym_conv(bm) := `year_pop`
               ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y")) 
               
-              
-              
               # get names of the two columns to compare
               bm_col <- names(df)[grepl('.x', names(df), fixed = TRUE)]
               data_col <- names(df)[grepl('.y', names(df), fixed = TRUE)]
@@ -1211,8 +850,6 @@ mod_infrasap_tab_module_server <- function(id){
               
               # Countries list to compare
               if(!is.null(input$country_to_compare_id)){
-                
-                
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
                   dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
@@ -1220,8 +857,7 @@ mod_infrasap_tab_module_server <- function(id){
                   dplyr::filter(`Indicator Pillar` == pi) %>%
                   dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
                   dplyr::select(-c(`Country Name`, available_years_in_use))
-                
-                
+
                 if(length(input$country_to_compare_id) == 1) {
                   df_cn <- df_cn %>% dplyr::full_join(
                     country_to_compare(input$country_to_compare_id[1], sc, pi, available_years_in_use, df_years_col)
@@ -1246,162 +882,29 @@ mod_infrasap_tab_module_server <- function(id){
                   ) %>% dplyr::distinct()
                 }
                 
-                
-                
-                
                 df <- df %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
-                
-                
               }
-              
-              df <- df %>%
-                dplyr::mutate(value = dplyr::case_when(
-                  # TRUE ~ "0",
-                  (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  
-                  (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>% 
-                # Fill NAs with grey color
-                dplyr::mutate(value = dplyr::case_when(
-                  is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value
-                )) %>%
-                dplyr::mutate(value = value %>% as.numeric())
-              
-              
-              
+              df <- case_when_for_value_setting_chr(df, cn, bm, value)
               
               # Country to compare equals 1 
               if(length(input$country_to_compare_id) == 1){
                 cn1 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn1, value_c1)
               }
               
               if(length(input$country_to_compare_id) == 2){
                 cn2 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn2[1])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn2[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn2[1])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn2[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
-                df <- df %>%
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn2[2])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn2[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn2[2])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn2[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c2
-                  )) %>%
-                  dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn2[1], value_c1)
+                df <- case_when_for_value_setting_chr(df, cn, cn2[2], value_c2)
               }
-              
               
               if(length(input$country_to_compare_id) == 3){
                 cn3 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn3[1])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn3[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn3[1])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn3[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
-                
-                df <- df %>%
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn3[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn3[2])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn3[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn3[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn3[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn3[2])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn3[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn3[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c2
-                  )) %>%
-                  dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-                
-                df <- df %>%
-                  dplyr::mutate(value_c3 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn3[3])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn3[3])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn3[3]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn3[3])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn3[3])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn3[3])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn3[3]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn3[3])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c3 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c3
-                  )) %>%
-                  dplyr::mutate(value_c3 = value_c3 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn3[1], value_c1)
+                df <- case_when_for_value_setting_chr(df, cn, cn3[2], value_c2)
+                df <- case_when_for_value_setting_chr(df, cn, cn3[3], value_c3)
               }
-              
-              
               
               # make table with all combinations of pillar, sub-pillar, and topic
               df_large <- infrasap_dat_mod_modified %>%
@@ -1413,9 +916,6 @@ mod_infrasap_tab_module_server <- function(id){
               
               # # join data
               df <- dplyr::left_join(df_large, df)
-              
-              
-              
               #Rename columns
               df <- df %>%
                 dplyr::rename(
@@ -1440,16 +940,11 @@ mod_infrasap_tab_module_server <- function(id){
                     df[[input$country_to_compare_id[3]]] <- round(df[[input$country_to_compare_id[3]]], 2)
                   } else {
                     # subset data by the columns used in the table
-                    
-                    
                     df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, year_tooltip, cn, bm, value)
-                    
-                    
                   }
                 }
               }
-              
-              
+
               # round numbers
               df[[cn]] <- round(df[[cn]], 2)
               df[[bm]] <- round(df[[bm]], 2)
@@ -1475,7 +970,6 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
               }
               
-              
               if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
               }
@@ -1483,18 +977,11 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
-
               return(df)
-              
             }
-            
-            
-            
           }
-          
         } else {
           # If not latest year selected
-          
           if(length(input$db_benchmark) == 2 & !is.null(input$db_benchmark)) {
             # get infrasap data based on inputs to get the benchmark type and join
             df_r <- infrasap_dat_mod_modified %>%
@@ -1528,24 +1015,7 @@ mod_infrasap_tab_module_server <- function(id){
             df_r$`Type of Benchmark`[is.na(df_r$`Type of Benchmark`)] <- 'Upper'
             df_r$`Type of Benchmark`[df_r$`Type of Benchmark` =='Ambiguous'] <- 'Upper'
             
-            df_r <- df_r %>%
-              dplyr::mutate(value_r = dplyr::case_when(
-                # TRUE ~ "0",
-                (df_r %>% dplyr::select(dplyr::contains(cn))) >= Region & (`Type of Benchmark` == "Upper") ~ "3",
-                ((df_r %>% dplyr::select(dplyr::contains(cn))) >= (Region * 0.9) & (df_r %>% dplyr::select(dplyr::contains(cn))) < Region) & (`Type of Benchmark` == "Upper") ~ "2",
-                (df_r %>% dplyr::select(dplyr::contains(cn))) < (Region * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                (df_r %>% dplyr::select(dplyr::contains(cn))) <= Region & (`Type of Benchmark` == "Lower") ~ "3",
-                ((df_r %>% dplyr::select(dplyr::contains(cn))) <= (Region * 1.1) & (df_r %>% dplyr::select(dplyr::contains(cn))) > Region) & (`Type of Benchmark` == "Lower") ~ "2",
-                (df_r %>% dplyr::select(dplyr::contains(cn))) > (Region * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                TRUE ~ "0"
-              )
-              ) %>% 
-              # Fill NAs with grey color
-              dplyr::mutate(value_r = dplyr::case_when(
-                is.na(df_r %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                TRUE ~ value_r
-              )) %>%
-              dplyr::mutate(value_r = value_r %>% as.numeric())
+            df_r <- case_when_for_value_setting(df_r, cn, Region, value_r)
             
             # make table with all combinations of pillar, sub-pillar, and topic
             df_large <- infrasap_dat_mod_modified %>%
@@ -1564,16 +1034,12 @@ mod_infrasap_tab_module_server <- function(id){
                 `Sub-Pillar` = `Indicator Sub-Pillar`,
                 `Topic`= `Indicator Topic`
               )
-            
-            
             # subset data by the columns used in the table
             df_r <- df_r %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `Region`, value_r)
             
             # round numbers
             df_r[[cn]] <- round(df_r[[cn]], 2)
             df_r[['Region']] <- round(df_r[['Region']], 2)
-            
-            
             
             # get infrasap data based on inputs to get the benchmark type and join
             df_i <- infrasap_dat_mod_modified %>%
@@ -1605,24 +1071,7 @@ mod_infrasap_tab_module_server <- function(id){
             df_i$`Type of Benchmark`[is.na(df_i$`Type of Benchmark`)] <- 'Upper'
             df_i$`Type of Benchmark`[df_i$`Type of Benchmark` =='Ambiguous'] <- 'Upper'
             
-            df_i <- df_i %>%
-              dplyr::mutate(value_i = dplyr::case_when(
-                (df_i %>% dplyr::select(dplyr::contains(cn))) >= IncomeGroup & (`Type of Benchmark` == "Upper") ~ "3",
-                ((df_i %>% dplyr::select(dplyr::contains(cn))) >= (IncomeGroup * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < IncomeGroup) & (`Type of Benchmark` == "Upper") ~ "2",
-                (df_i %>% dplyr::select(dplyr::contains(cn))) < (IncomeGroup * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                (df_i %>% dplyr::select(dplyr::contains(cn))) <= IncomeGroup & (`Type of Benchmark` == "Lower") ~ "3",
-                ((df_i %>% dplyr::select(dplyr::contains(cn))) <= (IncomeGroup * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > IncomeGroup) & (`Type of Benchmark` == "Lower") ~ "2",
-                (df_i %>% dplyr::select(dplyr::contains(cn))) > (IncomeGroup * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                TRUE ~ "0"
-              )
-              ) %>% 
-              # Fill NAs with grey color
-              dplyr::mutate(value_i = dplyr::case_when(
-                is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                TRUE ~ value_i
-              )) %>%
-              dplyr::mutate(value_i = value_i %>% as.numeric())
-            
+            df_i <- case_when_for_value_setting(df_i, cn, IncomeGroup, value_i)
             
             if(!is.null(input$country_to_compare_id)){
               
@@ -1636,141 +1085,27 @@ mod_infrasap_tab_module_server <- function(id){
                   names_from = `Country Name`,
                   values_from = yr
                 )
-              
-   
               df_i <- df_i %>%
                 dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
-              
-              
             }
-            
-            
-            
             # Country to compare equals 1
             if(length(input$country_to_compare_id) == 1){
               cn1 <- input$country_to_compare_id
-              df_i <- df_i %>%
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c1
-                )) %>%
-                dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-              
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn1, value_c1)
             }
             
             if(length(input$country_to_compare_id) == 2){
               cn2 <- input$country_to_compare_id
-              df_i <- df_i %>%
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn2[1])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn2[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn2[1])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn2[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c1
-                )) %>%
-                dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-              
-              df_i <- df_i %>%
-                dplyr::mutate(value_c2 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn2[2])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn2[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn2[2])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn2[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c2 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c2
-                )) %>%
-                dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-              
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn2[1], value_c1)
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn2[2], value_c2)
             }
-            
             
             if(length(input$country_to_compare_id) == 3){
               cn3 <- input$country_to_compare_id
-              df_i <- df_i %>%
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn3[1])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn3[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn3[1])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn3[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c1 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c1
-                )) %>%
-                dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-              
-              df_i <- df_i %>%
-                dplyr::mutate(value_c2 = dplyr::case_when(
-                  # TRUE ~ "0",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn3[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn3[2])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn3[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn3[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn3[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn3[2])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn3[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn3[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c2 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c2
-                )) %>%
-                dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-              
-              df_i <- df_i %>%
-                dplyr::mutate(value_c3 = dplyr::case_when(
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) >= (df_i %>% dplyr::select(cn3[3])) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) >= ((df_i %>% dplyr::select(cn3[3])) * 0.9) & (df_i %>% dplyr::select(dplyr::contains(cn))) < (df_i %>% dplyr::select(cn3[3]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) < ((df_i %>% dplyr::select(cn3[3])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) <= (df_i %>% dplyr::select(cn3[3])) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df_i %>% dplyr::select(dplyr::contains(cn))) <= ((df_i %>% dplyr::select(cn3[3])) * 1.1) & (df_i %>% dplyr::select(dplyr::contains(cn))) > (df_i %>% dplyr::select(cn3[3]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df_i %>% dplyr::select(dplyr::contains(cn))) > ((df_i %>% dplyr::select(cn3[3])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>%
-                # Fill NAs with grey color
-                dplyr::mutate(value_c3 = dplyr::case_when(
-                  is.na(df_i %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value_c3
-                )) %>%
-                dplyr::mutate(value_c3 = value_c3 %>% as.numeric())
-
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn3[1], value_c1)
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn3[2], value_c2)
+              df_i <- case_when_for_value_setting_chr(df_i, cn, cn3[3], value_c3)
             }
-            
-            
-            
             # join data
             df_i <- dplyr::left_join(df_large, df_i)
             
@@ -1780,7 +1115,6 @@ mod_infrasap_tab_module_server <- function(id){
                 `Sub-Pillar` = `Indicator Sub-Pillar`,
                 `Topic`= `Indicator Topic`
               )
-            
             
             if(length(input$country_to_compare_id) == 1) {
               # subset data by the columns used in the table
@@ -1803,13 +1137,9 @@ mod_infrasap_tab_module_server <- function(id){
                 }
               }
             }
-            
-            
-            
             # round numbers
             df_i[[cn]] <- round(df_i[[cn]], 2)
             df_i[['IncomeGroup']] <- round(df_i[['IncomeGroup']], 2)
-            
             
             df <- dplyr::full_join(df_r, df_i)
             
@@ -1856,25 +1186,6 @@ mod_infrasap_tab_module_server <- function(id){
                 dplyr::filter(`Indicator Pillar` == pi) %>%
                 dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`,yr)
               
-              
-              # get benchmark type for benchmark selected
-              # bm_type <- unique(df[, bm])
-              
-              # get benchmark data based on inputs
-              # df <- infrsap_dat_bm_mod_modfied %>%
-              #   # dplyr::filter(Grouping == bm_type) %>%
-              #   dplyr::filter(`Sector` %in% sc) %>%
-              #   dplyr::select(`Indicator`,yr) %>%
-              #   dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
-              
-              # df <- df %>% dplyr::select(-bm)
-              
-              # get names of the two columns to compare
-              # bm_col <- names(df)[grepl('.x', names(df), fixed = TRUE)]
-              # data_col <- names(df)[grepl('.y', names(df), fixed = TRUE)]
-              
-              # rename columns in data
-              # names(df)[names(df)==bm_col] <- bm
               names(df)[names(df)==yr] <- cn
               
               # for now (will get more data later), fill NA or ambigious in type of benchmark with Upper
@@ -1902,157 +1213,25 @@ mod_infrasap_tab_module_server <- function(id){
                     `Indicator` = `Indicator Name`
                   ) %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
-                
-                
               }
-              
-              # df <- df %>%
-              #   dplyr::mutate(value = dplyr::case_when(
-              #     (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Upper") ~ "3",
-              #     ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Upper") ~ "2",
-              #     (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-              #     (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Lower") ~ "3",
-              #     ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Lower") ~ "2",
-              #     (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-              #     TRUE ~ "0"
-              #   )
-              #   ) %>% 
-              #   # Fill NAs with grey color
-              #   dplyr::mutate(value = dplyr::case_when(
-              #     is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-              #     TRUE ~ value
-              #   )) %>%
-              #   dplyr::mutate(value = value %>% as.numeric())
-              
-              
               # Country to compare equals 1 
               if(length(input$country_to_compare_id) == 1){
-                # cn1 <- "Angola"
                 cn1 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn1, value_c1)
               }
               
               if(length(input$country_to_compare_id) == 2){
                 cn2 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn2[1])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn2[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn2[1])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn2[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
-                df <- df %>%
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn2[2])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn2[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn2[2])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn2[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c2
-                  )) %>%
-                  dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-                
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn2[1], value_c1)
+                df <- case_when_for_value_setting_chr(df, cn, cn2[2], value_c2)
               }
-              
               
               if(length(input$country_to_compare_id) == 3){
                 cn3 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn3[1])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn3[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn3[1])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn3[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
-                
-                
-                df <- df %>%
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(cn3[2]))) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(cn3[2]))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(cn3[2])))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(cn3[2]))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(cn3[2]))) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(cn3[2]))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(cn3[2])))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(cn3[2]))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c2
-                  )) %>%
-                  dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-                
-                df <- df %>%
-                  dplyr::mutate(value_c3 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(cn3[3]))) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(cn3[3]))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(cn3[3])))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(cn3[3]))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(cn3[3]))) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(cn3[3]))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(cn3[3])))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(cn3[3]))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c3 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c3
-                  )) %>%
-                  dplyr::mutate(value_c3 = value_c3 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn3[1], value_c1)
+                df <- case_when_for_value_setting_chr(df, cn, cn3[2], value_c2)
+                df <- case_when_for_value_setting_chr(df, cn, cn3[3], value_c3)
               }
-              
-              
-              
               # make table with all combinations of pillar, sub-pillar, and topic
               df_large <- infrasap_dat_mod_modified %>%
                 dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -2111,7 +1290,6 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
               }
               
-              
               if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
               }
@@ -2120,7 +1298,6 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
               }
               
-              
               if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
               }
@@ -2128,19 +1305,14 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
-              # print(df)
-              
               return(df)
-              
             } else {
-              
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
                 dplyr::filter(`Country Name` == cn) %>%
                 dplyr::filter(`Indicator Sector` %in% sc) %>%
                 dplyr::filter(`Indicator Pillar` == pi) %>%
                 dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`,yr, bm )
-              
               
               # get benchmark type for benchmark selected
               bm_type <- unique(df[, bm])
@@ -2186,153 +1358,26 @@ mod_infrasap_tab_module_server <- function(id){
                 
                 
               }
-              
-              df <- df %>%
-                dplyr::mutate(value = dplyr::case_when(
-                  (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Upper") ~ "3",
-                  ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Upper") ~ "2",
-                  (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(bm))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                  (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(bm))) & (`Type of Benchmark` == "Lower") ~ "3",
-                  ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(bm)))) & (`Type of Benchmark` == "Lower") ~ "2",
-                  (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(bm))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                  TRUE ~ "0"
-                )
-                ) %>% 
-                # Fill NAs with grey color
-                dplyr::mutate(value = dplyr::case_when(
-                  is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                  TRUE ~ value
-                )) %>%
-                dplyr::mutate(value = value %>% as.numeric())
-              
+              df <- case_when_for_value_setting_chr(df, cn, bm, value)
               
               # Country to compare equals 1 
               if(length(input$country_to_compare_id) == 1){
                 cn1 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(cn1))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(cn1))) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(cn1)))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(cn1))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn1, value_c1)
               }
               
               if(length(input$country_to_compare_id) == 2){
                 cn2 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn2[1])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn2[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn2[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn2[1])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn2[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn2[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
-                df <- df %>%
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn2[2])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn2[2])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn2[2])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn2[2])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn2[2]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn2[2])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c2
-                  )) %>%
-                  dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-                
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn2[1], value_c1)
+                df <- case_when_for_value_setting_chr(df, cn, cn2[2], value_c2)
               }
-              
               
               if(length(input$country_to_compare_id) == 3){
                 cn3 <- input$country_to_compare_id
-                df <- df %>%
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(cn3[1])) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(cn3[1])) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(cn3[1])) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(cn3[1])) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(cn3[1]))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(cn3[1])) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c1 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c1
-                  )) %>%
-                  dplyr::mutate(value_c1 = value_c1 %>% as.numeric())
-                
-                
-                
-                df <- df %>%
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(cn3[2]))) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(cn3[2]))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(cn3[2])))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(cn3[2]))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(cn3[2]))) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(cn3[2]))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(cn3[2])))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(cn3[2]))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c2 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c2
-                  )) %>%
-                  dplyr::mutate(value_c2 = value_c2 %>% as.numeric())
-                
-                df <- df %>%
-                  dplyr::mutate(value_c3 = dplyr::case_when(
-                    (df %>% dplyr::select(dplyr::contains(cn))) >= (df %>% dplyr::select(dplyr::contains(cn3[3]))) & (`Type of Benchmark` == "Upper") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) >= ((df %>% dplyr::select(dplyr::contains(cn3[3]))) * 0.9) & (df %>% dplyr::select(dplyr::contains(cn))) < (df %>% dplyr::select(dplyr::contains(cn3[3])))) & (`Type of Benchmark` == "Upper") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) < ((df %>% dplyr::select(dplyr::contains(cn3[3]))) * 0.9) & (`Type of Benchmark` == "Upper") ~ "1",
-                    (df %>% dplyr::select(dplyr::contains(cn))) <= (df %>% dplyr::select(dplyr::contains(cn3[3]))) & (`Type of Benchmark` == "Lower") ~ "3",
-                    ((df %>% dplyr::select(dplyr::contains(cn))) <= ((df %>% dplyr::select(dplyr::contains(cn3[3]))) * 1.1) & (df %>% dplyr::select(dplyr::contains(cn))) > (df %>% dplyr::select(dplyr::contains(cn3[3])))) & (`Type of Benchmark` == "Lower") ~ "2",
-                    (df %>% dplyr::select(dplyr::contains(cn))) > ((df %>% dplyr::select(dplyr::contains(cn3[3]))) * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
-                    TRUE ~ "0"
-                  )
-                  ) %>% 
-                  # Fill NAs with grey color
-                  dplyr::mutate(value_c3 = dplyr::case_when(
-                    is.na(df %>% dplyr::select(dplyr::contains(cn))) ~ "0",
-                    TRUE ~ value_c3
-                  )) %>%
-                  dplyr::mutate(value_c3 = value_c3 %>% as.numeric())
-                
+                df <- case_when_for_value_setting_chr(df, cn, cn3[1], value_c1)
+                df <- case_when_for_value_setting_chr(df, cn, cn3[2], value_c2)
+                df <- case_when_for_value_setting_chr(df, cn, cn3[3], value_c3)
               }
-              
-              
-              
               # make table with all combinations of pillar, sub-pillar, and topic
               df_large <- infrasap_dat_mod_modified %>%
                 dplyr::filter(`Indicator Pillar` == pi) %>%
@@ -2374,7 +1419,6 @@ mod_infrasap_tab_module_server <- function(id){
                 }
               }
               
-              
               # round numbers
               df[[cn]] <- round(df[[cn]], 2)
               df[[bm]] <- round(df[[bm]], 2)
@@ -2391,7 +1435,6 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
               }
               
-              
               if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
               }
@@ -2399,7 +1442,6 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Connectivity')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
               }
-              
               
               if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
@@ -2409,15 +1451,10 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
               return(df)
-              
             }
-            
           }
-          
         } # End else `if not latest year selected`
       } # end else `if is not null`
-      
-      
     })
     
     observe({
@@ -2438,19 +1475,13 @@ mod_infrasap_tab_module_server <- function(id){
       }
     })
     
-    
-    
     # Render the table with the traffic light
     output$db_table <- DT::renderDataTable({
       if(is.null(infrasap_table())){
         NULL
       } else {
-        
-        
         if(length(input$db_benchmark) == 2) {
-          
           if(length(input$country_to_compare_id) == 3){
-            
             if(input$db_year == "Latest year available"){
               dtable <- DT::datatable(infrasap_table(),
                                   extensions = 'Buttons',
@@ -2492,7 +1523,6 @@ mod_infrasap_tab_module_server <- function(id){
                                            exportOptions = list(columns = ":visible")
                                       )
                                     )
-                                    
                                   ),
                                   selection = 'none'
               )
@@ -2528,7 +1558,6 @@ mod_infrasap_tab_module_server <- function(id){
                 c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
               )
             ) 
-            
           } else {
             if(length(input$country_to_compare_id) == 2){
               if(input$db_year == "Latest year available"){
@@ -2553,7 +1582,6 @@ mod_infrasap_tab_module_server <- function(id){
                                              exportOptions = list(columns = ":visible")
                                         )
                                       )
-
                                     ),
                                     selection = 'none'
                 ) 
@@ -2573,7 +1601,6 @@ mod_infrasap_tab_module_server <- function(id){
                                              exportOptions = list(columns = ":visible")
                                         )
                                       )
-                                      
                                     ),
                                     selection = 'none'
                 ) 
@@ -2603,7 +1630,6 @@ mod_infrasap_tab_module_server <- function(id){
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                 )
               ) 
-              
             } else {
               if(length(input$country_to_compare_id) == 1){
                 if(input$db_year == "Latest year available"){
@@ -2628,7 +1654,6 @@ mod_infrasap_tab_module_server <- function(id){
                                                exportOptions = list(columns = ":visible")
                                           )
                                         )
-                                        
                                       ),
                                       selection = 'none'
                   ) 
@@ -2648,7 +1673,6 @@ mod_infrasap_tab_module_server <- function(id){
                                                exportOptions = list(columns = ":visible")
                                           )
                                         )
-                                        
                                       ),
                                       selection = 'none'
                   )
@@ -2673,7 +1697,6 @@ mod_infrasap_tab_module_server <- function(id){
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                   )
                 ) 
-                
               } else {
                 if(input$db_year == "Latest year available"){
                   dtable <- DT::datatable(infrasap_table(),
@@ -2954,9 +1977,6 @@ mod_infrasap_tab_module_server <- function(id){
                       c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                     )
                   )
-                  
-                  
-                  
                 } else {
                   
                   if(input$db_year == "Latest year available"){
@@ -2991,9 +2011,6 @@ mod_infrasap_tab_module_server <- function(id){
                         c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                       )
                     ) 
-                    
-                    
-                    
                   } else {
                     dtable <- DT::datatable(infrasap_table(),
                                             rownames = FALSE,
@@ -3026,9 +2043,7 @@ mod_infrasap_tab_module_server <- function(id){
                         c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                       )
                     ) 
-                    
                   }
-                  
                 }
               }
             }
@@ -3257,9 +2272,6 @@ mod_infrasap_tab_module_server <- function(id){
                       c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                     )
                   )
-                  
-                  
-                  
                 } else {
                   
                   if(input$db_year == "Latest year available"){
@@ -3294,9 +2306,6 @@ mod_infrasap_tab_module_server <- function(id){
                         c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                       )
                     ) 
-                    
-                    
-                    
                   } else {
                     dtable <- DT::datatable(infrasap_table(),
                                             rownames = FALSE,
@@ -3329,13 +2338,10 @@ mod_infrasap_tab_module_server <- function(id){
                         c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                       )
                     ) 
-                    
                   }
-                  
                 }
               }
             }
-            
             
             dep <- htmltools::htmlDependency(
               "RowsGroup", "2.0.0",
@@ -3344,14 +2350,10 @@ mod_infrasap_tab_module_server <- function(id){
             dtable$dependencies <- c(dtable$dependencies, list(dep))
             dtable
           }
-          
         }
-        
       }
-      
     })
-    
-    
+
     output$report_pdf <- shiny::downloadHandler(
       # For PDF output, change this to "report.pdf"
       filename = "report.pdf",
@@ -3368,7 +2370,6 @@ mod_infrasap_tab_module_server <- function(id){
                        table_data = infrasap_table(),
                        country_to_compare = input$country_to_compare_id
         )
-
         # Knit the document, passing in the `params` list, and eval it in a
         # child of the global environment (this isolates the code in the document
         # from the code in this app).
