@@ -223,11 +223,6 @@ mod_infrasap_tab_module_server <- function(id){
       bm <- input$db_benchmark
       yr <- input$db_year
       pi <- input$db_pillar
-      # cn <- "Kenya"
-      # sc <- c("National", "Energy")
-      # bm <- "Region"
-      # yr <- "Latest year availbale"
-      # pi <- "Connectivity"
       # add national automatically to sector (as in the excel tool)
       if(is.null(yr)){
         NULL
@@ -294,7 +289,6 @@ mod_infrasap_tab_module_server <- function(id){
               `Region` := `year_pop`
             ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"))
             
-            
             # get names of the two columns to compare
             bm_col <- names(df_r)[grepl('.x', names(df_r), fixed = TRUE)]
             data_col <- names(df_r)[grepl('.y', names(df_r), fixed = TRUE)]
@@ -320,31 +314,20 @@ mod_infrasap_tab_module_server <- function(id){
             
             # join data
             df_r <- dplyr::left_join(df_large, df_r)
-            
-            
+
             # Rename columns
             df_r <- df_r %>%
               dplyr::rename(
                 `Sub-Pillar` = `Indicator Sub-Pillar`,
                 `Topic`= `Indicator Topic`
               )
-            
-            
             # subset data by the columns used in the table
-            df_r <- df_r %>% dplyr::select(`Sub-Pillar`,
-                                           `Topic`, 
-                                           `Indicator`, 
-                                           cn, 
-                                           `Region`,
-                                           value_r,
-                                           year_tooltip)
-            
+            df_r <- df_r %>% 
+              dplyr::select(`Sub-Pillar`,`Topic`, `Indicator`, cn, `Region`,value_r, year_tooltip)
             
             # round numbers
             df_r[[cn]] <- round(df_r[[cn]], 2)
             df_r[['Region']] <- round(df_r[['Region']], 2)
-            
-            
             
             # get infrasap data based on inputs to get the benchmark type and join
             df_i <- infrasap_dat_mod_modified %>%
@@ -352,7 +335,6 @@ mod_infrasap_tab_module_server <- function(id){
               dplyr::filter(`Indicator Sector` %in% sc) %>%
               dplyr::filter(`Indicator Pillar` == pi) %>%
               dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr, `IncomeGroup`)
-            
             
             df_i <- df_i %>%
               dplyr::mutate(
@@ -369,8 +351,6 @@ mod_infrasap_tab_module_server <- function(id){
                                                     sector = sc,
                                                     pillar = pi)
             })[[length(range)]]
-            
-            # df_i <- a
             
             # Years to delete
             available_years <- as.character(
@@ -413,9 +393,7 @@ mod_infrasap_tab_module_server <- function(id){
               !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
               `IncomeGroup` := `year_pop`
             ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"))
-            
-            
-            
+
             # get names of the two columns to compare
             bm_col <- names(df_i)[grepl('.x', names(df_i), fixed = TRUE)]
             data_col <- names(df_i)[grepl('.y', names(df_i), fixed = TRUE)]
@@ -430,8 +408,6 @@ mod_infrasap_tab_module_server <- function(id){
             df_i <- case_when_for_value_setting(df_i, cn, IncomeGroup, value_i)
 
             if(!is.null(input$country_to_compare_id)){
-              
-              
               # get infrasap data based on inputs to get the benchmark type and join
               df_cn <- infrasap_dat_mod_modified %>%
                 dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
@@ -495,29 +471,11 @@ mod_infrasap_tab_module_server <- function(id){
                 `Sub-Pillar` = `Indicator Sub-Pillar`,
                 `Topic`= `Indicator Topic`
               )
-
-            if(length(input$country_to_compare_id) == 1) {
-              # subset data by the columns used in the table
-              df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i, input$country_to_compare_id[1], value_c1)
-              df_i[[input$country_to_compare_id]] <- round(df_i[[input$country_to_compare_id]], 2)
+            if(length(input$country_to_compare_id) > 0) {
+              df_i <- select_and_round(df_i, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i)
             } else {
-              if(length(input$country_to_compare_id) == 2){
-                df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2)
-                df_i[[input$country_to_compare_id[1]]] <- round(df_i[[input$country_to_compare_id[1]]], 2)
-                df_i[[input$country_to_compare_id[2]]] <- round(df_i[[input$country_to_compare_id[2]]], 2)
-              } else {
-                if(length(input$country_to_compare_id) == 3){
-                  df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2, input$country_to_compare_id[3], value_c3)
-                  df_i[[input$country_to_compare_id[1]]] <- round(df_i[[input$country_to_compare_id[1]]], 2)
-                  df_i[[input$country_to_compare_id[2]]] <- round(df_i[[input$country_to_compare_id[2]]], 2)
-                  df_i[[input$country_to_compare_id[3]]] <- round(df_i[[input$country_to_compare_id[3]]], 2)
-                } else {
-                  # subset data by the columns used in the table
                   df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i)
-                }
-              }
             }
-            
             # round numbers
             df_i[[cn]] <- round(df_i[[cn]], 2)
             df_i[['IncomeGroup']] <- round(df_i[['IncomeGroup']], 2)
@@ -624,7 +582,6 @@ mod_infrasap_tab_module_server <- function(id){
               # Countries list to compare
               if(!is.null(input$country_to_compare_id)){
                 
-                
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
                   # dplyr::filter(`Country Name` %in% "Angola") %>%
@@ -704,28 +661,13 @@ mod_infrasap_tab_module_server <- function(id){
                   `Topic`= `Indicator Topic`
                 )
               
-              if(length(input$country_to_compare_id) == 1) {
+              if(length(input$country_to_compare_id) > 0) {
                 # subset data by the columns used in the table
-                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, input$country_to_compare_id, value_c1, year_tooltip)
-                df[[input$country_to_compare_id]] <- round(df[[input$country_to_compare_id]], 2)
-              } else {
-                if(length(input$country_to_compare_id) == 2){
-                  df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2, year_tooltip)
-                  df[[input$country_to_compare_id[1]]] <- round(df[[input$country_to_compare_id[1]]], 2)
-                  df[[input$country_to_compare_id[2]]] <- round(df[[input$country_to_compare_id[2]]], 2)
+                df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, year_tooltip)
                 } else {
-                  if(length(input$country_to_compare_id) == 3){
-                    df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2, input$country_to_compare_id[3], value_c3, year_tooltip)
-                    df[[input$country_to_compare_id[1]]] <- round(df[[input$country_to_compare_id[1]]], 2)
-                    df[[input$country_to_compare_id[2]]] <- round(df[[input$country_to_compare_id[2]]], 2)
-                    df[[input$country_to_compare_id[3]]] <- round(df[[input$country_to_compare_id[3]]], 2)
-                  } else {
                     # subset data by the columns used in the table
                     df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, year_tooltip, cn)
-                  }
                 }
-              }
-
               # round numbers
               df[[cn]] <- round(df[[cn]], 2)
               
@@ -923,26 +865,11 @@ mod_infrasap_tab_module_server <- function(id){
                   `Topic`= `Indicator Topic`
                 )
               
-              if(length(input$country_to_compare_id) == 1) {
-                # subset data by the columns used in the table
-                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value, input$country_to_compare_id, value_c1, year_tooltip)
-                df[[input$country_to_compare_id]] <- round(df[[input$country_to_compare_id]], 2)
+              if(length(input$country_to_compare_id) > 0) {
+                df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, bm, year_tooltip)
               } else {
-                if(length(input$country_to_compare_id) == 2){
-                  df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2, year_tooltip)
-                  df[[input$country_to_compare_id[1]]] <- round(df[[input$country_to_compare_id[1]]], 2)
-                  df[[input$country_to_compare_id[2]]] <- round(df[[input$country_to_compare_id[2]]], 2)
-                } else {
-                  if(length(input$country_to_compare_id) == 3){
-                    df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2, input$country_to_compare_id[3], value_c3, year_tooltip)
-                    df[[input$country_to_compare_id[1]]] <- round(df[[input$country_to_compare_id[1]]], 2)
-                    df[[input$country_to_compare_id[2]]] <- round(df[[input$country_to_compare_id[2]]], 2)
-                    df[[input$country_to_compare_id[3]]] <- round(df[[input$country_to_compare_id[3]]], 2)
-                  } else {
-                    # subset data by the columns used in the table
-                    df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, year_tooltip, cn, bm, value)
-                  }
-                }
+                # subset data by the columns used in the table
+                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, year_tooltip, cn, bm, value)
               }
 
               # round numbers
@@ -1116,27 +1043,14 @@ mod_infrasap_tab_module_server <- function(id){
                 `Topic`= `Indicator Topic`
               )
             
-            if(length(input$country_to_compare_id) == 1) {
+            if(length(input$country_to_compare_id) > 0) {
               # subset data by the columns used in the table
-              df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i, input$country_to_compare_id[1], value_c1)
-              df_i[[input$country_to_compare_id]] <- round(df_i[[input$country_to_compare_id]], 2)
-            } else {
-              if(length(input$country_to_compare_id) == 2){
-                df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2)
-                df_i[[input$country_to_compare_id[1]]] <- round(df_i[[input$country_to_compare_id[1]]], 2)
-                df_i[[input$country_to_compare_id[2]]] <- round(df_i[[input$country_to_compare_id[2]]], 2)
-              } else {
-                if(length(input$country_to_compare_id) == 3){
-                  df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2, input$country_to_compare_id[3], value_c3)
-                  df_i[[input$country_to_compare_id[1]]] <- round(df_i[[input$country_to_compare_id[1]]], 2)
-                  df_i[[input$country_to_compare_id[2]]] <- round(df_i[[input$country_to_compare_id[2]]], 2)
-                  df_i[[input$country_to_compare_id[3]]] <- round(df_i[[input$country_to_compare_id[3]]], 2)
-                } else {
+              df_i <- select_and_round(df_i, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`)
+             } else {
                   # subset data by the columns used in the table
-                  df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i)
-                }
-              }
-            }
+               df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i)
+             }
+ 
             # round numbers
             df_i[[cn]] <- round(df_i[[cn]], 2)
             df_i[['IncomeGroup']] <- round(df_i[['IncomeGroup']], 2)
@@ -1154,8 +1068,7 @@ mod_infrasap_tab_module_server <- function(id){
             if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Governance')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__governance)
             }
-            
-            
+
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Connectivity')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__connectivity)
             }
@@ -1163,7 +1076,6 @@ mod_infrasap_tab_module_server <- function(id){
             if(input$db_sector %in% c('Digital Development') && input$db_pillar %in% c('Connectivity')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$digital__connectivity)
             }
-            
             
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Finance')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__finance)
@@ -1251,28 +1163,12 @@ mod_infrasap_tab_module_server <- function(id){
                   `Topic`= `Indicator Topic`
                 )
               
-              if(length(input$country_to_compare_id) == 1) {
-                # subset data by the columns used in the table
-                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, input$country_to_compare_id, value_c1)
-                df[[input$country_to_compare_id]] <- round(df[[input$country_to_compare_id]], 2)
+              if(length(input$country_to_compare_id) > 0) {
+                df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn)
               } else {
-                if(length(input$country_to_compare_id) == 2){
-                  df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2)
-                  df[[input$country_to_compare_id[1]]] <- round(df[[input$country_to_compare_id[1]]], 2)
-                  df[[input$country_to_compare_id[2]]] <- round(df[[input$country_to_compare_id[2]]], 2)
-                } else {
-                  if(length(input$country_to_compare_id) == 3){
-                    df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2, input$country_to_compare_id[3], value_c3)
-                    df[[input$country_to_compare_id[1]]] <- round(df[[input$country_to_compare_id[1]]], 2)
-                    df[[input$country_to_compare_id[2]]] <- round(df[[input$country_to_compare_id[2]]], 2)
-                    df[[input$country_to_compare_id[3]]] <- round(df[[input$country_to_compare_id[3]]], 2)
-                  } else {
                     # subset data by the columns used in the table
-                    df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn)
-                  }
-                }
+                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn)
               }
-              
               
               # round numbers
               df[[cn]] <- round(df[[cn]], 2)
@@ -1352,11 +1248,8 @@ mod_infrasap_tab_module_server <- function(id){
                     values_from = yr
                   ) 
                 
-                
                 df <- df %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
-                
-                
               }
               df <- case_when_for_value_setting_chr(df, cn, bm, value)
               
@@ -1389,7 +1282,6 @@ mod_infrasap_tab_module_server <- function(id){
               # # join data
               df <- dplyr::left_join(df_large, df)
               
-              
               #Rename columns
               df <- df %>%
                 dplyr::rename(
@@ -1397,28 +1289,11 @@ mod_infrasap_tab_module_server <- function(id){
                   `Topic`= `Indicator Topic`
                 )
               
-              if(length(input$country_to_compare_id) == 1) {
-                # subset data by the columns used in the table
-                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value, input$country_to_compare_id, value_c1)
-                df[[input$country_to_compare_id]] <- round(df[[input$country_to_compare_id]], 2)
+              if(length(input$country_to_compare_id) > 0) {
+                df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, bm)
               } else {
-                if(length(input$country_to_compare_id) == 2){
-                  df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2)
-                  df[[input$country_to_compare_id[1]]] <- round(df[[input$country_to_compare_id[1]]], 2)
-                  df[[input$country_to_compare_id[2]]] <- round(df[[input$country_to_compare_id[2]]], 2)
-                } else {
-                  if(length(input$country_to_compare_id) == 3){
-                    df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value, input$country_to_compare_id[1], value_c1, input$country_to_compare_id[2], value_c2, input$country_to_compare_id[3], value_c3)
-                    df[[input$country_to_compare_id[1]]] <- round(df[[input$country_to_compare_id[1]]], 2)
-                    df[[input$country_to_compare_id[2]]] <- round(df[[input$country_to_compare_id[2]]], 2)
-                    df[[input$country_to_compare_id[3]]] <- round(df[[input$country_to_compare_id[3]]], 2)
-                  } else {
-                    # subset data by the columns used in the table
-                    df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value)
-                  }
-                }
+                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value)
               }
-              
               # round numbers
               df[[cn]] <- round(df[[cn]], 2)
               df[[bm]] <- round(df[[bm]], 2)
