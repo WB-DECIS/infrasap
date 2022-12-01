@@ -75,7 +75,7 @@ mod_infrasap_tab_module_ui <- function(id){
 mod_infrasap_tab_module_server <- function(id){
   
   infrasap_dat_mod_modified <- infrasap::dat %>%
-    dplyr::filter(`irf_data` == FALSE)
+    dplyr::filter(.data$`irf_data` == FALSE)
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   
   infrsap_dat_bm_mod_modfied <- infrasap::dat_bm
@@ -267,20 +267,20 @@ mod_infrasap_tab_module_server <- function(id){
             
             # get benchmark data based on inputs
             df_r <- infrsap_dat_bm_mod_modfied %>%
-              dplyr::filter(Grouping == bm_type) %>%
-              dplyr::filter(`Sector` %in% sc) %>%
-              dplyr::select(`Indicator`, available_years_in_use) %>%
+              dplyr::filter(.data$Grouping == bm_type) %>%
+              dplyr::filter(.data$`Sector` %in% sc) %>%
+              dplyr::select(.data$`Indicator`, available_years_in_use) %>%
               dplyr::right_join(df_r, by = c('Indicator'='Indicator Name')) %>%
               dplyr::select(-available_years) %>%
-              dplyr::mutate(year_tooltip = year_pop)
+              dplyr::mutate(year_tooltip = .data$year_pop)
             
             purrr::map(1:length(available_years_in_use), function(b){
               df_r <<- df_r %>%
-                dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), year_pop)
+                dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
                 )
             })[length(available_years_in_use)]
             
-            df_r <- df_r %>% dplyr::select(-`Region`)
+            df_r <- df_r %>% dplyr::select(-.data$`Region`)
             # Find the column where the latest year value saved 
             yr_max_column <- year_max_column(df_r, 2020:2015)
             
@@ -306,11 +306,11 @@ mod_infrasap_tab_module_server <- function(id){
             
             # make table with all combinations of pillar, sub-pillar, and topic
             df_large <- infrasap_dat_mod_modified %>%
-              dplyr::filter(`Indicator Pillar` == pi) %>%
-              dplyr::filter(`Indicator Sector`== sc) %>%
-              dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+              dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+              dplyr::filter(.data$`Indicator Sector`== sc) %>%
+              dplyr::group_by(.data$`Indicator Sub-Pillar`, `Indicator Topic`) %>%
               dplyr::summarise(counts = dplyr::n()) %>%
-              dplyr::select(-counts)
+              dplyr::select(-.data$counts)
             
             # join data
             df_r <- dplyr::left_join(df_large, df_r)
@@ -318,12 +318,12 @@ mod_infrasap_tab_module_server <- function(id){
             # Rename columns
             df_r <- df_r %>%
               dplyr::rename(
-                `Sub-Pillar` = `Indicator Sub-Pillar`,
-                `Topic`= `Indicator Topic`
+                `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                `Topic`= .data$`Indicator Topic`
               )
             # subset data by the columns used in the table
             df_r <- df_r %>% 
-              dplyr::select(`Sub-Pillar`,`Topic`, `Indicator`, cn, `Region`,value_r, year_tooltip)
+              dplyr::select(.data$`Sub-Pillar`,.data$`Topic`, .data$`Indicator`, cn, .data$`Region`,value_r, .data$year_tooltip)
             
             # round numbers
             df_r[[cn]] <- round(df_r[[cn]], 2)
@@ -331,10 +331,11 @@ mod_infrasap_tab_module_server <- function(id){
             
             # get infrasap data based on inputs to get the benchmark type and join
             df_i <- infrasap_dat_mod_modified %>%
-              dplyr::filter(`Country Name` == cn) %>%
-              dplyr::filter(`Indicator Sector` %in% sc) %>%
-              dplyr::filter(`Indicator Pillar` == pi) %>%
-              dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr, `IncomeGroup`)
+              dplyr::filter(.data$`Country Name` == cn) %>%
+              dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+              dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+              dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar`,
+                .data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`, yr, .data$`IncomeGroup`)
             
             df_i <- df_i %>%
               dplyr::mutate(
@@ -362,7 +363,7 @@ mod_infrasap_tab_module_server <- function(id){
             available_years_in_use <- available_years_in_use[!is.na(available_years_in_use)]
             yr <- as.character(max(unique(df_i$year_pop), na.rm = TRUE))
             
-            df_years_col <- df_i %>% dplyr::select(`Indicator Name`, `year_pop`)
+            df_years_col <- df_i %>% dplyr::select(.data$`Indicator Name`, .data$`year_pop`)
             
             
             # get benchmark type for benchmark selected
@@ -370,9 +371,9 @@ mod_infrasap_tab_module_server <- function(id){
             
             # get benchmark data based on inputs
             df_i <- infrsap_dat_bm_mod_modfied %>%
-              dplyr::filter(Grouping == bm_type) %>%
-              dplyr::filter(`Sector` %in% sc) %>%
-              dplyr::select(`Indicator`, available_years_in_use) %>%
+              dplyr::filter(.data$Grouping == bm_type) %>%
+              dplyr::filter(.data$`Sector` %in% sc) %>%
+              dplyr::select(.data$`Indicator`, available_years_in_use) %>%
               dplyr::right_join(df_i, by = c('Indicator'='Indicator Name'))
             
             df_i <- df_i %>% dplyr::select(-available_years)
@@ -380,11 +381,11 @@ mod_infrasap_tab_module_server <- function(id){
             
             purrr::map(1:length(available_years_in_use), function(b){
               df_i <<- df_i %>%
-                dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), year_pop)
+                dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
                 )
             })[length(available_years_in_use)]
             
-            df_i <- df_i %>% dplyr::select(-`IncomeGroup`)
+            df_i <- df_i %>% dplyr::select(-.data$`IncomeGroup`)
             
             yr_max_column <- year_max_column(df_i, 2020:2015)
             
@@ -410,11 +411,11 @@ mod_infrasap_tab_module_server <- function(id){
             if(!is.null(input$country_to_compare_id)){
               # get infrasap data based on inputs to get the benchmark type and join
               df_cn <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
-                dplyr::filter(`Indicator Sector` %in% sc) %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
-                dplyr::select(-c(`Country Name`, available_years_in_use))
+                dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
+                dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::select(.data$`Country Name`, `Indicator Name`, available_years_in_use) %>%
+                dplyr::select(-c(.data$`Country Name`, available_years_in_use))
               
               
               if(length(input$country_to_compare_id) == 1) {
@@ -468,13 +469,13 @@ mod_infrasap_tab_module_server <- function(id){
             # Rename columns
             df_i <- df_i %>%
               dplyr::rename(
-                `Sub-Pillar` = `Indicator Sub-Pillar`,
-                `Topic`= `Indicator Topic`
+                `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                `Topic`= .data$`Indicator Topic`
               )
             if(length(input$country_to_compare_id) > 0) {
               df_i <- select_and_round(df_i, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i)
             } else {
-                  df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i)
+                  df_i <- df_i %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, cn, .data$`IncomeGroup`, .data$value_i)
             }
             # round numbers
             df_i[[cn]] <- round(df_i[[cn]], 2)
@@ -482,7 +483,8 @@ mod_infrasap_tab_module_server <- function(id){
 
             df <- dplyr::full_join(df_r, df_i) 
             
-            df <- df %>% dplyr::mutate(year_tooltip_b = year_tooltip) %>% dplyr::select(-year_tooltip) %>% dplyr::rename(year_tooltip = year_tooltip_b)
+            ##Whattt ???
+            df <- df %>% dplyr::mutate(year_tooltip_b = .data$year_tooltip) %>% dplyr::select(-.data$year_tooltip) %>% dplyr::rename(year_tooltip = .data$year_tooltip_b)
 
             if(input$db_sector %in% c('Energy') && input$db_pillar %in% c('Governance')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$energy__governance)
@@ -521,10 +523,10 @@ mod_infrasap_tab_module_server <- function(id){
               
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Country Name` == cn) %>%
-                dplyr::filter(`Indicator Sector` %in% sc) %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr )
+                dplyr::filter(.data$`Country Name` == cn) %>%
+                dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`, yr )
               
               available_years <- c()
               if(as.numeric(yr) == 2015) {
@@ -559,16 +561,16 @@ mod_infrasap_tab_module_server <- function(id){
               available_years_in_use <- available_years_in_use[!is.na(available_years_in_use)]
               yr <- as.character(max(unique(df$year_pop), na.rm = TRUE))
 
-              df_years_col <- df %>% dplyr::select(`Indicator Name`, `year_pop`)
+              df_years_col <- df %>% dplyr::select(.data$`Indicator Name`, .data$`year_pop`)
               
-              df <- df %>% dplyr::select(-available_years)
+              df <- df %>% dplyr::select(-.data$available_years)
               
               # Find the column where the latest year value saved 
               yr_max_column <- year_max_column(df, 2020:2015)
 
               df <- df %>% dplyr::rename(
                 !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
-                year_tooltip = `year_pop`
+                year_tooltip = .data$`year_pop`
               ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"), -dplyr::contains(year_find_max_vector)) 
               
               data_col <- names(df)[grepl('.y', names(df), fixed = TRUE)]
@@ -585,11 +587,11 @@ mod_infrasap_tab_module_server <- function(id){
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
                   # dplyr::filter(`Country Name` %in% "Angola") %>%
-                  dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
-                  dplyr::filter(`Indicator Sector` %in% sc) %>%
-                  dplyr::filter(`Indicator Pillar` == pi) %>%
-                  dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
-                  dplyr::select(-c(`Country Name`, available_years_in_use))
+                  dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
+                  dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                  dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                  dplyr::select(.data$`Country Name`, .data$`Indicator Name`, available_years_in_use) %>%
+                  dplyr::select(-c(.data$`Country Name`, available_years_in_use))
                 
                 
                 if(length(input$country_to_compare_id) == 1) {
@@ -619,7 +621,7 @@ mod_infrasap_tab_module_server <- function(id){
                 
                 df <- df %>%
                   dplyr::rename(
-                    Indicator =`Indicator Name`
+                    Indicator = .data$`Indicator Name`
                   ) %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
               }
@@ -645,11 +647,11 @@ mod_infrasap_tab_module_server <- function(id){
               
               # make table with all combinations of pillar, sub-pillar, and topic
               df_large <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::filter(`Indicator Sector`== sc) %>%
-                dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::filter(.data$`Indicator Sector`== sc) %>%
+                dplyr::group_by(.data$`Indicator Sub-Pillar`, .data$`Indicator Topic`) %>%
                 dplyr::summarise(counts = dplyr::n()) %>%
-                dplyr::select(-counts)
+                dplyr::select(-.data$counts)
               
               # # join data
               df <- dplyr::left_join(df_large, df)
@@ -657,8 +659,8 @@ mod_infrasap_tab_module_server <- function(id){
               #Rename columns
               df <- df %>%
                 dplyr::rename(
-                  `Sub-Pillar` = `Indicator Sub-Pillar`,
-                  `Topic`= `Indicator Topic`
+                  `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                  `Topic`= .data$`Indicator Topic`
                 )
               
               if(length(input$country_to_compare_id) > 0) {
@@ -666,7 +668,7 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, year_tooltip)
                 } else {
                     # subset data by the columns used in the table
-                    df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, year_tooltip, cn)
+                    df <- df %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, .data$year_tooltip, cn)
                 }
               # round numbers
               df[[cn]] <- round(df[[cn]], 2)
@@ -705,12 +707,12 @@ mod_infrasap_tab_module_server <- function(id){
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
                 # dplyr::filter(`Country Name` == "Kenya") %>%
-                dplyr::filter(`Country Name` == cn) %>%
-                dplyr::filter(`Indicator Sector` %in% sc) %>%
+                dplyr::filter(.data$`Country Name` == cn) %>%
+                dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
                 # dplyr::filter(`Indicator Sector` %in% "Energy") %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
                 # dplyr::filter(`Indicator Pillar` == "Finance") %>%
-                dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`,yr, bm )
+                dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`,yr, bm )
               
               available_years <- c()
               if(as.numeric(yr) == 2015) {
@@ -735,7 +737,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                     pillar = pi)
               })[[length(range)]]
 
-              df <- df %>% dplyr::mutate(year_tooltip = year_pop)
+              df <- df %>% dplyr::mutate(year_tooltip = .data$year_pop)
               
               # Years to delete
               available_years <- as.character(
@@ -747,23 +749,23 @@ mod_infrasap_tab_module_server <- function(id){
               available_years_in_use <- available_years_in_use[!is.na(available_years_in_use)]
               yr <- as.character(max(unique(df$year_pop), na.rm = TRUE))
               
-              df_years_col <- df %>% dplyr::select(`Indicator Name`, `year_pop`)
+              df_years_col <- df %>% dplyr::select(.data$`Indicator Name`, .data$`year_pop`)
               
               # get benchmark type for benchmark selected
               bm_type <- unique(df[, bm])
               
               # get benchmark data based on inputs
               df <- infrsap_dat_bm_mod_modfied %>%
-                dplyr::filter(Grouping == bm_type) %>%
-                dplyr::filter(`Sector` %in% sc) %>%
-                dplyr::select(`Indicator`, available_years_in_use) %>%
+                dplyr::filter(.data$Grouping == bm_type) %>%
+                dplyr::filter(.data$`Sector` %in% sc) %>%
+                dplyr::select(.data$`Indicator`, available_years_in_use) %>%
                 dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
 
               df <- df %>% dplyr::select(-available_years)
 
               purrr::map(1:length(available_years_in_use), function(b){
                 df <<- df %>%
-                  dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), year_pop)
+                  dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
                   )
               })[length(available_years_in_use)]
               
@@ -775,7 +777,7 @@ mod_infrasap_tab_module_server <- function(id){
               df <- df %>% dplyr::rename(
                 # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
                 !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
-                !!col_sym_conv(bm) := `year_pop`
+                !!col_sym_conv(bm) := .data$`year_pop`
               ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y")) 
               
               # get names of the two columns to compare
@@ -794,11 +796,11 @@ mod_infrasap_tab_module_server <- function(id){
               if(!is.null(input$country_to_compare_id)){
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
-                  dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
-                  dplyr::filter(`Indicator Sector` %in% sc) %>%
-                  dplyr::filter(`Indicator Pillar` == pi) %>%
-                  dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
-                  dplyr::select(-c(`Country Name`, available_years_in_use))
+                  dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
+                  dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                  dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                  dplyr::select(.data$`Country Name`, .data$`Indicator Name`, available_years_in_use) %>%
+                  dplyr::select(-c(.data$`Country Name`, available_years_in_use))
 
                 if(length(input$country_to_compare_id) == 1) {
                   df_cn <- df_cn %>% dplyr::full_join(
@@ -850,26 +852,26 @@ mod_infrasap_tab_module_server <- function(id){
               
               # make table with all combinations of pillar, sub-pillar, and topic
               df_large <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::filter(`Indicator Sector`== input$db_sector) %>%
-                dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::filter(.data$`Indicator Sector`== input$db_sector) %>%
+                dplyr::group_by(.data$`Indicator Sub-Pillar`, `Indicator Topic`) %>%
                 dplyr::summarise(counts = dplyr::n()) %>%
-                dplyr::select(-counts)
+                dplyr::select(-.data$counts)
               
               # # join data
               df <- dplyr::left_join(df_large, df)
               #Rename columns
               df <- df %>%
                 dplyr::rename(
-                  `Sub-Pillar` = `Indicator Sub-Pillar`,
-                  `Topic`= `Indicator Topic`
+                  `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                  `Topic`= .data$`Indicator Topic`
                 )
               
               if(length(input$country_to_compare_id) > 0) {
                 df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, bm, year_tooltip)
               } else {
                 # subset data by the columns used in the table
-                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, year_tooltip, cn, bm, value)
+                df <- df %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, .data$year_tooltip, cn, bm, .data$value)
               }
 
               # round numbers
@@ -912,22 +914,22 @@ mod_infrasap_tab_module_server <- function(id){
           if(length(input$db_benchmark) == 2 & !is.null(input$db_benchmark)) {
             # get infrasap data based on inputs to get the benchmark type and join
             df_r <- infrasap_dat_mod_modified %>%
-              dplyr::filter(`Country Name` == cn) %>%
-              dplyr::filter(`Indicator Sector` %in% sc) %>%
-              dplyr::filter(`Indicator Pillar` == pi) %>%
-              dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr, `Region`)
+              dplyr::filter(.data$`Country Name` == cn) %>%
+              dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+              dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+              dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`, yr, .data$`Region`)
             
             # get benchmark type for benchmark selected
             bm_type <- unique(df_r[, "Region"])
             
             # get benchmark data based on inputs
             df_r <- infrsap_dat_bm_mod_modfied %>%
-              dplyr::filter(Grouping == bm_type) %>%
-              dplyr::filter(`Sector` %in% sc) %>%
-              dplyr::select(`Indicator`, yr) %>%
+              dplyr::filter(.data$Grouping == bm_type) %>%
+              dplyr::filter(.data$`Sector` %in% sc) %>%
+              dplyr::select(.data$`Indicator`, yr) %>%
               dplyr::right_join(df_r, by = c('Indicator'='Indicator Name'))
             
-            df_r <- df_r %>% dplyr::select(-`Region`)
+            df_r <- df_r %>% dplyr::select(-.data$`Region`)
             
             # get names of the two columns to compare
             bm_col <- names(df_r)[grepl('.x', names(df_r), fixed = TRUE)]
@@ -946,11 +948,11 @@ mod_infrasap_tab_module_server <- function(id){
             
             # make table with all combinations of pillar, sub-pillar, and topic
             df_large <- infrasap_dat_mod_modified %>%
-              dplyr::filter(`Indicator Pillar` == pi) %>%
-              dplyr::filter(`Indicator Sector`== input$db_sector) %>%
-              dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+              dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+              dplyr::filter(.data$`Indicator Sector`== input$db_sector) %>%
+              dplyr::group_by(.data$`Indicator Sub-Pillar`, .data$`Indicator Topic`) %>%
               dplyr::summarise(counts = dplyr::n()) %>%
-              dplyr::select(-counts)
+              dplyr::select(-.data$counts)
             
             # join data
             df_r <- dplyr::left_join(df_large, df_r)
@@ -958,11 +960,11 @@ mod_infrasap_tab_module_server <- function(id){
             # Rename columns
             df_r <- df_r %>%
               dplyr::rename(
-                `Sub-Pillar` = `Indicator Sub-Pillar`,
-                `Topic`= `Indicator Topic`
+                `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                `Topic`= .data$`Indicator Topic`
               )
             # subset data by the columns used in the table
-            df_r <- df_r %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `Region`, value_r)
+            df_r <- df_r %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, cn, .data$`Region`, value_r)
             
             # round numbers
             df_r[[cn]] <- round(df_r[[cn]], 2)
@@ -970,22 +972,22 @@ mod_infrasap_tab_module_server <- function(id){
             
             # get infrasap data based on inputs to get the benchmark type and join
             df_i <- infrasap_dat_mod_modified %>%
-              dplyr::filter(`Country Name` == cn) %>%
-              dplyr::filter(`Indicator Sector` %in% sc) %>%
-              dplyr::filter(`Indicator Pillar` == pi) %>%
-              dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr, `IncomeGroup`)
+              dplyr::filter(.data$`Country Name` == cn) %>%
+              dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+              dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+              dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`, yr, .data$`IncomeGroup`)
             
             # get benchmark type for benchmark selected
             bm_type <- unique(df_i[, "IncomeGroup"])
             
             # get benchmark data based on inputs
             df_i <- infrsap_dat_bm_mod_modfied %>%
-              dplyr::filter(Grouping == bm_type) %>%
-              dplyr::filter(`Sector` %in% sc) %>%
-              dplyr::select(`Indicator`, yr) %>%
+              dplyr::filter(.data$Grouping == bm_type) %>%
+              dplyr::filter(.data$`Sector` %in% sc) %>%
+              dplyr::select(.data$`Indicator`, yr) %>%
               dplyr::right_join(df_i, by = c('Indicator'='Indicator Name'))
             
-            df_i <- df_i %>% dplyr::select(-`IncomeGroup`)
+            df_i <- df_i %>% dplyr::select(-.data$`IncomeGroup`)
             
             # get names of the two columns to compare
             bm_col <- names(df_i)[grepl('.x', names(df_i), fixed = TRUE)]
@@ -1004,13 +1006,13 @@ mod_infrasap_tab_module_server <- function(id){
               
               # get infrasap data based on inputs to get the benchmark type and join
               df_cn <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
-                dplyr::filter(`Indicator Sector` %in% sc) %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::select(`Country Name`, `Indicator Name`, yr) %>%
+                dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
+                dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::select(.data$`Country Name`, .data$`Indicator Name`, yr) %>%
                 tidyr::pivot_wider(
-                  names_from = `Country Name`,
-                  values_from = yr
+                  names_from = .data$`Country Name`,
+                  values_from = .data$yr
                 )
               df_i <- df_i %>%
                 dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
@@ -1039,16 +1041,15 @@ mod_infrasap_tab_module_server <- function(id){
             # Rename columns
             df_i <- df_i %>%
               dplyr::rename(
-                `Sub-Pillar` = `Indicator Sub-Pillar`,
-                `Topic`= `Indicator Topic`
+                `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                `Topic`= .data$`Indicator Topic`
               )
             
             if(length(input$country_to_compare_id) > 0) {
               # subset data by the columns used in the table
               df_i <- select_and_round(df_i, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`)
              } else {
-                  # subset data by the columns used in the table
-               df_i <- df_i %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i)
+               df_i <- df_i %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, cn, .data$`IncomeGroup`, value_i)
              }
  
             # round numbers
@@ -1093,10 +1094,10 @@ mod_infrasap_tab_module_server <- function(id){
               
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Country Name` == cn) %>%
-                dplyr::filter(`Indicator Sector` %in% sc) %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`,yr)
+                dplyr::filter(.data$`Country Name` == cn) %>%
+                dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`,yr)
               
               names(df)[names(df)==yr] <- cn
               
@@ -1109,20 +1110,20 @@ mod_infrasap_tab_module_server <- function(id){
                 
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
-                  dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
+                  dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
                   # dplyr::filter(`Country Name` %in% "Angola") %>%
-                  dplyr::filter(`Indicator Sector` %in% sc) %>%
-                  dplyr::filter(`Indicator Pillar` == pi) %>%
-                  dplyr::select(`Country Name`, `Indicator Name`, yr) %>%
+                  dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                  dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                  dplyr::select(.data$`Country Name`, `Indicator Name`, yr) %>%
                   tidyr::pivot_wider(
-                    names_from = `Country Name`, 
+                    names_from = .data$`Country Name`, 
                     values_from = yr
                   ) 
                 
                 
                 df <- df %>%
                   dplyr::rename(
-                    `Indicator` = `Indicator Name`
+                    `Indicator` = .data$`Indicator Name`
                   ) %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
               }
@@ -1146,11 +1147,11 @@ mod_infrasap_tab_module_server <- function(id){
               }
               # make table with all combinations of pillar, sub-pillar, and topic
               df_large <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::filter(`Indicator Sector`== sc) %>%
-                dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::filter(.data$`Indicator Sector`== sc) %>%
+                dplyr::group_by(.data$`Indicator Sub-Pillar`, .data$`Indicator Topic`) %>%
                 dplyr::summarise(counts = dplyr::n()) %>%
-                dplyr::select(-counts)
+                dplyr::select(-.data$counts)
               
               # # join data
               df <- dplyr::left_join(df_large, df)
@@ -1159,15 +1160,15 @@ mod_infrasap_tab_module_server <- function(id){
               #Rename columns
               df <- df %>%
                 dplyr::rename(
-                  `Sub-Pillar` = `Indicator Sub-Pillar`,
-                  `Topic`= `Indicator Topic`
+                  `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                  `Topic`= .data$`Indicator Topic`
                 )
               
               if(length(input$country_to_compare_id) > 0) {
                 df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn)
               } else {
                     # subset data by the columns used in the table
-                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn)
+                df <- df %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, cn)
               }
               
               # round numbers
@@ -1205,19 +1206,19 @@ mod_infrasap_tab_module_server <- function(id){
             } else {
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Country Name` == cn) %>%
-                dplyr::filter(`Indicator Sector` %in% sc) %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`,yr, bm )
+                dplyr::filter(.data$`Country Name` == cn) %>%
+                dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`,yr, bm )
               
               # get benchmark type for benchmark selected
               bm_type <- unique(df[, bm])
               
               # get benchmark data based on inputs
               df <- infrsap_dat_bm_mod_modfied %>%
-                dplyr::filter(Grouping == bm_type) %>%
-                dplyr::filter(`Sector` %in% sc) %>%
-                dplyr::select(`Indicator`,yr) %>%
+                dplyr::filter(.data$Grouping == bm_type) %>%
+                dplyr::filter(.data$`Sector` %in% sc) %>%
+                dplyr::select(.data$`Indicator`,yr) %>%
                 dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
               
               df <- df %>% dplyr::select(-bm)
@@ -1239,12 +1240,12 @@ mod_infrasap_tab_module_server <- function(id){
                 
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
-                  dplyr::filter(`Country Name` %in% input$country_to_compare_id) %>%
-                  dplyr::filter(`Indicator Sector` %in% sc) %>%
-                  dplyr::filter(`Indicator Pillar` == pi) %>%
-                  dplyr::select(`Country Name`, `Indicator Name`, yr) %>%
+                  dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
+                  dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                  dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                  dplyr::select(.data$`Country Name`, `Indicator Name`, yr) %>%
                   tidyr::pivot_wider(
-                    names_from = `Country Name`, 
+                    names_from = .data$`Country Name`, 
                     values_from = yr
                   ) 
                 
@@ -1273,11 +1274,11 @@ mod_infrasap_tab_module_server <- function(id){
               }
               # make table with all combinations of pillar, sub-pillar, and topic
               df_large <- infrasap_dat_mod_modified %>%
-                dplyr::filter(`Indicator Pillar` == pi) %>%
-                dplyr::filter(`Indicator Sector`== input$db_sector) %>%
-                dplyr::group_by(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+                dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+                dplyr::filter(.data$`Indicator Sector`== input$db_sector) %>%
+                dplyr::group_by(.data$`Indicator Sub-Pillar`, `Indicator Topic`) %>%
                 dplyr::summarise(counts = dplyr::n()) %>%
-                dplyr::select(-counts)
+                dplyr::select(-.data$counts)
               
               # # join data
               df <- dplyr::left_join(df_large, df)
@@ -1285,8 +1286,8 @@ mod_infrasap_tab_module_server <- function(id){
               #Rename columns
               df <- df %>%
                 dplyr::rename(
-                  `Sub-Pillar` = `Indicator Sub-Pillar`,
-                  `Topic`= `Indicator Topic`
+                  `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                  `Topic`= .data$`Indicator Topic`
                 )
               
               if(length(input$country_to_compare_id) > 0) {
@@ -1334,9 +1335,9 @@ mod_infrasap_tab_module_server <- function(id){
     
     observe({
       df_length_check <-  infrasap_dat_mod_modified %>%
-        dplyr::filter(`Country Name` == input$db_country) %>%
-        dplyr::filter(`Indicator Sector` %in% input$db_sector) %>%
-        dplyr::filter(`Indicator Pillar` == input$db_pillar) 
+        dplyr::filter(.data$`Country Name` == input$db_country) %>%
+        dplyr::filter(.data$`Indicator Sector` %in% input$db_sector) %>%
+        dplyr::filter(.data$`Indicator Pillar` == input$db_pillar) 
       
       if(nrow(df_length_check) < 1) {
         output$emptyDataTableMSG <- shiny::renderUI({

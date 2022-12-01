@@ -10,3 +10,5 @@ $run_dev.*
 ^CODE_OF_CONDUCT\.md$
 ^app\.R$
 ^rsconnect$
+^LICENSE\.md$
+^infrasap_pillar_table_pdf

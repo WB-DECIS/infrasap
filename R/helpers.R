@@ -1,9 +1,9 @@
-empty_plot <- function(title = NULL){
-  p <- plotly_empty(type = "scatter", mode = "markers                                                                                                                                                                        ") %>%
-    config(
+empty_plot <- function(title = NULL) {
+  p <- plotly::plotly_empty(type = "scatter", mode = "markers") %>%
+    plotly::config(
       displayModeBar = FALSE
     ) %>%
-    layout(
+    plotly::layout(
       title = list(
         text = title,
         yref = "paper",
@@ -21,16 +21,17 @@ open_bracket <- function(x) {
   grepl('(', x, fixed = TRUE)
 }
 
+
 benchmark_dropdown_manipulation <- function(dat, dat_bm, cn) {
   # get sector names for this country
   temp <- dat %>% 
-    dplyr::filter(`Country Name` == cn) %>% 
+    dplyr::filter(.data$`Country Name` == cn) %>% 
     dplyr::mutate(group=1) %>%
-    dplyr::select(Region, `OECD Member`, IncomeGroup, Isolated, Mountainous, `Low Population Density`, `Oil Exporter`, `Human Capital`, `Fragile`) %>% 
+    dplyr::select(.data$Region, .data$`OECD Member`, .data$IncomeGroup, .data$Isolated, .data$Mountainous, .data$`Low Population Density`, .data$`Oil Exporter`, .data$`Human Capital`, .data$`Fragile`) %>% 
     dplyr::distinct() %>% 
     tidyr::pivot_longer(cols = dplyr::everything(), names_to = "key", values_to = "value", values_drop_na = TRUE) %>%
     dplyr::inner_join(dat_bm, by=c('value'='Grouping')) %>%
-    dplyr::count(key, value, name = "counts")
+    dplyr::count(.data$key, .data$value, name = "counts")
   #Seems redundant and doing the same thing as last two lines above. 
   #temp <- dplyr::inner_join(temp,dat_bm, by=c('value'='Grouping'))
   #temp <- temp %>% dplyr::count(key, value, name = "counts") 
@@ -40,9 +41,9 @@ benchmark_dropdown_manipulation <- function(dat, dat_bm, cn) {
 
 country_to_compare_vec <- function(dat, cn, sc, pl) {
   dat %>%
-    dplyr::filter(Region %in% unique(Region[`Country Name` == cn]),`Indicator Sector` %in% sc, 
-                  `Indicator Pillar` == pl, `Country Name` != cn) %>%
-    dplyr::distinct(`Country Name`) %>% 
+    dplyr::filter(.data$Region %in% unique(.data$Region[.data$`Country Name` == cn]),.data$`Indicator Sector` %in% sc, 
+                  .data$`Indicator Pillar` == pl, .data$`Country Name` != cn) %>%
+    dplyr::distinct(.data$`Country Name`) %>% 
     dplyr::slice(1:3) %>% 
     dplyr::pull()
 }
@@ -51,22 +52,22 @@ country_to_compare_vec <- function(dat, cn, sc, pl) {
 get_years <- function(dat, dat_bm) {
   # get intersection of years to populate year input
   dat %>%
-    dplyr::select(-Mode) %>%
+    dplyr::select(-.data$Mode) %>%
     names() %>%
     intersect(names(dat_bm))
 }
 
 country_to_compare_list <- function(dat, sc, pl) {
   dat %>%
-    dplyr::filter(`Indicator Sector` %in% sc, `Indicator Pillar` == pl) %>%
-    dplyr::distinct(`Country Name`) %>% 
+    dplyr::filter(.data$`Indicator Sector` %in% sc, .data$`Indicator Pillar` == pl) %>%
+    dplyr::distinct(.data$`Country Name`) %>% 
     dplyr::pull()
 }
 
 data_for_df_r <- function(dat, cn, sc, pl, yr) {
   dat %>%
-    dplyr::filter(`Country Name` == cn, `Indicator Sector` %in% sc, `Indicator Pillar` == pl) %>%
-    dplyr::select(`Country Name`,`Indicator Sector`,`Indicator Sub-Pillar` ,`Indicator Name`, `Indicator Topic`, `Type of Benchmark`, yr, `Region`) %>%
+    dplyr::filter(.data$`Country Name` == cn, .data$`Indicator Sector` %in% sc, .data$`Indicator Pillar` == pl) %>%
+    dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`, yr, .data$`Region`) %>%
     dplyr::mutate(year_pop = dplyr::if_else(!is.na(!!col_sym_conv(yr)), as.numeric(yr), !!col_sym_conv(yr)))
 }
 
@@ -87,15 +88,27 @@ year_max_column <- function(dat, year_vec) {
 }
 
 
+#' Title
+#'
+#' @param dat dataframe
+#' @param cn name of column as character
+#' @param col column name as symbol
+#' @param new_col new column name to be created passed as symbol
+#' 
+#' @importFrom rlang .data
+#' @importFrom rlang :=
+#' 
+#' @return Data frame
+#' 
 case_when_for_value_setting <- function(dat, cn, col, new_col) {
   dat %>%
     dplyr::mutate({{new_col}} := dplyr::case_when(
-      .data[[cn]] >= {{col}} & `Type of Benchmark` == "Upper" ~ "3",
-      .data[[cn]] >= ({{col}} * 0.9) & .data[[cn]] < {{col}} & `Type of Benchmark` == "Upper" ~ "2",
-      .data[[cn]] < ({{col}} * 0.9) & `Type of Benchmark` == "Upper" ~ "1",
-      .data[[cn]] <= {{col}} & `Type of Benchmark` == "Lower" ~ "3",
-      .data[[cn]] <= ({{col}} * 1.1) & .data[[cn]] > {{col}} & `Type of Benchmark` == "Lower" ~ "2",
-      .data[[cn]] > ({{col}} * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
+      .data[[cn]] >= {{col}} & .data$`Type of Benchmark` == "Upper" ~ "3",
+      .data[[cn]] >= ({{col}} * 0.9) & .data[[cn]] < {{col}} & .data$`Type of Benchmark` == "Upper" ~ "2",
+      .data[[cn]] < ({{col}} * 0.9) & .data$`Type of Benchmark` == "Upper" ~ "1",
+      .data[[cn]] <= {{col}} & .data$`Type of Benchmark` == "Lower" ~ "3",
+      .data[[cn]] <= ({{col}} * 1.1) & .data[[cn]] > {{col}} & .data$`Type of Benchmark` == "Lower" ~ "2",
+      .data[[cn]] > ({{col}} * 1.1) & (.data$`Type of Benchmark` == "Lower") ~ "1",
       TRUE ~ "0"), 
       # Fill NAs with grey color
       {{new_col}} := as.numeric(dplyr::case_when(
@@ -108,12 +121,12 @@ case_when_for_value_setting <- function(dat, cn, col, new_col) {
 case_when_for_value_setting_chr <- function(dat, cn, col, new_col) {
   dat %>%
     dplyr::mutate({{new_col}} := dplyr::case_when(
-      .data[[cn]] >= .data[[col]] & `Type of Benchmark` == "Upper" ~ "3",
-      .data[[cn]] >= (.data[[col]] * 0.9) & .data[[cn]] < .data[[col]] & `Type of Benchmark` == "Upper" ~ "2",
-      .data[[cn]] < (.data[[col]] * 0.9) & `Type of Benchmark` == "Upper" ~ "1",
-      .data[[cn]] <= .data[[col]] & `Type of Benchmark` == "Lower" ~ "3",
-      .data[[cn]] <= (.data[[col]] * 1.1) & .data[[cn]] > .data[[col]] & `Type of Benchmark` == "Lower" ~ "2",
-      .data[[cn]] > (.data[[col]] * 1.1) & (`Type of Benchmark` == "Lower") ~ "1",
+      .data[[cn]] >= .data[[col]] & .data$`Type of Benchmark` == "Upper" ~ "3",
+      .data[[cn]] >= (.data[[col]] * 0.9) & .data[[cn]] < .data[[col]] & .data$`Type of Benchmark` == "Upper" ~ "2",
+      .data[[cn]] < (.data[[col]] * 0.9) & .data$`Type of Benchmark` == "Upper" ~ "1",
+      .data[[cn]] <= .data[[col]] & .data$`Type of Benchmark` == "Lower" ~ "3",
+      .data[[cn]] <= (.data[[col]] * 1.1) & .data[[cn]] > .data[[col]] & .data$`Type of Benchmark` == "Lower" ~ "2",
+      .data[[cn]] > (.data[[col]] * 1.1) & (.data$`Type of Benchmark` == "Lower") ~ "1",
       TRUE ~ "0"), 
       # Fill NAs with grey color
       {{new_col}} := as.numeric(dplyr::case_when(
