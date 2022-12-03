@@ -83,6 +83,8 @@ mod_infrasap_tab_module_server <- function(id){
   
   shiny::moduleServer( id, function(input, output, session){
     ns <- session$ns
+    ### declare global variables ###
+    Region <- value_r <- IncomeGroup <- value_i <- value_c1 <- value_c2 <- value_c3 <- value <- NULL
     # Module Body
     #------- Initialize the Memory ----------
     selected_vals = shiny::reactiveValues(db_country_name = 'Kenya', 
@@ -286,7 +288,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             df_r <- df_r %>% dplyr::rename(
               !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
-              `Region` := `year_pop`
+              `Region` := .data$`year_pop`
             ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"))
             
             # get names of the two columns to compare
@@ -308,7 +310,7 @@ mod_infrasap_tab_module_server <- function(id){
             df_large <- infrasap_dat_mod_modified %>%
               dplyr::filter(.data$`Indicator Pillar` == pi) %>%
               dplyr::filter(.data$`Indicator Sector`== sc) %>%
-              dplyr::group_by(.data$`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+              dplyr::group_by(.data$`Indicator Sub-Pillar`, .data$`Indicator Topic`) %>%
               dplyr::summarise(counts = dplyr::n()) %>%
               dplyr::select(-.data$counts)
             
@@ -323,7 +325,7 @@ mod_infrasap_tab_module_server <- function(id){
               )
             # subset data by the columns used in the table
             df_r <- df_r %>% 
-              dplyr::select(.data$`Sub-Pillar`,.data$`Topic`, .data$`Indicator`, cn, .data$`Region`,value_r, .data$year_tooltip)
+              dplyr::select(.data$`Sub-Pillar`,.data$`Topic`, .data$`Indicator`, cn, .data$`Region`,.data$value_r, .data$year_tooltip)
             
             # round numbers
             df_r[[cn]] <- round(df_r[[cn]], 2)
@@ -392,7 +394,7 @@ mod_infrasap_tab_module_server <- function(id){
             df_i <- df_i %>% dplyr::rename(
               # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
               !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
-              `IncomeGroup` := `year_pop`
+              `IncomeGroup` := .data$`year_pop`
             ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"))
 
             # get names of the two columns to compare
@@ -414,7 +416,7 @@ mod_infrasap_tab_module_server <- function(id){
                 dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
                 dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
                 dplyr::filter(.data$`Indicator Pillar` == pi) %>%
-                dplyr::select(.data$`Country Name`, `Indicator Name`, available_years_in_use) %>%
+                dplyr::select(.data$`Country Name`, .data$`Indicator Name`, available_years_in_use) %>%
                 dplyr::select(-c(.data$`Country Name`, available_years_in_use))
               
               
@@ -473,7 +475,7 @@ mod_infrasap_tab_module_server <- function(id){
                 `Topic`= .data$`Indicator Topic`
               )
             if(length(input$country_to_compare_id) > 0) {
-              df_i <- select_and_round(df_i, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`, value_i)
+              df_i <- select_and_round(df_i, input$country_to_compare_id, 'Sub-Pillar', 'Topic', 'Indicator', cn, 'IncomeGroup', 'value_i')
             } else {
                   df_i <- df_i %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, cn, .data$`IncomeGroup`, .data$value_i)
             }
@@ -571,7 +573,7 @@ mod_infrasap_tab_module_server <- function(id){
               df <- df %>% dplyr::rename(
                 !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
                 year_tooltip = .data$`year_pop`
-              ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y"), -dplyr::contains(year_find_max_vector)) 
+              ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y")) 
               
               data_col <- names(df)[grepl('.y', names(df), fixed = TRUE)]
               
@@ -665,7 +667,7 @@ mod_infrasap_tab_module_server <- function(id){
               
               if(length(input$country_to_compare_id) > 0) {
                 # subset data by the columns used in the table
-                df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, year_tooltip)
+                df <- select_and_round(df, input$country_to_compare_id, 'Sub-Pillar', 'Topic', 'Indicator', cn, 'year_tooltip')
                 } else {
                     # subset data by the columns used in the table
                     df <- df %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, .data$year_tooltip, cn)
@@ -854,7 +856,7 @@ mod_infrasap_tab_module_server <- function(id){
               df_large <- infrasap_dat_mod_modified %>%
                 dplyr::filter(.data$`Indicator Pillar` == pi) %>%
                 dplyr::filter(.data$`Indicator Sector`== input$db_sector) %>%
-                dplyr::group_by(.data$`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+                dplyr::group_by(.data$`Indicator Sub-Pillar`, .data$`Indicator Topic`) %>%
                 dplyr::summarise(counts = dplyr::n()) %>%
                 dplyr::select(-.data$counts)
               
@@ -868,7 +870,7 @@ mod_infrasap_tab_module_server <- function(id){
                 )
               
               if(length(input$country_to_compare_id) > 0) {
-                df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, bm, year_tooltip)
+                df <- select_and_round(df, input$country_to_compare_id, 'Sub-Pillar', 'Topic', 'Indicator', cn, bm, 'year_tooltip')
               } else {
                 # subset data by the columns used in the table
                 df <- df %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, .data$year_tooltip, cn, bm, .data$value)
@@ -1047,7 +1049,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             if(length(input$country_to_compare_id) > 0) {
               # subset data by the columns used in the table
-              df_i <- select_and_round(df_i, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, `IncomeGroup`)
+              df_i <- select_and_round(df_i, input$country_to_compare_id, 'Sub-Pillar', 'Topic', 'Indicator', cn, 'IncomeGroup')
              } else {
                df_i <- df_i %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, cn, .data$`IncomeGroup`, value_i)
              }
@@ -1114,7 +1116,7 @@ mod_infrasap_tab_module_server <- function(id){
                   # dplyr::filter(`Country Name` %in% "Angola") %>%
                   dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
                   dplyr::filter(.data$`Indicator Pillar` == pi) %>%
-                  dplyr::select(.data$`Country Name`, `Indicator Name`, yr) %>%
+                  dplyr::select(.data$`Country Name`, .data$`Indicator Name`, yr) %>%
                   tidyr::pivot_wider(
                     names_from = .data$`Country Name`, 
                     values_from = yr
@@ -1165,7 +1167,7 @@ mod_infrasap_tab_module_server <- function(id){
                 )
               
               if(length(input$country_to_compare_id) > 0) {
-                df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn)
+                df <- select_and_round(df, input$country_to_compare_id, 'Sub-Pillar', 'Topic', 'Indicator', cn)
               } else {
                     # subset data by the columns used in the table
                 df <- df %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, cn)
@@ -1243,7 +1245,7 @@ mod_infrasap_tab_module_server <- function(id){
                   dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
                   dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
                   dplyr::filter(.data$`Indicator Pillar` == pi) %>%
-                  dplyr::select(.data$`Country Name`, `Indicator Name`, yr) %>%
+                  dplyr::select(.data$`Country Name`, .data$`Indicator Name`, yr) %>%
                   tidyr::pivot_wider(
                     names_from = .data$`Country Name`, 
                     values_from = yr
@@ -1276,7 +1278,7 @@ mod_infrasap_tab_module_server <- function(id){
               df_large <- infrasap_dat_mod_modified %>%
                 dplyr::filter(.data$`Indicator Pillar` == pi) %>%
                 dplyr::filter(.data$`Indicator Sector`== input$db_sector) %>%
-                dplyr::group_by(.data$`Indicator Sub-Pillar`, `Indicator Topic`) %>%
+                dplyr::group_by(.data$`Indicator Sub-Pillar`, .data$`Indicator Topic`) %>%
                 dplyr::summarise(counts = dplyr::n()) %>%
                 dplyr::select(-.data$counts)
               
@@ -1291,9 +1293,9 @@ mod_infrasap_tab_module_server <- function(id){
                 )
               
               if(length(input$country_to_compare_id) > 0) {
-                df <- select_and_round(df, input$country_to_compare_id, `Sub-Pillar`, `Topic`, `Indicator`, cn, bm)
+                df <- select_and_round(df, input$country_to_compare_id, 'Sub-Pillar', 'Topic', 'Indicator', cn, bm)
               } else {
-                df <- df %>% dplyr::select(`Sub-Pillar`, `Topic`, `Indicator`, cn, bm, value)
+                df <- df %>% dplyr::select(.data$`Sub-Pillar`, .data$`Topic`, .data$`Indicator`, cn, bm, .data$value)
               }
               # round numbers
               df[[cn]] <- round(df[[cn]], 2)

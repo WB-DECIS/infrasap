@@ -96,7 +96,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
   
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
+    #Not sure what irf_indicators is referring to here, to avoid R CMD check errors initialising it as NULL
+    irf_indicators <- NULL
     # Module Body
     
     #------- Initialize the Memory ----------
@@ -539,9 +540,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
                                                               if(length(cn_choices) > 0) {
                                                                 rn <- infrasap_dat_mod_modified %>%
                                                                         dplyr::filter(.data$`Country Name` == cn) %>%
-                                                                        .$Region
+                                                                        dplyr::pull(.data$Region) %>% unique()
                                                                 
-                                                                rn <- unique(rn)
                                                                 df <- df %>% dplyr::filter(.data$Region == rn)
                                                                 cs = sort(unique(df$Grouping))
                                                                 # sample one country as default
@@ -1408,7 +1408,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
           lapply(htmltools::HTML)
         col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
         if(length(unique(df$key))<=4){
-          p <- ggplot2::ggplot(df, ggplot2::aes(key, value, fill = Grouping, text = mytext)) +
+          p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
 
             ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
             ggplot2::scale_fill_manual(name = '', values = col_pal)+
@@ -1417,7 +1417,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
                   axis.title.y = ggplot2::element_text(size = 8))
         } else {
-          p <- ggplot2::ggplot(df, ggplot2::aes(key, value, group = Grouping, color = Grouping, text = mytext)) +
+          p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, group = .data$Grouping, color = .data$Grouping, text = mytext)) +
 
             ggplot2::geom_point() +
             ggplot2::geom_line() +

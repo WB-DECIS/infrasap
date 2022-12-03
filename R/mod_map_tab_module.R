@@ -102,15 +102,15 @@ mod_map_tab_module_server <- function(id) {
       if(rn == 'Entire World'){
         # subset data to get indicator 
         df <- infrasap_dat_mod_modified %>%
-          dplyr::filter(`Indicator Sector` %in% sc) %>%
-          dplyr::select(`Indicator Name`, yr) %>% 
+          dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+          dplyr::select(.data$`Indicator Name`, yr) %>% 
           tidyr::drop_na()
       } else {
         # subset data to get indicator 
         df <- infrasap_dat_mod_modified %>%
-          dplyr::filter(`Indicator Sector` %in% sc) %>%
-          dplyr::filter(Region == rn) %>%
-          dplyr::select(`Indicator Name`, yr) %>% 
+          dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+          dplyr::filter(.data$Region == rn) %>%
+          dplyr::select(.data$`Indicator Name`, yr) %>% 
           tidyr::drop_na()
       }
       ic_choices <- sort(unique(df$`Indicator Name`))
@@ -140,16 +140,16 @@ mod_map_tab_module_server <- function(id) {
         if(rn == 'Entire World'){
           # for now just visualize entire world 
           df <- infrasap_dat_mod_modified %>% 
-            dplyr::filter(`Indicator Name`== ic) %>% 
-            dplyr::filter(`Indicator Sector` %in% sc) %>%
-            dplyr::select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
+            dplyr::filter(.data$`Indicator Name`== ic) %>% 
+            dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+            dplyr::select(.data$`Country Name`, .data$`Country Code`, .data$`Indicator Sector`,yr)
         } else {
           # for now just visualize entire world 
           df <- infrasap_dat_mod_modified %>% 
-            dplyr::filter(`Indicator Name`== ic) %>% 
-            dplyr::filter(`Indicator Sector` %in% sc) %>%
-            dplyr::filter(Region == rn) %>%
-            dplyr::select(`Country Name`, `Country Code`, `Indicator Sector`,yr)
+            dplyr::filter(.data$`Indicator Name`== ic) %>% 
+            dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+            dplyr::filter(.data$Region == rn) %>%
+            dplyr::select(.data$`Country Name`, .data$`Country Code`, .data$`Indicator Sector`,yr)
         }
         
         
@@ -170,7 +170,7 @@ mod_map_tab_module_server <- function(id) {
           
           
           # get region location (from manually created data in "create_data.R" file in data-raw folder)
-          loc <- infrasap::map_location %>% dplyr::filter(region == rn)
+          loc <- infrasap::map_location %>% dplyr::filter(.data$region == rn)
           lat <- loc$lat
           lon <- loc$lon
           zoom_level <- loc$zoom
