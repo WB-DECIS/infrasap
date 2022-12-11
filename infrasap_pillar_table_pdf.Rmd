@@ -34,7 +34,7 @@ library(dplyr)
 
 
 
-```{r}
+```{r, warning=FALSE}
 # Helper: convert string to symbol (to asign variable name via parameter)
 col_sym_conv <- function(x) {
   rlang::sym(x)
@@ -48,9 +48,9 @@ if(length(params$benchmark) == 2 && length(params$country_to_compare) == 3) {
   dplyr::mutate(
     Region = dplyr::case_when(
       value_r == 0 ~ kableExtra::cell_spec(Region, background = "#d3d3d370"),
-      value_r == 1 ~ kableExtracell_spec(Region, background = "#fb9494"),
-      value_r == 2 ~ kableExtracell_spec(Region, background = "#ffff6b"),
-      value_r == 3 ~ kableExtracell_spec(Region, background = "#9be27d")
+      value_r == 1 ~ kableExtra::cell_spec(Region, background = "#fb9494"),
+      value_r == 2 ~ kableExtra::cell_spec(Region, background = "#ffff6b"),
+      value_r == 3 ~ kableExtra::cell_spec(Region, background = "#9be27d")
   )) %>%
   dplyr::mutate(
     IncomeGroup = dplyr::case_when(

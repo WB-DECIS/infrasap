@@ -715,7 +715,7 @@ mod_infrasap_tab_module_server <- function(id){
                 dplyr::filter(.data$`Indicator Pillar` == pi) %>%
                 # dplyr::filter(`Indicator Pillar` == "Finance") %>%
                 dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`,yr, bm )
-              
+
               available_years <- c()
               if(as.numeric(yr) == 2015) {
                 range <- c(as.numeric(2015))

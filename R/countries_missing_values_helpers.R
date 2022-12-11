@@ -115,12 +115,12 @@ get_last_year <- function(cn, sc, bm = NULL) {
     
     temp <- remove_NA_columns(temp)
     temp <- temp %>% dplyr::select(-.data$`Country Name`, -bm)
-    
     # get years for benchmark 
     temp_bm <- infrsap_dat_bm_mod_modfied %>%
       dplyr::filter(.data$Grouping %in% bm_type) %>% 
       dplyr::filter(.data$`Sector` %in% sc) %>%
       remove_NA_columns()
+    if(nrow(temp_bm) == 0) temp_bm <- remove_NA_columns(infrsap_dat_bm_mod_modfied)
     # get intersection of years to populate year input
     year_choices <- dplyr::intersect(names(temp), names(temp_bm))
     year_choices <- year_choices[length(year_choices)]
