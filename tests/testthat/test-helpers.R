@@ -19,3 +19,10 @@ test_that("select_and_round() retruns correct result", {
  expect_equal(dim(res), c(5, 3))
  expect_equal(names(res), c('a', 'b', 'value1'))
 })
+
+test_that("year_max_column() retruns correct result", {
+  df <- data.frame("2022" = rnorm(5), "2021" = runif(5), "2020" = 10)
+  res <- year_max_column(df, 2020:2022)
+  expect_type(res, 'character')
+  expect_equal(res, "2020")
+})

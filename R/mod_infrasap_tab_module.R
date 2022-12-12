@@ -775,7 +775,7 @@ mod_infrasap_tab_module_server <- function(id){
               
               # Find the column where the latest year value saved 
               yr_max_column <- year_max_column(df, 2020:2015)
-
+              
               df <- df %>% dplyr::rename(
                 # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
                 !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),

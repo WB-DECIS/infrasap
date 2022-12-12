@@ -77,7 +77,7 @@ year_max_column <- function(dat, year_vec) {
     cn <- sum(grepl(year_vec[i], cols))
     if(cn > 0) {
       if(cn == 1) {
-        yr_max_column <- year_vec[i]
+        yr_max_column <- as.character(year_vec[i])
       } else {
         yr_max_column <- as.character(stringr::str_glue("{year_vec[i]}.y"))
       }
