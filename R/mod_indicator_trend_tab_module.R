@@ -835,7 +835,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                     sep="") %>%
                     lapply(htmltools::HTML)
                   
-                  col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$`Sub-national Unit Name`)), name = 'Set1')
+                  col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$`Sub-national Unit Name`)), 3), name = 'Set1')
               } else {
                   mytext <- paste(
                     "Value: ",round(df$value,2),"<br>",
@@ -844,7 +844,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                     sep="") %>%
                     lapply(htmltools::HTML)
                   
-                  col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
+                  col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$Grouping)), 3), name = 'Set1')
               }
               
 
@@ -934,7 +934,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 "Data: ", as.character(df$Grouping),"<br>",
                 sep="") %>%
                 lapply(htmltools::HTML)
-              col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
+              col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$Grouping)), 3), name = 'Set1')
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
 
@@ -1042,7 +1042,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 "Data: ", as.character(df$`Sub-national Unit Name`),"<br>",
                 sep="") %>%
                 lapply(htmltools::HTML)
-              col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$`Sub-national Unit Name`)), name = 'Set1')
+              col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$`Sub-national Unit Name`)), 3), name = 'Set1')
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$`Sub-national Unit Name`, text = mytext)) +
                   ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
@@ -1107,7 +1107,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 "Data: ", as.character(df$Grouping),"<br>",
                 sep="") %>%
                 lapply(htmltools::HTML)
-              col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
+              col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$Grouping)), 3), name = 'Set1')
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
 
@@ -1273,7 +1273,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
           "Data: ", as.character(df$Grouping),"<br>",
           sep="") %>%
           lapply(htmltools::HTML)
-        col_pal <- RColorBrewer::brewer.pal(n = length(unique(df$Grouping)), name = 'Set1')
+        col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$Grouping)), 3), name = 'Set1')
         if(length(unique(df$key))<=4){
           p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
 
