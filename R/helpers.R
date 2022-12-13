@@ -141,3 +141,14 @@ select_and_round <- function(dat, country_vec, ...) {
     dplyr::select(..., dplyr::all_of(country_vec), dplyr::starts_with('value')) %>%
     dplyr::mutate(dplyr::across(dplyr::all_of(country_vec), round, 2))
 }
+
+
+indicator_trend_data_manipulation <- function(dat, ic, sc, yr) {
+  dat %>%
+    dplyr::filter(.data$`Indicator Name` %in% ic) %>%
+    dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+    dplyr::select(Grouping = .data$`Country Name`,.data$`1990`:.data$`2020`) %>%
+    tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
+    tidyr::drop_na() %>%
+    dplyr::filter(.data$key >= yr[1], .data$key<=yr[2])
+}
