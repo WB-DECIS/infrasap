@@ -115,16 +115,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
                           input$data_indicator,
                           input$data_year,
                           input$country_ports
-                          # input$data_benchmarks
-                          # input$data_sector
-                          # input$data_country
-                          # input$data_indicator
-                          # input$data_year
-                          # input$data_compare_to
-                          # input$country_ports
-                          # input$data_benchmarks
-                          # input$data_countries
-                          # input$other_indicator
                          ), 
     {
      selected_vals$data_benchmarks_name <- input$data_benchmarks
@@ -201,7 +191,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
                                                       port_choices <- sort(unique(df$`Sub-national Unit Name`))
                                                     }
                                                     
-                                                    # port_choices <- sort(unique(df$`Sub-national Unit Name`))[sort(unique(df$`Sub-national Unit Name`)) != input$country_ports ]
                                                     if(selected_vals$data_ports_name %in% port_choices && !is.null(selected_vals$data_ports_name)) {
                                                       port_choice_selected <- selected_vals$data_ports_name
                                                     } else {
@@ -426,7 +415,9 @@ mod_indicator_trend_tab_module_server <- function(id) {
                                                       bn_selected_cir <- infrasap::dat_country_income_region %>%
                                                                             dplyr::filter(.data$`Country Name` == input$data_country)
                                                       
-                                                      all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa","North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income","Upper middle income","Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
+                                                      all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa",
+                                                                  "North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income",
+                                                                  "Upper middle income","Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
                                                       bn <- bn[order(match(bn, all_bn))]
                                                       
                                                       
@@ -835,7 +826,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                     sep="") %>%
                     lapply(htmltools::HTML)
                   
-                  col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$`Sub-national Unit Name`)), 3), name = 'Set1')
+                  col_pal <- get_colors(df$`Sub-national Unit Name`)
               } else {
                   mytext <- paste(
                     "Value: ",round(df$value,2),"<br>",
@@ -844,7 +835,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                     sep="") %>%
                     lapply(htmltools::HTML)
                   
-                  col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$Grouping)), 3), name = 'Set1')
+                  col_pal <- get_colors(df$Grouping) 
               }
               
 
@@ -934,7 +925,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 "Data: ", as.character(df$Grouping),"<br>",
                 sep="") %>%
                 lapply(htmltools::HTML)
-              col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$Grouping)), 3), name = 'Set1')
+              col_pal <- get_colors(df$Grouping)
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
 
@@ -1042,7 +1033,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 "Data: ", as.character(df$`Sub-national Unit Name`),"<br>",
                 sep="") %>%
                 lapply(htmltools::HTML)
-              col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$`Sub-national Unit Name`)), 3), name = 'Set1')
+              col_pal <- get_colors(df$`Sub-national Unit Name`)
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$`Sub-national Unit Name`, text = mytext)) +
                   ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
@@ -1107,7 +1098,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 "Data: ", as.character(df$Grouping),"<br>",
                 sep="") %>%
                 lapply(htmltools::HTML)
-              col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$Grouping)), 3), name = 'Set1')
+              col_pal <- get_color(df$Grouping)
               if(length(unique(df$key))<=4){
                 p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
 
@@ -1273,7 +1264,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
           "Data: ", as.character(df$Grouping),"<br>",
           sep="") %>%
           lapply(htmltools::HTML)
-        col_pal <- RColorBrewer::brewer.pal(n = max(length(unique(df$Grouping)), 3), name = 'Set1')
+        col_pal <- get_colors(df$Grouping)
         if(length(unique(df$key))<=4){
           p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
 

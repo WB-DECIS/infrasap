@@ -152,3 +152,7 @@ indicator_trend_data_manipulation <- function(dat, ic, sc, yr) {
     tidyr::drop_na() %>%
     dplyr::filter(.data$key >= yr[1], .data$key<=yr[2])
 }
+
+get_colors <- function(x, k = 3) {
+  RColorBrewer::brewer.pal(n = max(length(unique(x)), k), name = 'Set1')
+}

@@ -26,3 +26,10 @@ test_that("year_max_column() retruns correct result", {
   expect_type(res, 'character')
   expect_equal(res, "2020")
 })
+
+test_that("get_colors() returns correct results", {
+  expect_length(get_colors(1:5), 5)
+  expect_length(get_colors(1), 3)
+  expect_length(get_colors(1:2), 3)
+  expect_length(get_colors(1:3), 3)
+})
