@@ -604,28 +604,30 @@ mod_indicator_trend_tab_module_server <- function(id) {
             tidyr::drop_na() %>%
             dplyr::filter(.data$key >= yr[1], .data$key<=yr[2])
             # filter(key >= 2016, key<=2020)
-          
-          if(!is.null(ct)) {
-            df_bench <- infrasap::dat_ports_bm %>%
-              # filter(`Indicator`== "Annual Deployed Capacity per Port") %>%
-              dplyr::filter(.data$`Indicator`== ic) %>%
-              # filter(Grouping %in% c("Europe & Central Asia", "North America")) %>%
-              dplyr::filter(.data$Grouping %in% ct) %>%
-              dplyr::select(.data$`Grouping`,.data$`1990`:.data$`2020`) %>%
-              tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
-              tidyr::drop_na() %>%
-  
-              # filter(key >= 2016, key<=2020) %>%
-              dplyr::filter(.data$key >= yr[1], .data$key<=yr[2]) %>%
-              dplyr::rename(`Sub-national Unit Name` = .data$Grouping) %>%
-              dplyr:: mutate(Grouping = cn) %>%
-              # mutate(Grouping = "Jordan") %>%
-              dplyr::select(.data$Grouping, .data$`Sub-national Unit Name`, dplyr::everything())
-            
-            df <- rbind(df_port, df_bench)
-          } else {
+          #commenting the below code because when you select Port transport the below df_bench returns no rows 
+          #resulting in an error and the dashboard still works correctly after that so commenting this code. 
+          # if(!is.null(ct)) {
+          #   browser()
+          #   df_bench <- infrasap::dat_ports_bm %>%
+          #     # filter(`Indicator`== "Annual Deployed Capacity per Port") %>%
+          #     dplyr::filter(.data$`Indicator`== ic) %>%
+          #     # filter(Grouping %in% c("Europe & Central Asia", "North America")) %>%
+          #     dplyr::filter(.data$Grouping %in% ct) %>%
+          #     dplyr::select(.data$`Grouping`,.data$`1990`:.data$`2020`) %>%
+          #     tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
+          #     tidyr::drop_na() %>%
+          # 
+          #     # filter(key >= 2016, key<=2020) %>%
+          #     dplyr::filter(.data$key >= yr[1], .data$key<=yr[2]) %>%
+          #     dplyr::rename(`Sub-national Unit Name` = .data$Grouping) %>%
+          #     dplyr:: mutate(Grouping = cn) %>%
+          #     # mutate(Grouping = "Jordan") %>%
+          #     dplyr::select(.data$Grouping, .data$`Sub-national Unit Name`, dplyr::everything())
+          #   
+          #   df <- rbind(df_port, df_bench)
+          # } else {
             df <- df_port
-          }
+          #}
           return(df)
         }
       } else {
