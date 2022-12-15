@@ -573,13 +573,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
       cc <- input$data_countries
       oi <- input$other_indicator
       
-      # print(input$data_sector)
-      # print(input$country_ports)
-      
       if(input$data_sector == 'Transport Port') {
-
-        
-        if(input$ports_compare_to_indicator_type == "to_country") {
+        if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
           # get country data
           df <- infrasap::dat_ports %>%
             dplyr::filter(.data$`Country Name`== cn) %>%
@@ -597,7 +592,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
           return(df)
         } else {
           
-
           df_port <- infrasap::dat_ports %>%
             dplyr::filter(.data$`Country Name`== cn) %>%
             # filter(`Country Name`== "Jordan") %>%
@@ -794,10 +788,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
           
           cn <- input$data_country
           df <- data_tab()
-          # save(df, file = 'temp_ports.rda')
-          
-          # print("Plot part ...")
-          # print(df)
           
           # HERE is where you need to condition the chart to do ports (and then make sure do the same for latest year avaiable) And make sure benchmark doesnt show up.
           
@@ -842,47 +832,17 @@ mod_indicator_trend_tab_module_server <- function(id) {
               if(length(unique(df$key))<=4){
                 
                 if("Sub-national Unit Name" %in% colnames(df)) {
-                  p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$`Sub-national Unit Name`, text = mytext))
+                  p <- indicator_trend_plot1(df, 'Sub-national Unit Name', col_pal, y_axis, plot_title, mytext, 'theme2')
                 } else {
-                  p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext))
-
+                  p <- indicator_trend_plot1(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme2')
                 }
-                
-                p <- p +
-                  ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
-                  ggplot2::scale_fill_manual(name = '', values = col_pal)+
-                  ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
-                  ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
-                        axis.title.y = ggplot2::element_text(size = 10, colour = "#28313d"),
-                        axis.title.x = ggplot2::element_text(size = 10, colour = "#28313d"),
-                        axis.text = ggplot2::element_text(size = 11, colour = "#28313d"),
-                        plot.title = ggplot2::element_text(colour = "#28313d"),
-                        axis.ticks = ggplot2::element_line(colour = "#ebebeb")
-
-                  )
               } else {
                 
                 if("Sub-national Unit Name" %in% colnames(df)) {
-                  p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, group = .data$`Sub-national Unit Name`, color = .data$`Sub-national Unit Name`, text = mytext))
+                  p <- indicator_trend_plot2(df, 'Sub-national Unit Name', col_pal, y_axis, plot_title, mytext, 'theme2')
                 } else {
-                  p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, group = .data$Grouping, color = .data$Grouping, text = mytext))
-
+                  p <- indicator_trend_plot2(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme2')
                 }
-                
-                p <- p +
-                  ggplot2::geom_point() +
-                  ggplot2::geom_line() +
-                  ggplot2::scale_color_manual(name = '', values = col_pal)+
-                  ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
-                  ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
-                        axis.title.y = ggplot2::element_text(size = 10, colour = "#28313d"),
-                        axis.title.x = ggplot2::element_text(size = 10, colour = "#28313d"),
-                        axis.text = ggplot2::element_text(size = 11, colour = "#28313d"),
-                        plot.title = ggplot2::element_text(colour = "#28313d"),
-                        axis.ticks = ggplot2::element_line(colour = "#ebebeb")
-                  )
               }
               
               if(nrow(p$data)==0){
@@ -927,36 +887,9 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 lapply(htmltools::HTML)
               col_pal <- get_colors(df$Grouping)
               if(length(unique(df$key))<=4){
-                p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
-
-                  ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
-                  ggplot2::scale_fill_manual(name = '', values = col_pal)+
-                  ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
-                  ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
-                        axis.title.y = ggplot2::element_text(size = 10, colour = "#28313d"),
-                        axis.title.x = ggplot2::element_text(size = 10, colour = "#28313d"),
-                        axis.text = ggplot2::element_text(size = 11, colour = "#28313d"),
-                        plot.title = ggplot2::element_text(colour = "#28313d"),
-                        axis.ticks = ggplot2::element_line(colour = "#ebebeb")
-                  )
+                p <- indicator_trend_plot1(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme2')
               } else {
-                p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, group = .data$Grouping, color = .data$Grouping, text = mytext)) +
-                  ggplot2::geom_point() +
-                  ggplot2::geom_line() +
-                  ggplot2::scale_color_manual(name = '', values = col_pal)+
-                  ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
-                  ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
-                        axis.title.y = ggplot2::element_text(size = 10, colour = "#28313d"),
-                        axis.title.x = ggplot2::element_text(size = 10, colour = "#28313d"),
-                        axis.text = ggplot2::element_text(size = 11, colour = "#28313d"),
-                        plot.title = ggplot2::element_text(colour = "#28313d"),
-                        axis.ticks = ggplot2::element_line(colour = "#ebebeb")
-
-                  )
-                
-                
+                p <- indicator_trend_plot2(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme2')
               }
               
               if(nrow(p$data)==0){
@@ -1035,22 +968,9 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 lapply(htmltools::HTML)
               col_pal <- get_colors(df$`Sub-national Unit Name`)
               if(length(unique(df$key))<=4){
-                p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$`Sub-national Unit Name`, text = mytext)) +
-                  ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
-                  ggplot2::scale_fill_manual(name = '', values = col_pal)+
-                  ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
-                  ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
-                        axis.title.y = ggplot2::element_text(size = 8))
+                p <- indicator_trend_plot1(df, 'Sub-national Unit Name', col_pal, y_axis, plot_title, mytext, 'theme1')
               } else {
-                p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, group = .data$`Sub-national Unit Name`, color = .data$`Sub-national Unit Name`, text = mytext)) +
-                  ggplot2::geom_point() +
-                  ggplot2::geom_line() +
-                  ggplot2::scale_color_manual(name = '', values = col_pal)+
-                  ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
-                  ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
-                        axis.title.y = ggplot2::element_text(size = 8))
+                p <- indicator_trend_plot2(df, 'Sub-national Unit Name', col_pal, y_axis, plot_title, mytext, 'theme1')
               }
               
               if(nrow(p$data)==0){
@@ -1100,24 +1020,9 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 lapply(htmltools::HTML)
               col_pal <- get_color(df$Grouping)
               if(length(unique(df$key))<=4){
-                p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
-
-                  ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
-                  ggplot2::scale_fill_manual(name = '', values = col_pal)+
-                  ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
-                  ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
-                        axis.title.y = ggplot2::element_text(size = 8))
+                p <- indicator_trend_plot1(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme1')
               } else {
-                p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, group = .data$Grouping, color =.data$Grouping, text = mytext)) +
-
-                  ggplot2::geom_point() +
-                  ggplot2::geom_line() +
-                  ggplot2::scale_color_manual(name = '', values = col_pal)+
-                  ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
-                  ggplot2::theme_bw() +
-                  ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
-                        axis.title.y = ggplot2::element_text(size = 8))
+                p <- indicator_trend_plot2(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme1')
               }
               
               if(nrow(p$data)==0){
@@ -1266,26 +1171,9 @@ mod_indicator_trend_tab_module_server <- function(id) {
           lapply(htmltools::HTML)
         col_pal <- get_colors(df$Grouping)
         if(length(unique(df$key))<=4){
-          p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, fill = .data$Grouping, text = mytext)) +
-
-            ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
-            ggplot2::scale_fill_manual(name = '', values = col_pal)+
-            ggplot2::labs(x = 'Year', y = ic, title = plot_title) +
-            ggplot2::theme_bw() +
-            ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
-                  axis.title.y = ggplot2::element_text(size = 8))
+          p <- indicator_trend_plot1(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme1')
         } else {
-          p <- ggplot2::ggplot(df, ggplot2::aes(.data$key, .data$value, group = .data$Grouping, color = .data$Grouping, text = mytext)) +
-
-            ggplot2::geom_point() +
-            ggplot2::geom_line() +
-            ggplot2::scale_color_manual(name = '', values = col_pal)+
-            ggplot2::labs(x = 'Year', y = ic, title = plot_title) +
-            ggplot2::theme_bw() +
-            ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
-                  axis.title.y = ggplot2::element_text(size = 8))
-
-          
+          p <- indicator_trend_plot2(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme1')
         }
         
         if(nrow(p$data)==0){

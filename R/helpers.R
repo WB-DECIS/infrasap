@@ -156,3 +156,37 @@ indicator_trend_data_manipulation <- function(dat, ic, sc, yr) {
 get_colors <- function(x, k = 3) {
   RColorBrewer::brewer.pal(n = max(length(unique(x)), k), name = 'Set1')
 }
+
+
+indicator_trend_plot1 <- function(data, var, col_pal, y_axis, plot_title, mytext, thm) {
+  ggplot2::ggplot(data, ggplot2::aes(.data$key, .data$value, fill = .data[[var]], text = mytext)) +
+    ggplot2::geom_bar(stat= 'identity', position = 'dodge') +
+    ggplot2::scale_fill_manual(name = '', values = col_pal) +
+    ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
+    match.fun(thm)()
+}
+
+indicator_trend_plot2 <- function(data, var, col_pal, y_axis, plot_title, mytext, thm) {
+  ggplot2::ggplot(data, ggplot2::aes(.data$key, .data$value, group = .data[[var]], color = .data[[var]], text = mytext)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_line() +
+    ggplot2::scale_color_manual(name = '', values = col_pal) + 
+    ggplot2::labs(x = 'Year', y = y_axis, title = plot_title) +
+    match.fun(thm)()
+}
+
+theme1 <- function() {
+    ggplot2::theme_bw() +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5),
+                   axis.title.y = ggplot2::element_text(size = 8))
+}
+
+theme2 <- function() {
+  ggplot2::theme_bw() +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90, vjust = 0.5, colour = "#28313d"),
+                   axis.title.y = ggplot2::element_text(size = 10, colour = "#28313d"),
+                   axis.title.x = ggplot2::element_text(size = 10, colour = "#28313d"),
+                   axis.text = ggplot2::element_text(size = 11, colour = "#28313d"),
+                   plot.title = ggplot2::element_text(colour = "#28313d"),
+                   axis.ticks = ggplot2::element_line(colour = "#ebebeb"))
+}
