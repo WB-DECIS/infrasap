@@ -176,7 +176,7 @@ mod_map_tab_module_server <- function(id) {
           zoom_level <- loc$zoom
           
           # generate map
-          map_palette <- leaflet::colorNumeric(palette = RColorBrewer::brewer.pal(11, "Greens"), domain=map@data$value, na.color="transparent")
+          map_palette <- leaflet::colorNumeric(palette = RColorBrewer::brewer.pal(9, "Greens"), domain=map@data$value, na.color="transparent")
           map_text <- paste(
             "Indicator: ",  ic,"<br>",
             "Country: ", as.character(map@data$`Country Name`),"<br/>",
