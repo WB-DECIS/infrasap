@@ -1346,18 +1346,23 @@ mod_infrasap_tab_module_server <- function(id){
       }
     })
     
-    columns_to_remove <- c('value_r', 'value_i', 'value_c1', 'value_c2', 'value_c3', 'year_tooltip', 'value')
+    
     
     # Render the table with the traffic light
     output$db_table <- DT::renderDataTable({
       if(is.null(infrasap_table())){
         NULL
       } else {
+        #Columns numbers were hardcoded with numbers, using column names instead of numbers now to remove
+        #since with every change in data the position of columns can change
+        #also calculating the columns to remove (rm_cols) only once instead of doing it multiple times. 
+        columns_to_remove <- c('value_r', 'value_i', 'value_c1', 'value_c2', 'value_c3', 'year_tooltip', 'value')
         cols <- names(infrasap_table())
+        rm_cols <- intersect(cols, columns_to_remove)
+        
         if(length(input$db_benchmark) == 2) {
           if(length(input$country_to_compare_id) == 3){
             if(input$db_year == "Latest year available"){
-              #browser()
               dtable <- DT::datatable(infrasap_table(),
                                   extensions = 'Buttons',
                                   rownames = FALSE,
@@ -1370,7 +1375,7 @@ mod_infrasap_tab_module_server <- function(id){
                                       "}"),
                                     rowsGroup = list(0, 1), # merge cells of column 1, 2
                                     dom='Bfrti',
-                                    columnDefs = list(list(visible=FALSE, targets = intersect(cols, columns_to_remove))),
+                                    columnDefs = list(list(visible=FALSE, targets = rm_cols)),
                                     pageLength = -1,
                                     ordering=F,
                                     buttons = list(
@@ -1389,7 +1394,7 @@ mod_infrasap_tab_module_server <- function(id){
                                   options = list(
                                     rowsGroup = list(0, 1), # merge cells of column 1, 2
                                     dom='Bfrti',
-                                    columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11, 13))),
+                                    columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                     pageLength = -1,
                                     ordering=F,
                                     buttons = list(
@@ -1448,7 +1453,7 @@ mod_infrasap_tab_module_server <- function(id){
                                         "}"),
                                       rowsGroup = list(0, 1), # merge cells of column 1, 2
                                       dom='Bfrti',
-                                      columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11, 12))),
+                                      columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                       pageLength = -1,
                                       ordering=F,
                                       buttons = list(
@@ -1467,7 +1472,7 @@ mod_infrasap_tab_module_server <- function(id){
                                     options = list(
                                       rowsGroup = list(0, 1), # merge cells of column 1, 2
                                       dom='Bfrti',
-                                      columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11))),
+                                      columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                       pageLength = -1,
                                       ordering=F,
                                       buttons = list(
@@ -1520,7 +1525,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
                                         dom='Bfrti',
-                                        columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 10))),
+                                        columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                         pageLength = -1,
                                         ordering=F,
                                         buttons = list(
@@ -1586,7 +1591,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
                                         dom='Bfrti',
-                                        columnDefs = list(list(visible=FALSE, targets=c(5, 7, 8))),
+                                        columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                         pageLength = -1,
                                         ordering=F,
                                         buttons = list(
@@ -1611,7 +1616,7 @@ mod_infrasap_tab_module_server <- function(id){
                                       options = list(
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
                                         dom='Bfrti',
-                                        columnDefs = list(list(visible=FALSE, targets=c(5, 7))),
+                                        columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                         pageLength = -1,
                                         ordering=F,
                                         buttons = list(
@@ -1669,7 +1674,7 @@ mod_infrasap_tab_module_server <- function(id){
                                             "}"),
                                           rowsGroup = list(0, 1), # merge cells of column 1, 2
                                           dom='Bfrti',
-                                          columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 10))),
+                                          columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                           pageLength = -1,
                                           ordering=F,
                                           buttons = list(
@@ -1694,7 +1699,7 @@ mod_infrasap_tab_module_server <- function(id){
                                         options = list(
                                           rowsGroup = list(0, 1), # merge cells of column 1, 2
                                           dom='Bfrti',
-                                          columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9))),
+                                          columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                           pageLength = -1,
                                           ordering=F,
                                           buttons = list(
@@ -1743,7 +1748,7 @@ mod_infrasap_tab_module_server <- function(id){
                                               "}"),
                                             rowsGroup = list(0, 1), # merge cells of column 1, 2
                                             dom='Bfrti',
-                                            columnDefs = list(list(visible=FALSE, targets=c(5, 7, 8))),
+                                            columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                             pageLength = -1,
                                             ordering=F,
                                             buttons = list(
@@ -1769,7 +1774,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           options = list(
                                             rowsGroup = list(0, 1), # merge cells of column 1, 2
                                             dom='Bfrti',
-                                            columnDefs = list(list(visible=FALSE, targets=c(5, 7))),
+                                            columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                             pageLength = -1,
                                             ordering=F,
                                             buttons = list(
@@ -1812,7 +1817,8 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom = 'Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(5, 6))),
+                                              #columnDefs = list(list(visible=FALSE, targets=c(5, 6))),
+                                              columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -1831,7 +1837,8 @@ mod_infrasap_tab_module_server <- function(id){
                                             options = list(
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(5))),
+                                              #columnDefs = list(list(visible=FALSE, targets=c(5))),
+                                              columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -1867,7 +1874,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(3, 6))),
+                                              columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -1899,7 +1906,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(5))),
+                                              columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -1940,13 +1947,13 @@ mod_infrasap_tab_module_server <- function(id){
                                         options = list(
                                           rowCallback = DT::JS(
                                             "function(row, data) {",
-                                            "var full_text = 'This row values extracted from ' + data[12] +  ' year'",
+                                            "var full_text = 'This row values extracted from ' + data[5] +  ' year'", #from year_tooltip columns
                                             "$('td', row).attr('title', full_text);",
                                             "console.log(data)",
                                             "}"),
                                           rowsGroup = list(0, 1), # merge cells of column 1, 2
                                           dom='Bfrti',
-                                          columnDefs = list(list(visible=FALSE, targets=intersect(cols, columns_to_remove))),
+                                          columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                           pageLength = -1,
                                           ordering=F,
                                           buttons = list(
@@ -1971,7 +1978,7 @@ mod_infrasap_tab_module_server <- function(id){
                                         options = list(
                                           rowsGroup = list(0, 1), # merge cells of column 1, 2
                                           dom='Bfrti',
-                                          columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11))),
+                                          columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                           pageLength = -1,
                                           ordering=F,
                                           buttons = list(
@@ -2026,7 +2033,7 @@ mod_infrasap_tab_module_server <- function(id){
                                               "}"),
                                             rowsGroup = list(0, 1), # merge cells of column 1, 2
                                             dom='Bfrti',
-                                            columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 10))),
+                                            columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                             pageLength = -1,
                                             ordering=F,
                                             buttons = list(
@@ -2052,7 +2059,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           options = list(
                                             rowsGroup = list(0, 1), # merge cells of column 1, 2
                                             dom='Bfrti',
-                                            columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9))),
+                                            columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                             pageLength = -1,
                                             ordering=F,
                                             buttons = list(
@@ -2101,7 +2108,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom = 'Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(5, 7, 8))),
+                                              columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -2120,7 +2127,7 @@ mod_infrasap_tab_module_server <- function(id){
                                             options = list(
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(5, 7))),
+                                              columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -2162,7 +2169,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(3, 6))),
+                                              columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -2194,7 +2201,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
-                                              columnDefs = list(list(visible=FALSE, targets=c(5))),
+                                              columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
                                               buttons = list(
@@ -2217,7 +2224,7 @@ mod_infrasap_tab_module_server <- function(id){
                 }
               }
             }
-            #browser()
+            
             dep <- htmltools::htmlDependency(
               "RowsGroup", "2.0.0",
               src = c(href = 'www'), script = "script.js", package = 'infrasap')
