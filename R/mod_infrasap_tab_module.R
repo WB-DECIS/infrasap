@@ -1370,7 +1370,7 @@ mod_infrasap_tab_module_server <- function(id){
                                       "function(row, data) {",
                                       "var full_text = 'This row values extracted from ' + data[14] +  ' year'",
                                       "$('td', row).attr('title', full_text);",
-                                      "console.log(data)",
+                                      
                                       "}"),
                                     rowsGroup = list(0, 1), # merge cells of column 1, 2
                                     dom='Bfrti',
@@ -1419,19 +1419,19 @@ mod_infrasap_tab_module_server <- function(id){
                 c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
               )
             ) %>% DT::formatStyle(
-              names(infrasap_table())[9],'value_c1',
+              cols[9],'value_c1',
               backgroundColor = DT::styleEqual(
                 c(0, 1, 2, 3),
                 c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
               )
             ) %>% DT::formatStyle(
-              names(infrasap_table())[11],'value_c2',
+              cols[10],'value_c2',
               backgroundColor = DT::styleEqual(
                 c(0, 1, 2, 3),
                 c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
               )
             ) %>% DT::formatStyle(
-              names(infrasap_table())[13],'value_c3',
+              cols[11],'value_c3',
               backgroundColor = DT::styleEqual(
                 c(0, 1, 2, 3),
                 c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1448,7 +1448,7 @@ mod_infrasap_tab_module_server <- function(id){
                                         "function(row, data) {",
                                         "var full_text = 'This row values extracted from ' + data[12] +  ' year'",
                                         "$('td', row).attr('title', full_text);",
-                                        "console.log(data)",
+                                        
                                         "}"),
                                       rowsGroup = list(0, 1), # merge cells of column 1, 2
                                       dom='Bfrti',
@@ -1497,13 +1497,13 @@ mod_infrasap_tab_module_server <- function(id){
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                 )
               ) %>% DT::formatStyle(
-                names(infrasap_table())[9],'value_c1',
+                cols[9],'value_c1',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                 )
               ) %>% DT::formatStyle(
-                names(infrasap_table())[11],'value_c2',
+                cols[10],'value_c2',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1520,7 +1520,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           "function(row, data) {",
                                           "var full_text = 'This row values extracted from ' + data[10] +  ' year'",
                                           "$('td', row).attr('title', full_text);",
-                                          "console.log(data)",
+                                          
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
                                         dom='Bfrti',
@@ -1570,7 +1570,7 @@ mod_infrasap_tab_module_server <- function(id){
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                   )
                 ) %>% DT::formatStyle(
-                  names(infrasap_table())[9],'value_c1',
+                  cols[9],'value_c1',
                   backgroundColor = DT::styleEqual(
                     c(0, 1, 2, 3),
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1586,7 +1586,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           "function(row, data) {",
                                           "var full_text = 'This row values extracted from ' + data[8] +  ' year'",
                                           "$('td', row).attr('title', full_text);",
-                                          "console.log(data)",
+                                          
                                           "}"),
                                         rowsGroup = list(0, 1), # merge cells of column 1, 2
                                         dom='Bfrti',
@@ -1669,7 +1669,6 @@ mod_infrasap_tab_module_server <- function(id){
                                             "function(row, data) {",
                                             "var full_text = 'This row values extracted from ' + data[10] +  ' year'",
                                             "$('td', row).attr('title', full_text);",
-                                            "console.log(data)",
                                             "}"),
                                           rowsGroup = list(0, 1), # merge cells of column 1, 2
                                           dom='Bfrti',
@@ -1685,7 +1684,7 @@ mod_infrasap_tab_module_server <- function(id){
                                         ),
                                         selection = 'none'
                 ) %>% DT::formatStyle(
-                  names(infrasap_table())[11], 'year_tooltip',
+                  cols[11], 'year_tooltip',
                   backgroundColor = DT::styleEqual(
                     c(0, 1, 2, 3),
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1713,19 +1712,19 @@ mod_infrasap_tab_module_server <- function(id){
               }
               
               dtable <- dtable %>% DT::formatStyle(
-                names(infrasap_table())[5],'value_c1',
+                cols[5],'value_c1',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                 )
               ) %>% DT::formatStyle(
-                names(infrasap_table())[7],'value_c2',
+                cols[6],'value_c2',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                 )
               ) %>% DT::formatStyle(
-                names(infrasap_table())[9],'value_c3',
+                cols[7],'value_c3',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1742,7 +1741,7 @@ mod_infrasap_tab_module_server <- function(id){
                                               "function(row, data) {",
                                               "var full_text = 'This row values extracted from ' + data[8] +  ' year'",
                                               "$('td', row).attr('title', full_text);",
-                                              "console.log(data)",
+                                              
                                               "}"),
                                             rowsGroup = list(0, 1), # merge cells of column 1, 2
                                             dom='Bfrti',
@@ -1758,7 +1757,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           ),
                                           selection = 'none'
                   ) %>% DT::formatStyle(
-                    names(infrasap_table())[8],'year_tooltip',
+                    cols[8],'year_tooltip',
                     backgroundColor = DT::styleEqual(
                       c(0, 1, 2, 3),
                       c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1788,13 +1787,13 @@ mod_infrasap_tab_module_server <- function(id){
                 }
                 
                 dtable <-  dtable %>% DT::formatStyle(
-                  names(infrasap_table())[5],'value_c1',
+                  cols[5],'value_c1',
                   backgroundColor = DT::styleEqual(
                     c(0, 1, 2, 3),
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                   )
                 ) %>% DT::formatStyle(
-                  names(infrasap_table())[7],'value_c2',
+                  cols[6],'value_c2',
                   backgroundColor = DT::styleEqual(
                     c(0, 1, 2, 3),
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1811,7 +1810,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "function(row, data) {",
                                                 "var full_text = 'This row values extracted from ' + data[6] +  ' year'",
                                                 "$('td', row).attr('title', full_text);",
-                                                "console.log(data)",
+                                                
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom = 'Bfrti',
@@ -1849,7 +1848,7 @@ mod_infrasap_tab_module_server <- function(id){
                   }
                   
                   dtable <- dtable %>% DT::formatStyle(
-                    names(infrasap_table())[5],'value_c1',
+                    cols[5],'value_c1',
                     backgroundColor = DT::styleEqual(
                       c(0, 1, 2, 3),
                       c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1866,7 +1865,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "function(row, data) {",
                                                 "var full_text = 'This row values extracted from ' + data[3] +  ' year'",
                                                 "$('td', row).attr('title', full_text);",
-                                                "console.log(data)",
+                                                
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
@@ -1883,7 +1882,7 @@ mod_infrasap_tab_module_server <- function(id){
                                             selection = 'none',
                                             escape = FALSE
                     ) %>% DT::formatStyle(
-                      names(infrasap_table())[6],'value',
+                      cols[6],'value',
                       backgroundColor = DT::styleEqual(
                         c(0, 1, 2, 3),
                         c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1898,7 +1897,6 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "function(row, data) {",
                                                 "var full_text = 'This rows values are :' + data[0] + ',' + data[1] + '...'",
                                                 "$('td', row).attr('title', full_text);",
-                                                "console.log(data)",
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
@@ -1915,7 +1913,7 @@ mod_infrasap_tab_module_server <- function(id){
                                             selection = 'none',
                                             escape = FALSE
                     ) %>% DT::formatStyle(
-                      names(infrasap_table())[5],'value',
+                      cols[5],'value',
                       backgroundColor = DT::styleEqual(
                         c(0, 1, 2, 3),
                         c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1945,7 +1943,6 @@ mod_infrasap_tab_module_server <- function(id){
                                             "function(row, data) {",
                                             "var full_text = 'This row values extracted from ' + data[5] +  ' year'", #from year_tooltip columns
                                             "$('td', row).attr('title', full_text);",
-                                            "console.log(data)",
                                             "}"),
                                           rowsGroup = list(0, 1), # merge cells of column 1, 2
                                           dom='Bfrti',
@@ -1961,7 +1958,7 @@ mod_infrasap_tab_module_server <- function(id){
                                         ),
                                         selection = 'none'
                 ) %>% DT::formatStyle(
-                 names(infrasap_table())[12], 'year_tooltip',
+                 cols[12], 'year_tooltip',
                  backgroundColor = DT::styleEqual(
                    c(0, 1, 2, 3),
                    c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -1987,27 +1984,26 @@ mod_infrasap_tab_module_server <- function(id){
                                         selection = 'none'
                 )
               }
-              
               dtable <- dtable %>% DT::formatStyle(
-                names(infrasap_table())[5],'value',
+                cols[5],'value',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                 )
               ) %>% DT::formatStyle(
-                names(infrasap_table())[7],'value_c1',
+                cols[7],'value_c1',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                 )
               ) %>% DT::formatStyle(
-                names(infrasap_table())[9],'value_c2',
+                cols[8],'value_c2',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                 )
               ) %>% DT::formatStyle(
-                names(infrasap_table())[11],'value_c3',
+                cols[9],'value_c3',
                 backgroundColor = DT::styleEqual(
                   c(0, 1, 2, 3),
                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -2025,7 +2021,7 @@ mod_infrasap_tab_module_server <- function(id){
                                               "function(row, data) {",
                                               "var full_text = 'This row values extracted from ' + data[5] +  ' year'",
                                               "$('td', row).attr('title', full_text);",
-                                              "console.log(data)",
+                                              
                                               "}"),
                                             rowsGroup = list(0, 1), # merge cells of column 1, 2
                                             dom='Bfrti',
@@ -2041,7 +2037,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           ),
                                           selection = 'none'
                   ) %>% DT::formatStyle(
-                    names(infrasap_table())[10],'year_tooltip',
+                    cols[10],'year_tooltip',
                     backgroundColor = DT::styleEqual(
                       c(0, 1, 2, 3),
                       c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -2071,19 +2067,19 @@ mod_infrasap_tab_module_server <- function(id){
                 }
                 
                 dtable <-  dtable %>% DT::formatStyle(
-                  names(infrasap_table())[5],'value',
+                  cols[5],'value',
                   backgroundColor = DT::styleEqual(
                     c(0, 1, 2, 3),
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                   )
                 ) %>% DT::formatStyle(
-                  names(infrasap_table())[7],'value_c1',
+                  cols[7],'value_c1',
                   backgroundColor = DT::styleEqual(
                     c(0, 1, 2, 3),
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                   )
                 ) %>% DT::formatStyle(
-                  names(infrasap_table())[9],'value_c2',
+                  cols[8],'value_c2',
                   backgroundColor = DT::styleEqual(
                     c(0, 1, 2, 3),
                     c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -2101,7 +2097,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "function(row, data) {",
                                                 "var full_text = 'This row values extracted from ' + data[5] +  ' year'",
                                                 "$('td', row).attr('title', full_text);",
-                                                "console.log(data)",
+                                                
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom = 'Bfrti',
@@ -2139,13 +2135,13 @@ mod_infrasap_tab_module_server <- function(id){
                   }
                   
                   dtable <- dtable %>% DT::formatStyle(
-                    names(infrasap_table())[5],'value',
+                    cols[5],'value',
                     backgroundColor = DT::styleEqual(
                       c(0, 1, 2, 3),
                       c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                     )
                   ) %>% DT::formatStyle(
-                    names(infrasap_table())[7],'value_c1',
+                    cols[7],'value_c1',
                     backgroundColor = DT::styleEqual(
                       c(0, 1, 2, 3),
                       c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
@@ -2162,7 +2158,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "function(row, data) {",
                                                 "var full_text = 'This row values extracted from ' + data[3] +  ' year'",
                                                 "$('td', row).attr('title', full_text);",
-                                                "console.log(data)",
+                                                
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
@@ -2194,7 +2190,7 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "function(row, data) {",
                                                 "var full_text = 'This rows values are :' + data[0] + ',' + data[1] + '...'",
                                                 "$('td', row).attr('title', full_text);",
-                                                "console.log(data)",
+                                                
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
@@ -2211,7 +2207,7 @@ mod_infrasap_tab_module_server <- function(id){
                                             selection = 'none',
                                             escape = FALSE
                     ) %>% DT::formatStyle(
-                      names(infrasap_table())[5],'value',
+                      cols[5],'value',
                       backgroundColor = DT::styleEqual(
                         c(0, 1, 2, 3),
                         c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
