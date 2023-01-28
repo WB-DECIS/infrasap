@@ -1020,7 +1020,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 "Data: ", as.character(df$Grouping),"<br>",
                 sep="") %>%
                 lapply(htmltools::HTML)
-              col_pal <- get_color(df$Grouping)
+              col_pal <- get_colors(df$Grouping)
               if(length(unique(df$key))<=4){
                 p <- indicator_trend_plot1(df, 'Grouping', col_pal, y_axis, plot_title, mytext, 'theme1')
               } else {

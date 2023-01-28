@@ -12,3 +12,4 @@ $run_dev.*
 ^rsconnect$
 ^LICENSE\.md$
 ^infrasap_pillar_table_pdf
+^data-ddh$
