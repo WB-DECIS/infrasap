@@ -1001,7 +1001,6 @@ mod_infrasap_tab_module_server <- function(id){
             df_i <- case_when_for_value_setting(df_i, cn, IncomeGroup, value_i)
             
             if(!is.null(input$country_to_compare_id)){
-              
               # get infrasap data based on inputs to get the benchmark type and join
               df_cn <- infrasap_dat_mod_modified %>%
                 dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
@@ -1010,7 +1009,7 @@ mod_infrasap_tab_module_server <- function(id){
                 dplyr::select(.data$`Country Name`, .data$`Indicator Name`, yr) %>%
                 tidyr::pivot_wider(
                   names_from = .data$`Country Name`,
-                  values_from = .data$yr
+                  values_from = .data[[yr]]
                 )
               df_i <- df_i %>%
                 dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
@@ -1734,7 +1733,6 @@ mod_infrasap_tab_module_server <- function(id){
               )
             } else {
               if(length(input$country_to_compare_id) == 2){
-                
                 if(input$db_year == "Latest year available"){
                   dtable <- DT::datatable(infrasap_table(),
                                           rownames = FALSE,
@@ -1817,7 +1815,6 @@ mod_infrasap_tab_module_server <- function(id){
                                                 "}"),
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom = 'Bfrti',
-                                              #columnDefs = list(list(visible=FALSE, targets=c(5, 6))),
                                               columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
@@ -1837,7 +1834,6 @@ mod_infrasap_tab_module_server <- function(id){
                                             options = list(
                                               rowsGroup = list(0, 1), # merge cells of column 1, 2
                                               dom='Bfrti',
-                                              #columnDefs = list(list(visible=FALSE, targets=c(5))),
                                               columnDefs = list(list(visible=FALSE, targets=rm_cols)),
                                               pageLength = -1,
                                               ordering=F,
@@ -2027,7 +2023,7 @@ mod_infrasap_tab_module_server <- function(id){
                                           options = list(
                                             rowCallback = DT::JS(
                                               "function(row, data) {",
-                                              "var full_text = 'This row values extracted from ' + data[10] +  ' year'",
+                                              "var full_text = 'This row values extracted from ' + data[5] +  ' year'",
                                               "$('td', row).attr('title', full_text);",
                                               "console.log(data)",
                                               "}"),
@@ -2096,13 +2092,14 @@ mod_infrasap_tab_module_server <- function(id){
               } else {
                 if(length(input$country_to_compare_id) == 1){
                   if(input$db_year == "Latest year available"){
+                    
                     dtable <- DT::datatable(infrasap_table(),
                                             rownames = FALSE,
                                             extensions = 'Buttons',
                                             options = list(
                                               rowCallback = DT::JS(
                                                 "function(row, data) {",
-                                                "var full_text = 'This row values extracted from ' + data[8] +  ' year'",
+                                                "var full_text = 'This row values extracted from ' + data[5] +  ' year'",
                                                 "$('td', row).attr('title', full_text);",
                                                 "console.log(data)",
                                                 "}"),
