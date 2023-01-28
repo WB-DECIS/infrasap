@@ -515,8 +515,6 @@ mod_infrasap_tab_module_server <- function(id){
             if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
             }
-            
-            return(df)
 
           } else {
             
@@ -702,7 +700,6 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
-              return(df)
             } else {
               
               yr <- as.character(get_last_year(cn, sc, bm))
@@ -908,7 +905,6 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
-              return(df)
             }
           }
         } else {
@@ -1088,8 +1084,6 @@ mod_infrasap_tab_module_server <- function(id){
               df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
             }
             
-            return(df)
-            
           } else {
             
             if(length(input$db_benchmark) == 0 & is.null(input$db_benchmark)) {
@@ -1204,7 +1198,6 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
-              return(df)
             } else {
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
@@ -1328,11 +1321,11 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
-              return(df)
             }
           }
         } # End else `if not latest year selected`
       } # end else `if is not null`
+      return(df %>% arrange(`Sub-Pillar`, Topic, Indicator))
     })
     
     observe({
@@ -1353,14 +1346,18 @@ mod_infrasap_tab_module_server <- function(id){
       }
     })
     
+    columns_to_remove <- c('value_r', 'value_i', 'value_c1', 'value_c2', 'value_c3', 'year_tooltip', 'value')
+    
     # Render the table with the traffic light
     output$db_table <- DT::renderDataTable({
       if(is.null(infrasap_table())){
         NULL
       } else {
+        cols <- names(infrasap_table())
         if(length(input$db_benchmark) == 2) {
           if(length(input$country_to_compare_id) == 3){
             if(input$db_year == "Latest year available"){
+              #browser()
               dtable <- DT::datatable(infrasap_table(),
                                   extensions = 'Buttons',
                                   rownames = FALSE,
@@ -1373,7 +1370,7 @@ mod_infrasap_tab_module_server <- function(id){
                                       "}"),
                                     rowsGroup = list(0, 1), # merge cells of column 1, 2
                                     dom='Bfrti',
-                                    columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11, 13, 14))),
+                                    columnDefs = list(list(visible=FALSE, targets = intersect(cols, columns_to_remove))),
                                     pageLength = -1,
                                     ordering=F,
                                     buttons = list(
@@ -1949,7 +1946,7 @@ mod_infrasap_tab_module_server <- function(id){
                                             "}"),
                                           rowsGroup = list(0, 1), # merge cells of column 1, 2
                                           dom='Bfrti',
-                                          columnDefs = list(list(visible=FALSE, targets=c(5, 7, 9, 11, 12))),
+                                          columnDefs = list(list(visible=FALSE, targets=intersect(cols, columns_to_remove))),
                                           pageLength = -1,
                                           ordering=F,
                                           buttons = list(
@@ -1961,11 +1958,11 @@ mod_infrasap_tab_module_server <- function(id){
                                         ),
                                         selection = 'none'
                 ) %>% DT::formatStyle(
-                  names(infrasap_table())[12], 'year_tooltip',
-                  backgroundColor = DT::styleEqual(
-                    c(0, 1, 2, 3),
-                    c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
-                  )
+                 names(infrasap_table())[12], 'year_tooltip',
+                 backgroundColor = DT::styleEqual(
+                   c(0, 1, 2, 3),
+                   c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
+                 )
                 )
               } else {
                 dtable <- DT::datatable(infrasap_table(),
@@ -2220,7 +2217,7 @@ mod_infrasap_tab_module_server <- function(id){
                 }
               }
             }
-            
+            #browser()
             dep <- htmltools::htmlDependency(
               "RowsGroup", "2.0.0",
               src = c(href = 'www'), script = "script.js", package = 'infrasap')
