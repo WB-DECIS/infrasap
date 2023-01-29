@@ -1963,7 +1963,7 @@ mod_infrasap_tab_module_server <- function(id){
                    c(0, 1, 2, 3),
                    c('#d3d3d370', '#fb9494', '#ffff6b', '#9be27d')
                  )
-                )
+                ) 
               } else {
                 dtable <- DT::datatable(infrasap_table(),
                                         rownames = FALSE,
@@ -2221,12 +2221,16 @@ mod_infrasap_tab_module_server <- function(id){
             dep <- htmltools::htmlDependency(
               "RowsGroup", "2.0.0",
               src = c(href = 'www'), script = "script.js", package = 'infrasap')
-            
             dtable$dependencies <- c(dtable$dependencies, list(dep))
             dtable
           }
         }
       }
+      dtable <- dtable %>%
+        #Thousand number separator for all country columns
+        #Apply it to intersection of columns in the data and the ones coming from dropdown
+        DT::formatCurrency(columns = intersect(cols, unique(infrasap::dat$`Country Name`)), currency = "", interval = 3, mark = ",")
+      dtable
     })
 
     output$report_pdf <- shiny::downloadHandler(
