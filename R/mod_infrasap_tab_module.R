@@ -265,7 +265,8 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             # get benchmark type for benchmark selected
-            bm_type <- unique(df_r[, "Region"])
+            #This should be a vector and not dataframe/tibble
+            bm_type <- unique(df_r[["Region"]])
             
             # get benchmark data based on inputs
             df_r <- infrsap_dat_bm_mod_modfied %>%
@@ -369,7 +370,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             
             # get benchmark type for benchmark selected
-            bm_type <- unique(df_i[, "IncomeGroup"])
+            bm_type <- unique(df_i[["IncomeGroup"]])
             
             # get benchmark data based on inputs
             df_i <- infrsap_dat_bm_mod_modfied %>%
@@ -751,8 +752,8 @@ mod_infrasap_tab_module_server <- function(id){
               df_years_col <- df %>% dplyr::select(.data$`Indicator Name`, .data$`year_pop`)
               
               # get benchmark type for benchmark selected
-              bm_type <- unique(df[, bm])
-              
+              #This should be a vector and not a dataframe/tibble
+              bm_type <- unique(df[[bm]])
               # get benchmark data based on inputs
               df <- infrsap_dat_bm_mod_modfied %>%
                 dplyr::filter(.data$Grouping == bm_type) %>%
@@ -918,7 +919,7 @@ mod_infrasap_tab_module_server <- function(id){
               dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`, yr, .data$`Region`)
             
             # get benchmark type for benchmark selected
-            bm_type <- unique(df_r[, "Region"])
+            bm_type <- unique(df_r[["Region"]])
             
             # get benchmark data based on inputs
             df_r <- infrsap_dat_bm_mod_modfied %>%
@@ -976,7 +977,7 @@ mod_infrasap_tab_module_server <- function(id){
               dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`, yr, .data$`IncomeGroup`)
             
             # get benchmark type for benchmark selected
-            bm_type <- unique(df_i[, "IncomeGroup"])
+            bm_type <- unique(df_i[["IncomeGroup"]])
             
             # get benchmark data based on inputs
             df_i <- infrsap_dat_bm_mod_modfied %>%
@@ -1206,7 +1207,7 @@ mod_infrasap_tab_module_server <- function(id){
                 dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`,yr, bm )
               
               # get benchmark type for benchmark selected
-              bm_type <- unique(df[, bm])
+              bm_type <- unique(df[[bm]])
               
               # get benchmark data based on inputs
               df <- infrsap_dat_bm_mod_modfied %>%
