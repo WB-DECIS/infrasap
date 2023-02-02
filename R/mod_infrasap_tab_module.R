@@ -2228,9 +2228,8 @@ mod_infrasap_tab_module_server <- function(id){
         }
       }
       dtable <- dtable %>%
-        #Thousand number separator for all country columns
-        #Apply it to intersection of columns in the data and the ones coming from dropdown
-        DT::formatCurrency(columns = intersect(cols, unique(infrasap::dat$`Country Name`)), currency = "", interval = 3, mark = ",")
+        #Thousand number separator for columns to compare along with benchmark
+        DT::formatCurrency(columns = c(input$country_to_compare_id, input$db_benchmark, input$db_country), currency = "", interval = 3, mark = ",")
       dtable
     })
 
