@@ -118,21 +118,18 @@ case_when_for_value_setting <- function(dat, cn, col, new_col) {
 }
 
 
-case_when_for_value_setting_chr <- function(dat, cn, col, new_col) {
+case_when_for_value_setting_chr <- function(dat, cn, col, new_col, tab = 'infrasap') {
+  if(tab == 'scd') new_col <- as.character(new_col)
   dat %>%
     dplyr::mutate({{new_col}} := dplyr::case_when(
-      .data[[cn]] >= .data[[col]] & .data$`Type of Benchmark` == "Upper" ~ "3",
-      .data[[cn]] >= (.data[[col]] * 0.9) & .data[[cn]] < .data[[col]] & .data$`Type of Benchmark` == "Upper" ~ "2",
-      .data[[cn]] < (.data[[col]] * 0.9) & .data$`Type of Benchmark` == "Upper" ~ "1",
-      .data[[cn]] <= .data[[col]] & .data$`Type of Benchmark` == "Lower" ~ "3",
-      .data[[cn]] <= (.data[[col]] * 1.1) & .data[[cn]] > .data[[col]] & .data$`Type of Benchmark` == "Lower" ~ "2",
-      .data[[cn]] > (.data[[col]] * 1.1) & (.data$`Type of Benchmark` == "Lower") ~ "1",
-      TRUE ~ "0"), 
-      # Fill NAs with grey color
-      {{new_col}} := as.numeric(dplyr::case_when(
-        is.na(.data[[cn]]) ~ "0",
-        TRUE ~ {{new_col}}
-      )))
+      .data[[cn]] >= .data[[col]] & .data$`Type of Benchmark` == "Upper" ~ 3,
+      .data[[cn]] >= (.data[[col]] * 0.9) & .data[[cn]] < .data[[col]] & .data$`Type of Benchmark` == "Upper" ~ 2,
+      .data[[cn]] < (.data[[col]] * 0.9) & .data$`Type of Benchmark` == "Upper" ~ 1,
+      .data[[cn]] <= .data[[col]] & .data$`Type of Benchmark` == "Lower" ~ 3,
+      .data[[cn]] <= (.data[[col]] * 1.1) & .data[[cn]] > .data[[col]] & .data$`Type of Benchmark` == "Lower" ~ 2,
+      .data[[cn]] > (.data[[col]] * 1.1) & (.data$`Type of Benchmark` == "Lower") ~ 1,
+      TRUE ~ 0))
+  #NA's are automatically assigned TRUE value i.e 0
 }
 
 

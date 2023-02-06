@@ -187,19 +187,17 @@ mod_scd_tab_module_server <- function(id){
       cnames <- sort(unique(df$`Country Name`))
       
       # get all countries 
-      all_cnames <- sort(unique(infrasap::dat$`Country Name`))
+      all_cnames <- trimws(infrasap::dat$`Country Name`[!duplicated(infrasap::dat$`Country Code`)])
       
-      # remove region names fro all countries
-      all_cnames <- all_cnames[!all_cnames %in% cnames]
+      # remove region names from all countries
+      all_cnames <- setdiff(all_cnames, cnames)
       
       # combine region on top of all names 
-      cnames <- c(cnames, all_cnames)
-      
+      #cnames <- c(cnames, all_cnames)
       
       shiny::selectizeInput(inputId = ns('scd_countries'),
                              label = 'Select countries for comparison',
-                             choices = cnames[cnames != input$scd_country],
-                             selected = cnames[1],
+                             choices = all_cnames[all_cnames != input$scd_country],
                              multiple = TRUE,
                              options = list(
                                maxItems = 5,
@@ -449,28 +447,14 @@ mod_scd_tab_module_server <- function(id){
       
       
       if((!is.null(cc)) && (length(cc) > 0)){
-        # map(1:length(cc), function(x){
         purrr::map(1:length(input$scd_countries), function(x){
-          df <<- scd_color_encode(df = df, 
-                                  value = stringr::str_glue('value_c{x}'), 
-                                  cn = input$scd_country,
-                                  bm = input$scd_countries[x]
-                                  # cn = cn, 
-                                  # bm = bm[x]
-                                  )
+          df <<- case_when_for_value_setting_chr(df, input$scd_country, input$scd_countries[x], paste0('value_c', x), tab = 'scd')
         })
       }
       
       if((!is.null(bm)) && (length(bm) > 0)){
-        # map(1:length(bm), function(x){
         purrr::map(1:length(input$scd_benchmark), function(x){
-          df <<- scd_color_encode(df = df, 
-                                  value = stringr::str_glue('value_b{x}'), 
-                                  cn = input$scd_country,
-                                  bm = input$scd_benchmark[x]
-                                  # cn = cn, 
-                                  # bm = bm[x]
-                                  )
+          df <<- case_when_for_value_setting_chr(df, input$scd_country, input$scd_benchmark[x],paste0('value_b', x), tab = 'scd')
         })
       }
       
