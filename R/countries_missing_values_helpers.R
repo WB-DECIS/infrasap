@@ -253,7 +253,7 @@ country_to_compare_scd <- function(countryName, available_years_in_use, df_years
   })[length(available_years_in_use)]
   
   df_cn <- temp %>% data.frame()
-  
+
   df_cn <- df_cn %>% dplyr::select(-dplyr::contains(available_years_in_use)) %>%
     dplyr::rename(
       `Country Name` = .data$Country.Name,
@@ -261,7 +261,7 @@ country_to_compare_scd <- function(countryName, available_years_in_use, df_years
     )  %>%
     tidyr::pivot_wider(
       names_from = .data$`Country Name`,
-      values_from = .data$year_pop
+      values_from = .data$year_pop, values_fn = list
     )
   
   return(df_cn)

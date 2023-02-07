@@ -285,6 +285,7 @@ mod_scd_tab_module_server <- function(id){
           dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
           )
       })[length(available_years_in_use)]
+      
       df <- df %>%
         dplyr::rename(
           !!col_sym_conv((df %>% dplyr::select(.data$`Country Name`) %>% dplyr::pull() %>% unique())) := !!col_sym_conv(stringr::str_glue("{yr}.y"))
@@ -313,7 +314,6 @@ mod_scd_tab_module_server <- function(id){
           df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], replace_null_to_na)
           df_cn[cc[1]][[1]] <- lapply(df_cn[cc[1]][[1]], `[[`, 1)
           df_cn[cc[1]][[1]] <- as.numeric(df_cn[cc[1]][[1]])
-          
         }
         
         if(length(cc) == 2) {
