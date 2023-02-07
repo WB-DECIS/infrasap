@@ -16,18 +16,19 @@ table > thead {
     color: white !important;
 }
 
+
 table.dataTable thead .sorting {
-    background-image: url(img/arrows.png) !important;
+    /*background-image: url(img/arrows.png) !important;*/
     background-size: 15px !important;
 }
 
 table.dataTable thead .sorting_asc {
-    background-image: url(img/arrow_up.png) !important;
+    /*background-image: url(img/arrow_up.png) !important;*/
     background-size: 15px !important;
 }
 
 table.dataTable thead .sorting_desc {
-    background-image: url(img/arrow_down.png) !important;
+    /*background-image: url(img/arrow_down.png) !important;*/
     background-size: 15px !important;
 }
 
