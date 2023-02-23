@@ -704,6 +704,7 @@ mod_infrasap_tab_module_server <- function(id){
             } else {
               
               yr <- as.character(get_last_year(cn, sc, bm))
+              #browser()
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
                 # dplyr::filter(`Country Name` == "Kenya") %>%
