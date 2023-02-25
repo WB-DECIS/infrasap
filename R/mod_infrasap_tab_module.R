@@ -704,7 +704,6 @@ mod_infrasap_tab_module_server <- function(id){
             } else {
               
               yr <- as.character(get_last_year(cn, sc, bm))
-              #browser()
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
                 # dplyr::filter(`Country Name` == "Kenya") %>%
@@ -714,87 +713,86 @@ mod_infrasap_tab_module_server <- function(id){
                 dplyr::filter(.data$`Indicator Pillar` == pi) %>%
                 # dplyr::filter(`Indicator Pillar` == "Finance") %>%
                 dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`,yr, bm )
-
-              available_years <- c()
-              if(as.numeric(yr) == 2015) {
-                range <- c(as.numeric(2015))
-              } else {
-                range <- c((as.numeric(yr) - 1):(as.numeric(2015)))
-              }
-              
-              range <- as.character(range)
-              
-              df <- df %>%
-                dplyr::mutate(
-                  year_pop = dplyr::if_else(!is.na(!!col_sym_conv(yr)), as.numeric(yr), !!col_sym_conv(yr))
-                )
-              
-              a <- purrr::map(1:length(range), function(x){
-                df <<- fill_missing_values_in_years(df = df,
-                                                    based_year = yr,
-                                                    year_step_back = range[x],
-                                                    country = cn,
-                                                    sector = sc,
-                                                    pillar = pi)
-              })[[length(range)]]
-
-              df <- df %>% dplyr::mutate(year_tooltip = .data$year_pop)
-              
-              # Years to delete
-              available_years <- as.character(
-                as.numeric(range)[!(as.numeric(range) %in% unique(df$year_pop))]
-              )
-              
-              # Years in use
-              available_years_in_use <- as.character(unique(df$year_pop))
-              available_years_in_use <- available_years_in_use[!is.na(available_years_in_use)]
-              yr <- as.character(max(unique(df$year_pop), na.rm = TRUE))
-              
-              df_years_col <- df %>% dplyr::select(.data$`Indicator Name`, .data$`year_pop`)
-              
-              # get benchmark type for benchmark selected
-              #This should be a vector and not a dataframe/tibble
-              bm_type <- unique(df[[bm]])
-              # get benchmark data based on inputs
-              df <- infrsap_dat_bm_mod_modfied %>%
-                dplyr::filter(.data$Grouping == bm_type) %>%
-                dplyr::filter(.data$`Sector` %in% sc) %>%
-                dplyr::select(.data$`Indicator`, available_years_in_use) %>%
-                dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
-
-              df <- df %>% dplyr::select(-available_years)
-
-              purrr::map(1:length(available_years_in_use), function(b){
-                df <<- df %>%
-                  dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
+              if(NROW(df) > 0) {
+                available_years <- c()
+                if(as.numeric(yr) == 2015) {
+                  range <- c(as.numeric(2015))
+                } else {
+                  range <- c((as.numeric(yr) - 1):(as.numeric(2015)))
+                }
+                
+                range <- as.character(range)
+                
+                df <- df %>%
+                  dplyr::mutate(
+                    year_pop = dplyr::if_else(!is.na(!!col_sym_conv(yr)), as.numeric(yr), !!col_sym_conv(yr))
                   )
-              })[length(available_years_in_use)]
-              
-              df <- df %>% dplyr::select(-bm)
-              
-              # Find the column where the latest year value saved 
-              yr_max_column <- year_max_column(df, 2020:2015)
-              
-              df <- df %>% dplyr::rename(
-                # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
-                !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
-                !!col_sym_conv(bm) := .data$`year_pop`
-              ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y")) 
-              
-              # get names of the two columns to compare
-              bm_col <- names(df)[grepl('.x', names(df), fixed = TRUE)]
-              data_col <- names(df)[grepl('.y', names(df), fixed = TRUE)]
-              
-              # rename columns in data
-              names(df)[names(df)==bm_col] <- bm
-              names(df)[names(df)==data_col] <- cn
-              
-              # for now (will get more data later), fill NA or ambigious in type of benchmark with Upper
-              df$`Type of Benchmark`[is.na(df$`Type of Benchmark`)] <- 'Upper'
-              df$`Type of Benchmark`[df$`Type of Benchmark` =='Ambiguous'] <- 'Upper'
-              
+                
+                a <- purrr::map(1:length(range), function(x){
+                  df <<- fill_missing_values_in_years(df = df,
+                                                      based_year = yr,
+                                                      year_step_back = range[x],
+                                                      country = cn,
+                                                      sector = sc,
+                                                      pillar = pi)
+                })[[length(range)]]
+  
+                df <- df %>% dplyr::mutate(year_tooltip = .data$year_pop)
+                
+                # Years to delete
+                available_years <- as.character(
+                  as.numeric(range)[!(as.numeric(range) %in% unique(df$year_pop))]
+                )
+                
+                # Years in use
+                available_years_in_use <- as.character(unique(df$year_pop))
+                available_years_in_use <- available_years_in_use[!is.na(available_years_in_use)]
+                yr <- as.character(max(unique(df$year_pop), na.rm = TRUE))
+                
+                df_years_col <- df %>% dplyr::select(.data$`Indicator Name`, .data$`year_pop`)
+                
+                # get benchmark type for benchmark selected
+                #This should be a vector and not a dataframe/tibble
+                bm_type <- unique(df[[bm]])
+                # get benchmark data based on inputs
+                df <- infrsap_dat_bm_mod_modfied %>%
+                  dplyr::filter(.data$Grouping == bm_type) %>%
+                  dplyr::filter(.data$`Sector` %in% sc) %>%
+                  dplyr::select(.data$`Indicator`, available_years_in_use) %>%
+                  dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
+  
+                df <- df %>% dplyr::select(-available_years)
+  
+                purrr::map(1:length(available_years_in_use), function(b){
+                  df <<- df %>%
+                    dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
+                    )
+                })[length(available_years_in_use)]
+                
+                df <- df %>% dplyr::select(-bm)
+                
+                # Find the column where the latest year value saved 
+                yr_max_column <- year_max_column(df, 2020:2015)
+                
+                df <- df %>% dplyr::rename(
+                  # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
+                  !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
+                  !!col_sym_conv(bm) := .data$`year_pop`
+                ) %>% dplyr::select(-dplyr::contains(".x"), -dplyr::contains(".y")) 
+                
+                # get names of the two columns to compare
+                bm_col <- names(df)[grepl('.x', names(df), fixed = TRUE)]
+                data_col <- names(df)[grepl('.y', names(df), fixed = TRUE)]
+                
+                # rename columns in data
+                names(df)[names(df)==bm_col] <- bm
+                names(df)[names(df)==data_col] <- cn
+                
+                # for now (will get more data later), fill NA or ambigious in type of benchmark with Upper
+                df$`Type of Benchmark`[is.na(df$`Type of Benchmark`)] <- 'Upper'
+                df$`Type of Benchmark`[df$`Type of Benchmark` =='Ambiguous'] <- 'Upper'
               # Countries list to compare
-              if(!is.null(input$country_to_compare_id)){
+              if(!is.null(input$country_to_compare_id)) {
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
                   dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
@@ -802,7 +800,6 @@ mod_infrasap_tab_module_server <- function(id){
                   dplyr::filter(.data$`Indicator Pillar` == pi) %>%
                   dplyr::select(.data$`Country Name`, .data$`Indicator Name`, available_years_in_use) %>%
                   dplyr::select(-c(.data$`Country Name`, available_years_in_use))
-
                 if(length(input$country_to_compare_id) == 1) {
                   df_cn <- df_cn %>% dplyr::full_join(
                     country_to_compare(input$country_to_compare_id[1], sc, pi, available_years_in_use, df_years_col)
@@ -830,6 +827,7 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- df %>%
                   dplyr::left_join(df_cn, by = c('Indicator'='Indicator Name'))
               }
+              
               df <- case_when_for_value_setting_chr(df, cn, bm, value)
               
               # Country to compare equals 1 
@@ -907,6 +905,7 @@ mod_infrasap_tab_module_server <- function(id){
               if(input$db_sector %in% c('Transport') && input$db_pillar %in% c('Finance')) {
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
+            }
             }
           }
         } else {
@@ -1326,7 +1325,10 @@ mod_infrasap_tab_module_server <- function(id){
           }
         } # End else `if not latest year selected`
       } # end else `if is not null`
-      return(df %>% arrange(`Sub-Pillar`, Topic, Indicator))
+      if(NROW(df) > 0) {
+        return(df %>% arrange(`Sub-Pillar`, Topic, Indicator))  
+      }
+      
     })
     
     observe({
@@ -2228,10 +2230,12 @@ mod_infrasap_tab_module_server <- function(id){
           }
         }
       }
+      if(exists('dtable')) {
       dtable <- dtable %>%
         #Thousand number separator for columns to compare along with benchmark
         DT::formatCurrency(columns = c(input$country_to_compare_id, input$db_benchmark, input$db_country), currency = "", interval = 3, mark = ",")
-      dtable
+      return(dtable)
+      }
     })
 
     output$report_pdf <- shiny::downloadHandler(
