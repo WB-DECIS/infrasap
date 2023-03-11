@@ -1337,16 +1337,11 @@ mod_infrasap_tab_module_server <- function(id){
         dplyr::filter(.data$`Indicator Sector` %in% input$db_sector) %>%
         dplyr::filter(.data$`Indicator Pillar` == input$db_pillar) 
       
-      if(nrow(df_length_check) < 1) {
         output$emptyDataTableMSG <- shiny::renderUI({
+          if(nrow(df_length_check) < 1) {
             htmltools::tagList(shiny::h3(class = "header-style-no-data", "No data available"))
-          
+          } else NULL    
         })
-      } else {
-        output$emptyDataTableMSG <- shiny::renderUI({
-          NULL
-        })
-      }
     })
     
     
