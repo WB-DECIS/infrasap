@@ -103,6 +103,7 @@ year_max_column <- function(dat, year_vec) {
 case_when_for_value_setting <- function(dat, cn, col, new_col) {
   dat %>%
     dplyr::mutate({{new_col}} := dplyr::case_when(
+      round(.data[[cn]], 2) == round({{col}}, 2) ~ "2",
       .data[[cn]] >= {{col}} & .data$`Type of Benchmark` == "Upper" ~ "3",
       .data[[cn]] >= ({{col}} * 0.9) & .data[[cn]] < {{col}} & .data$`Type of Benchmark` == "Upper" ~ "2",
       .data[[cn]] < ({{col}} * 0.9) & .data$`Type of Benchmark` == "Upper" ~ "1",
@@ -122,6 +123,7 @@ case_when_for_value_setting_chr <- function(dat, cn, col, new_col, tab = 'infras
   if(tab == 'scd') new_col <- as.character(new_col)
   dat %>%
     dplyr::mutate({{new_col}} := dplyr::case_when(
+      round(.data[[cn]], 2) == round(.data[[col]], 2) ~ 2,
       .data[[cn]] >= .data[[col]] & .data$`Type of Benchmark` == "Upper" ~ 3,
       .data[[cn]] >= (.data[[col]] * 0.9) & .data[[cn]] < .data[[col]] & .data$`Type of Benchmark` == "Upper" ~ 2,
       .data[[cn]] < (.data[[col]] * 0.9) & .data$`Type of Benchmark` == "Upper" ~ 1,
