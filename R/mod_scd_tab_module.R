@@ -265,7 +265,6 @@ mod_scd_tab_module_server <- function(id){
       yr <- as.character(max(unique(df$year_pop), na.rm = TRUE))
       
       df_years_col <- df %>% dplyr::select(.data$`Indicator Name`, .data$`year_pop`)
-      #browser()
       # benchmark data 
       # TO DO ADD Benchmark length for multiple choices
       df <- infrasap::scd_bm %>% 
@@ -554,7 +553,7 @@ mod_scd_tab_module_server <- function(id){
                                              info = FALSE, 
                                              dom='Bfrti', 
                                              columnDefs = list(list(visible=FALSE,
-                                                                    targets=c(hiddenColNum, 0)
+                                                                    targets=c(hiddenColNum)
                                              )
                                              ),
                                              buttons = list(
