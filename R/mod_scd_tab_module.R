@@ -217,17 +217,12 @@ mod_scd_tab_module_server <- function(id){
       bm <- input$scd_benchmark
       cc <- input$scd_countries
       
-      # cn <- "Kenya"
-      # bm <- "East Asia & Pacific"
-      # cc <- c("Angola", "Belgium")
-      
       yr <- as.character(get_year_scd(cn = cn, bm = bm, year_position = "last"))
       
       # get data based on inputs
       # infrasap::scd_dat_names_unique %>% select(`Indicator Name`, `Indicator Sector`) %>% distinct()
       df <- infrasap::scd_dat %>% 
         dplyr::filter(.data$`Country Name`%in% cn) %>% 
-        # filter(`Indicator Sector` %in% sc) %>%
         dplyr::select(.data$`Country Name`,.data$`Indicator Name`, .data$`Type of Benchmark`, yr) 
       
         
@@ -486,8 +481,8 @@ mod_scd_tab_module_server <- function(id){
                                                                             'Governance',
                                                                             'Finance',
                                                                             'Climate change'))) %>%
-              dplyr::arrange(.data$`grouping`)
-      
+              dplyr::arrange(.data$`grouping`) %>%
+              dplyr::relocate(Year = year_tooltip, .before = input$scd_country)
       
       return(df)
       
@@ -512,8 +507,7 @@ mod_scd_tab_module_server <- function(id){
       df <- table_reactive()
       
       hiddenColNum <- c()
-      
-      # print(df)
+
 
       if(!is.null(bm)){
         purrr::map(1:length(input$scd_benchmark), function(x){
@@ -544,7 +538,7 @@ mod_scd_tab_module_server <- function(id){
                                              ordering = FALSE,
                                              rowCallback = DT::JS(
                                                "function(row, data) {",
-                                               "var full_text = 'This row values extracted from ' + data[0] +  ' year'",
+                                               "var full_text = 'This row values extracted from ' + data[2] +  ' year'",
                                                "$('td', row).attr('title', full_text);",
                                                "console.log(data)",
                                                "}"
@@ -590,6 +584,10 @@ mod_scd_tab_module_server <- function(id){
           )
         })
       }
+      
+      dtable <- dtable %>% DT::formatStyle(input$scd_country,
+                            backgroundColor = "#00a59b", color = "#ffffff", 
+                            `border-bottom` = "1px solid transparent", `border-top` = "1px solid transparent")
       
       
       

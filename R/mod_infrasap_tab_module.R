@@ -1347,6 +1347,7 @@ mod_infrasap_tab_module_server <- function(id){
     
     # Render the table with the traffic light
     output$db_table <- DT::renderDataTable({
+      req(input$country_to_compare_id)
       if(is.null(infrasap_table())){
         NULL
       } else {

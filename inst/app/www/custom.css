@@ -201,14 +201,6 @@ table.dataTable.no-footer {
 
 
 /* SCD TABLE  */
-#scd_table_style_id > #scd_tab-scd_table > div > table > tbody > tr > td:nth-child(3) {
-    background-color: #00a59b !important;
-    color: white !important;
-    border-top: 1px solid transparent !important;
-    border-bottom: 1px solid transparent !important;
-    border-left: 1px solid transparent !important;
-    border-right: 1px solid transparent !important;
-}
 
 #scd_tab-scd_table > div > table > tbody > tr > td:nth-child(4) {
     border-top: 1px solid transparent !important;
@@ -220,14 +212,6 @@ table.dataTable.no-footer {
 #scd_table_style_id > #scd_tab-scd_table > div > table > thead > tr > th:nth-child(3) {
     border-bottom: 1px solid transparent !important;
 }
-
-#scd_tab-scd_table > div > table > tbody > tr > td:nth-child(3) {
-    background: #00a59b !important;
-    color: #ffffff !important;
-    border-bottom: 1px solid transparent !important;
-    border-top: 1px solid transparent !important;
-}
-
 
 .dataTables_wrapper .dataTables_filter input {
     margin-left: 0.5em !important;
