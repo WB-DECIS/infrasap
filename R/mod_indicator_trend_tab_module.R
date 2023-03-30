@@ -1075,8 +1075,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
           } else if(nrow(df)==0){
             NULL
           } else {
-            # make value numeric
-            df$value <- round(as.numeric(df$value), 2)
+            num_cols <- unique(df$key)
             # spread data
             df <- df %>% tidyr::spread(key = 'key', value = 'value')
             DT::datatable(df,
@@ -1089,7 +1088,10 @@ mod_indicator_trend_tab_module_server <- function(id) {
                                          buttons = list('csv')
                           ),
                           selection = 'none'
-            )
+            ) %>%
+            DT::formatRound(columns=num_cols, digits=2) %>%
+            #Thousand number separator for columns to compare along with benchmark
+            DT::formatCurrency(columns = num_cols, currency = "", interval = 3, mark = ",")
           }
         })
         
