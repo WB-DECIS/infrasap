@@ -543,7 +543,7 @@ mod_scd_tab_module_server <- function(id){
                                                "console.log(data)",
                                                "}"
                                              ),
-                                             rowsGroup = list(1), # merge cells of column 1, 2
+                                             rowsGroup = list(0), # merge cells of column 1, 2
                                              info = FALSE, 
                                              dom='Bfrti', 
                                              columnDefs = list(list(visible=FALSE,
