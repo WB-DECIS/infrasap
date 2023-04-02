@@ -165,34 +165,18 @@ mod_infrasap_tab_module_server <- function(id){
     output$countriestc <- shiny::renderUI({
       shiny::req(countriesOptionsInput())
       countryList <- country_to_compare_list(infrasap_dat_mod_modified, input$db_sector, input$db_pillar)
-      
-      if(is.null(selected_vals$db_countries_name)) {
-        shiny::selectizeInput(inputId = ns('country_to_compare_id'),
-                                       label = 'Countries to compare to',
-                                       choices = sort(unique(countryList)),
-                                       selected = countriesOptionsInput(),
-                                       multiple = TRUE,
-                                       options = list(
-                                         maxItems = 3,
-                                         'plugins' = list('remove_button'),
-                                         'create' = TRUE,
-                                         'persist' = FALSE
-                                       )
-        )
-      } else {
-        shiny::selectizeInput(inputId = ns('country_to_compare_id'),
-                                         label = 'Countries to compare to',
-                                         choices = sort(unique(countryList)),
-                                         selected = selected_vals$db_countries_name,
-                                         multiple = TRUE,
-                                         options = list(
-                                           maxItems = 3,
-                                           'plugins' = list('remove_button'),
-                                           'create' = TRUE,
-                                           'persist' = FALSE
-                                         )
-        )
-      }
+      shiny::selectizeInput(inputId = ns('country_to_compare_id'),
+                                     label = 'Countries to compare to',
+                                     choices = sort(unique(countryList)),
+                                     selected = countriesOptionsInput(),
+                                     multiple = TRUE,
+                                     options = list(
+                                       maxItems = 3,
+                                       'plugins' = list('remove_button'),
+                                       'create' = TRUE,
+                                       'persist' = FALSE
+                                     )
+      )
     })
     
     
