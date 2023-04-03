@@ -263,7 +263,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             purrr::map(1:length(available_years_in_use), function(b){
               df_r <<- df_r %>%
-                dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
+                dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], dplyr::coalesce(!!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.y"))), .data$year_pop)
                 )
             })[length(available_years_in_use)]
             
@@ -368,7 +368,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             purrr::map(1:length(available_years_in_use), function(b){
               df_i <<- df_i %>%
-                dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
+                dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], dplyr::coalesce(!!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.y"))), .data$year_pop)
                 )
             })[length(available_years_in_use)]
             
@@ -749,7 +749,7 @@ mod_infrasap_tab_module_server <- function(id){
   
                 purrr::map(1:length(available_years_in_use), function(b){
                   df <<- df %>%
-                    dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), .data$year_pop)
+                    dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], dplyr::coalesce(!!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.y"))), .data$year_pop)
                     )
                 })[length(available_years_in_use)]
                 
