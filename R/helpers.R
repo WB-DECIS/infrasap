@@ -138,7 +138,7 @@ case_when_for_value_setting_chr <- function(dat, cn, col, new_col, tab = 'infras
 select_and_round <- function(dat, country_vec, ...) {
   dat %>% 
     dplyr::select(..., dplyr::all_of(country_vec), dplyr::starts_with('value')) %>%
-    dplyr::mutate(dplyr::across(dplyr::all_of(country_vec), round, 2))
+    dplyr::mutate(dplyr::across(dplyr::all_of(country_vec), \(x) round(x, 2)))
 }
 
 
