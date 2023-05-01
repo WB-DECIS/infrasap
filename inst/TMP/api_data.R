@@ -1,25 +1,62 @@
 library(reticulate)
+library(assertthat)
+library(dplyr)
 
 source_python("inst/app/www/token.py")
 
-#### Resource unique ID ####
-# resource_unique_id Dataset
-# DR0090561 Energy, Finance. Digital and Governance Indicator Metadata
-# DR0090562 Energy, Finance, Digital and Governance Benchmarks Metadata
-# DR0090563 Transport Benchmarks Metadata
-# DR0053171 Transport Indicators
-# DR0053166 Energy, Finanace, Digital and Governance Indicators
-# DR0047110 InfraSAP 2.0 Dashboard - Connectivity (Energy, Digital), Governance & Finance
-# DR0047111 Consolidated InfraSAP-Transport Data
-# DR0047112 Consolidated Benchmark Data
-# DR0065512 Ports Indicators
+#### Total files needed ####
+# master_vMar8.xlsx - DR0053166
+# Transport_all_data_Oct27.xlsx - DR0053171
+# SPC_final_vFeb25.xlsx - DR0086190
+# IRF_data_Nov22.xlsx
+# Benchmarks_Transport_Oct27.xlsx - DR0047111
+# Benchmark_aggregates_infrasap_vMar8.xlsx - DR0047112
+# Benchmarks_IRF_Nov22.xlsx
+# Benchmark_spc_Feb25.xlsx - DR0086191
+# All_SCD_indicators_ROH_v3.xlsx
+# Ports_Data.xlsx - DR0065512
+# benchmark values for country-indicator pair - DR0091284
 
-data1 = get_df("DR0090561", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
-data2 = get_df("DR0090562", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
-data3 = get_df("DR0090563", "data", list("top"  = 50, "skip" = 0, "filter" = "")) #not working
-data4 = get_df("DR0053171", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
-data5 = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
-data6 = get_df("DR0047110", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
-data7 = get_df("DR0047111", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
-data8 = get_df("DR0047112", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
-data9 = get_df("DR0065512", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
+#### Custom functions ####
+replace_null_with_NA <- function(x) {
+  if(inherits(x, "list")) {
+    x[lengths(x) == 0] <- NA
+    x <- sapply(x, `[`, 1)
+  } 
+  return(x)
+}
+#### master_vMar8.xlsx ####
+dat = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
+
+
+# Check if no NA values in Country Code
+assert_that(sum(is.na(dat$`Country Code`)) == 0, 
+  msg = "There are NA values in Country Code column. This can be fixed with using `tidyr::fill` but better to report this data discrepancy issue")
+
+# Change in data generation script
+# Rename 2nd column to country name
+dat <- dat %>% rename("Country Name" = Country)
+# Replace NULL with NA and change list to numeric vector
+dat <- dat %>%  
+  mutate(across(c(`Indicator Pillar`, `Indicator Sub-Pillar`, `1990`:`2022`), replace_null_with_NA), 
+         across(`1990`:`2022`, as.numeric))
+
+
+dat_transport = get_df("DR0053171", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
+# Change in data generation script
+# Rename 2nd column to country name
+dat_transport <- dat_transport %>% rename("Country Name" = Country)
+
+dat_spc = get_df("DR0086190", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
+
+# Change in data generation script
+# Rename 4th column to country name
+dat_spc <- dat_spc %>% 
+  rename_with(~"Country Name", 4) %>%
+  mutate(`Indicator Sector` = 'Cross-cutting')
+
+data4 = get_df("DR0086190", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
+data5 = get_df("DR0047111", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
+data6 = get_df("DR0047112", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
+data7 = get_df("DR0086191", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
+data8 = get_df("DR0065512", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
