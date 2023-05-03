@@ -5,7 +5,7 @@ library(dplyr)
 source_python("inst/app/www/token.py")
 
 #### Total files needed ####
-# master_vMar8.xlsx - DR0053166
+# master_vMar8.xlsx/Energy finance - DR0053166
 # Transport_all_data_Oct27.xlsx - DR0053171
 # SPC_final_vFeb25.xlsx - DR0086190
 # IRF_data_Nov22.xlsx
@@ -26,8 +26,12 @@ replace_null_with_NA <- function(x) {
   return(x)
 }
 #### master_vMar8.xlsx ####
-dat = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
-
+dat = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter"))
+# Filter only from FRANCE, applying filter
+#dat1 = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ("[Country Code] = 'FRA'")))
+# Filter only from FRANCE, applying filter and select only relevant columns
+#dat2 = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ("[Country Code] = 'FRA'")), 
+#       "Country,[Country Code],[Indicator Name],[2000],[2005],[2010],[2015]")
 
 # Check if no NA values in Country Code
 assert_that(sum(is.na(dat$`Country Code`)) == 0, 
