@@ -15,7 +15,7 @@ source_python("inst/app/www/token.py")
 # Benchmark_spc_Feb25.xlsx - DR0086191
 # All_SCD_indicators_ROH_v3.xlsx
 # Ports_Data.xlsx - DR0065512
-# benchmark values for country-indicator pair - DR0091284
+# Energy_Finance_benchmark_v04192023.csv - DR0091284
 
 #### Custom functions ####
 replace_null_with_NA <- function(x) {
@@ -26,7 +26,7 @@ replace_null_with_NA <- function(x) {
   return(x)
 }
 #### master_vMar8.xlsx ####
-dat = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter"))
+dat = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
 # Filter only from FRANCE, applying filter
 #dat1 = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ("[Country Code] = 'FRA'")))
 # Filter only from FRANCE, applying filter and select only relevant columns
