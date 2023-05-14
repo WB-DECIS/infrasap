@@ -1,6 +1,7 @@
 library(reticulate)
 library(assertthat)
 library(dplyr)
+library(testthat)
 
 source_python("inst/app/www/token.py")
 
@@ -45,11 +46,28 @@ dat <- dat %>%
   mutate(across(c(`Indicator Pillar`, `Indicator Sub-Pillar`, `1990`:`2022`), replace_null_with_NA), 
          across(`1990`:`2022`, as.numeric))
 
+expect_equal(names(dat), c("Country Code", "Country Name", "Indicator Name", "Indicator Pillar", 
+                           "Indicator Sub-Pillar", "Indicator Sector", "Indicator Topic", 
+                           "1990", "1991", "1992", "1993", "1994", "1995", "1996", "1997", 
+                           "1998", "1999", "2000", "2001", "2002", "2003", "2004", "2005", 
+                           "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", 
+                           "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", 
+                           "2022"))
 
 dat_transport = get_df("DR0053171", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
 # Change in data generation script
 # Rename 2nd column to country name
-dat_transport <- dat_transport %>% rename("Country Name" = Country)
+dat_transport <- dat_transport %>% 
+  #rename("Country Name" = Country) %>%
+  select(1:48) %>%
+  mutate(across(everything(), replace_null_with_NA)) 
+
+# Check column names of dat_transport
+expect_equal(names(dat_transport), c("Country Name", "Country Code", "Indicator Name", "Indicator Pillar", 
+    "Indicator Sector", "Mode", "Indicator Sub-Pillar", "Indicator Topic", "Region", "IncomeGroup", "Isolated", "Fragile", "Human Capital", 
+    "Low Population Density", "Mountainous", "OECD Member", "Oil Exporter", "1990", "1991", "1992", "1993", "1994", "1995", "1996", "1997", 
+    "1998", "1999", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", 
+    "2014", "2015", "2016", "2017", "2018", "2019", "2020"))
 
 dat_spc = get_df("DR0086190", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
 
@@ -58,6 +76,8 @@ dat_spc = get_df("DR0086190", "data", list("top"  = 50, "skip" = 0, "filter" = "
 dat_spc <- dat_spc %>% 
   rename_with(~"Country Name", 4) %>%
   mutate(`Indicator Sector` = 'Cross-cutting')
+
+
 
 data4 = get_df("DR0086190", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
 data5 = get_df("DR0047111", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
