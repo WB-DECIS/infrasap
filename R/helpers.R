@@ -52,7 +52,7 @@ country_to_compare_vec <- function(dat, cn, sc, pl) {
 get_years <- function(dat, dat_bm) {
   # get intersection of years to populate year input
   dat %>%
-    dplyr::select(-.data$Mode) %>%
+    dplyr::select(-"Mode", -"Indicator Sector") %>%
     names() %>%
     intersect(names(dat_bm))
 }
