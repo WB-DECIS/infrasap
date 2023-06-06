@@ -558,12 +558,11 @@ mod_indicator_trend_tab_module_server <- function(id) {
     
     # Reactive data set that compiles data based on data inputs
     data_tab <- shiny::reactive({
-      shiny::req(input$data_sector, input$data_indicator, input$data_year)
+      shiny::req(input$data_sector, input$data_indicator, input$data_year, input$data_benchmarks)
       # shiny::req(input$data_compare_to)
       # get sector and year
       sc <- input$data_sector
       sc <- c(sc, 'Cross-cutting')
-      
       cn <- input$data_country
       ic <- input$data_indicator
       yr <- input$data_year
@@ -572,7 +571,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
       bn <- input$data_benchmarks
       cc <- input$data_countries
       oi <- input$other_indicator
-      
       if(input$data_sector == 'Transport Port') {
         if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
           # get country data
@@ -645,7 +643,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
             df_bm <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(.data$Indicator == ic) %>%
               # filter(Indicator == "Annual Deployed Capacity per Port") %>%
-              dplyr::filter(.data$Sector %in% sc) %>%
+              dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
               # filter(Sector == 'Transport Port') %>%
               dplyr::filter(.data$Grouping %in% bn) %>%
               # filter(Grouping %in% c("East Asia & Pacific", "Europe & Central Asia")) %>%
@@ -691,12 +689,11 @@ mod_indicator_trend_tab_module_server <- function(id) {
                 # get country data
                 df <- infrasap_dat_mod_modified %>%
                   dplyr::filter(.data$`Country Name`%in% cn) %>%
-                  indicator_trend_data_manipulation(ic, sc, yr)
+                  indicator_trend_data_manipulation(ic, sc, yr, col = "Indicator Name")
                 
                 dfother <- infrasap_dat_mod_modified %>%
                   dplyr::filter(.data$`Country Name`%in% cn) %>%
-                  indicator_trend_data_manipulation(oi, sc, yr)
-                
+                  indicator_trend_data_manipulation(oi, sc, yr, col = "Indicator Name")
                 df <- rbind(df, dfother)
                 return(df)
               } 
@@ -784,6 +781,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
         
         # plot country comparison or country/benchmark comparison
         output$data_chart <- plotly::renderPlotly({
+          req(data_tab())
           ic <- input$data_indicator
           sc <- input$data_sector
           sc <- c(sc, 'Cross-cutting')
