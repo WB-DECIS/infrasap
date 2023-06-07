@@ -321,65 +321,63 @@ mod_indicator_trend_tab_module_server <- function(id) {
 
     # UI for indicators, based on sector and year selection
     output$data_indicator_ui <- shiny::renderUI({
-                                                # get sector and year
-                                                sc <- input$data_sector
-                                                sc <- c(sc, 'Cross-cutting')
-                                                cn <- input$data_country
-                                                cp <- input$data_compare_to
-                                                ct <- input$country_ports
-                                                
-                                                if(is.null(sc)) {
-                                                  NULL
-                                                } else {
-                                                  if(has_port(sc)) {
-                                                     df <- infrasap::dat_ports %>%
-                                                                dplyr::filter(.data$`Country Name` == cn) %>%
-                                                                dplyr::filter(.data$`Sub-national Unit Name` %in% c(cp, ct)) %>%
-                                                                dplyr::select(Grouping = .data$`Indicator Name`,.data$`Sub-national Unit Name`,.data$`1990`:.data$`2020`) %>%
-                                                                tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`, -.data$`Sub-national Unit Name`) %>%
-                                                                tidyr::drop_na()
-                                                     # get a unique list of indicators
-                                                     ic <- sort(unique(df$Grouping))
-                                                     
-                                                     shiny::fluidRow(
-                                                                     shiny::column(12,
-                                                                                   shiny::selectInput(inputId = ns('data_indicator'),
-                                                                                                      label = '3. Select an indicator',
-                                                                                                      choices = ic,
-                                                                                                      selected = ic[1]
-                                                                                   )
-                                                                     )
-                                                    )
-                                                  } else {
-                                                    req(input$data_sector)
-                                                    # subset data by sector and year and remove NAs
-                                                    df <- infrasap_dat_mod_modified %>%
-                                                              # dplyr::filter(`Country Name` == "Jordan") %>%
-                                                              dplyr::filter(.data$`Country Name` == cn) %>%
-                                                              # dplyr::filter(`Indicator Sector` %in% c('Digital Development')) %>%
-                                                              dplyr::filter(.data$`Indicator Sector` %in% input$data_sector) %>%
-                                                              dplyr::select(Grouping = .data$`Indicator Name`,.data$`1990`:.data$`2020`) %>%
-                                                              tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
-                                                              tidyr::drop_na()
-                                                    
-                                                    ic <- sort(unique(df$Grouping))
-              
-                                                    if((!is.null(selected_vals$data_indicator)) && (selected_vals$data_indicator %in% ic)) {
-                                                       selected_ic <- selected_vals$data_indicator
-                                                    } else {
-                                                       selected_ic <- ic[1]
-                                                    }
-                                                    shiny::fluidRow(
-                                                                    shiny::column(12,
-                                                                                  shiny::selectInput(inputId = ns('data_indicator'),
-                                                                                                     label = '3. Select an indicator',
-                                                                                                     choices = ic,
-                                                                                                     selected = selected_ic
-                                                                                  )
-                                                                    )
-                                                    )
-                                                  }
-                                                }
+      req(input$data_sector)
+      # get sector and year
+      sc <- input$data_sector
+      sc <- c(sc, 'Cross-cutting')
+      cn <- input$data_country
+      cp <- input$data_compare_to
+      ct <- input$country_ports
+      if(is.null(sc)) {
+        NULL
+      } else {
+        if(has_port(sc)) {
+           df <- infrasap::dat_ports %>%
+                      dplyr::filter(.data$`Country Name` == cn) %>%
+                      dplyr::filter(.data$`Sub-national Unit Name` %in% c(cp, ct)) %>%
+                      dplyr::select(Grouping = .data$`Indicator Name`,.data$`Sub-national Unit Name`,.data$`1990`:.data$`2020`) %>%
+                      tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`, -.data$`Sub-national Unit Name`) %>%
+                      tidyr::drop_na()
+           # get a unique list of indicators
+           ic <- sort(unique(df$Grouping))
+           
+           shiny::fluidRow(
+                           shiny::column(12,
+                                         shiny::selectInput(inputId = ns('data_indicator'),
+                                                            label = '3. Select an indicator',
+                                                            choices = ic,
+                                                            selected = ic[1]
+                                         )
+                           )
+          )
+        } else {
+          # subset data by sector and year and remove NAs
+          df <- infrasap_dat_mod_modified %>%
+                    # dplyr::filter(`Country Name` == "Jordan") %>%
+                    dplyr::filter(.data$`Country Name` == cn) %>%
+                    # dplyr::filter(`Indicator Sector` %in% c('Digital Development')) %>%
+                    dplyr::filter(.data$`Indicator Sector` %in% input$data_sector) %>%
+                    dplyr::select(Grouping = .data$`Indicator Name`,.data$`1990`:.data$`2020`) %>%
+                    tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`, na.rm = TRUE)
+          
+          ic <- sort(unique(df$Grouping))
+
+          if((!is.null(selected_vals$data_indicator)) && (selected_vals$data_indicator %in% ic)) {
+             selected_ic <- selected_vals$data_indicator
+          } else {
+             selected_ic <- ic[1]
+          }
+          shiny::fluidRow(
+                          shiny::column(12,
+                                        shiny::selectInput(inputId = ns('data_indicator'),
+                                                           label = '3. Select an indicator',
+                                                           choices = ic,
+                                                           selected = selected_ic
+                                        )
+                          )
+          )
+        }
+      }
     })
   
   
@@ -571,6 +569,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
       bn <- input$data_benchmarks
       cc <- input$data_countries
       oi <- input$other_indicator
+      
       if(input$data_sector == 'Transport Port') {
         if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
           # get country data
@@ -605,7 +604,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
           #commenting the below code because when you select Port transport the below df_bench returns no rows 
           #resulting in an error and the dashboard still works correctly after that so commenting this code. 
           # if(!is.null(ct)) {
-          #   browser()
           #   df_bench <- infrasap::dat_ports_bm %>%
           #     # filter(`Indicator`== "Annual Deployed Capacity per Port") %>%
           #     dplyr::filter(.data$`Indicator`== ic) %>%

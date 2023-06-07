@@ -143,6 +143,7 @@ select_and_round <- function(dat, country_vec, ...) {
 
 
 indicator_trend_data_manipulation <- function(dat, ic, sc, yr, col = "Country Name") {
+  #browser()
   dat %>%
     dplyr::filter(.data$`Indicator Name` %in% ic) %>%
     dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
