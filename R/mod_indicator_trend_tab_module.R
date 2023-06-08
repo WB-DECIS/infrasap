@@ -653,7 +653,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
             # get country data
             df <- infrasap_dat_mod_modified %>%
               dplyr::filter(.data$`Country Name`== cn) %>%
-              indicator_trend_data_manipulation(ic, sc, yr)
+              indicator_trend_data_manipulation(ic, sc, yr, col = "Indicator Name")
             
             # combine with benchmark data
             df <- rbind(df, df_bm)
