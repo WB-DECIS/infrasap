@@ -76,8 +76,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
   
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    #Not sure what irf_indicators is referring to here, to avoid R CMD check errors initialising it as NULL
-    irf_indicators <- NULL
+    # Get all irf_indicators so that we don't show table and hover info
+    irf_indicators <- unique(infrasap_dat_mod_modified$`Indicator Name`[infrasap_dat_mod_modified$irf_data])
     # Module Body
     
     #------- Initialize the Memory ----------
@@ -569,7 +569,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
       bn <- input$data_benchmarks
       cc <- input$data_countries
       oi <- input$other_indicator
-      
+      browser()
       if(input$data_sector == 'Transport Port') {
         if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
           # get country data
@@ -641,7 +641,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
             df_bm <- infrsap_dat_bm_mod_modfied %>%
               dplyr::filter(.data$Indicator == ic) %>%
               # filter(Indicator == "Annual Deployed Capacity per Port") %>%
-              dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+              dplyr::filter(.data$Sector %in% sc) %>%
               # filter(Sector == 'Transport Port') %>%
               dplyr::filter(.data$Grouping %in% bn) %>%
               # filter(Grouping %in% c("East Asia & Pacific", "Europe & Central Asia")) %>%
@@ -788,7 +788,6 @@ mod_indicator_trend_tab_module_server <- function(id) {
           df <- data_tab()
           
           # HERE is where you need to condition the chart to do ports (and then make sure do the same for latest year avaiable) And make sure benchmark doesnt show up.
-          
           if(is.null(df)){
             NULL
           } else if(nrow(df)==0){ 
