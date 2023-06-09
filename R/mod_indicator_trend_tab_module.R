@@ -569,7 +569,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
       bn <- input$data_benchmarks
       cc <- input$data_countries
       oi <- input$other_indicator
-      browser()
+      
       if(input$data_sector == 'Transport Port') {
         if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
           # get country data
