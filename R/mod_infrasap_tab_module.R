@@ -686,7 +686,6 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- join_df_with_ordered_layout(df, infrasap::dat_layout$transport__finance)
               }
             } else {
-              
               yr <- as.character(get_last_year(cn, sc, bm))
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
