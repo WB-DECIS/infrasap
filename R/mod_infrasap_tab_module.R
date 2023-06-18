@@ -85,6 +85,7 @@ mod_infrasap_tab_module_server <- function(id){
     ns <- session$ns
     ### declare global variables ###
     Region <- value_r <- IncomeGroup <- value_i <- value_c1 <- value_c2 <- value_c3 <- value <- NULL
+    rv <- reactiveValues(empty_table = FALSE)
     # Module Body
     #------- Initialize the Memory ----------
     selected_vals = shiny::reactiveValues(db_country_name = 'Kenya', 
@@ -209,6 +210,7 @@ mod_infrasap_tab_module_server <- function(id){
       bm <- input$db_benchmark
       yr <- input$db_year
       pi <- input$db_pillar
+      
       # add national automatically to sector (as in the excel tool)
       if(is.null(yr)){
         NULL
@@ -687,6 +689,7 @@ mod_infrasap_tab_module_server <- function(id){
               }
             } else {
               yr <- as.character(get_last_year(cn, sc, bm))
+              rv$empty_table <- length(yr) == 0 
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
                 # dplyr::filter(`Country Name` == "Kenya") %>%
@@ -696,6 +699,7 @@ mod_infrasap_tab_module_server <- function(id){
                 dplyr::filter(.data$`Indicator Pillar` == pi) %>%
                 # dplyr::filter(`Indicator Pillar` == "Finance") %>%
                 dplyr::select(.data$`Country Name`,.data$`Indicator Sector`,.data$`Indicator Sub-Pillar` ,.data$`Indicator Name`, .data$`Indicator Topic`, .data$`Type of Benchmark`,yr, bm )
+              
               if(NROW(df) > 0) {
                 available_years <- c()
                 if(as.numeric(yr) == 2015) {
@@ -745,7 +749,7 @@ mod_infrasap_tab_module_server <- function(id){
                   dplyr::right_join(df, by = c('Indicator'='Indicator Name'))
   
                 df <- df %>% dplyr::select(-available_years)
-  
+                
                 purrr::map(1:length(available_years_in_use), function(b){
                   df <<- df %>%
                     dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], dplyr::coalesce(!!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.x")), !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}.y"))), .data$year_pop)
@@ -1086,7 +1090,6 @@ mod_infrasap_tab_module_server <- function(id){
               
               # Countries list to compare
               if(!is.null(input$country_to_compare_id)){
-                
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
                   dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
@@ -1215,7 +1218,6 @@ mod_infrasap_tab_module_server <- function(id){
               
               # Countries list to compare
               if(!is.null(input$country_to_compare_id)){
-                
                 # get infrasap data based on inputs to get the benchmark type and join
                 df_cn <- infrasap_dat_mod_modified %>%
                   dplyr::filter(.data$`Country Name` %in% input$country_to_compare_id) %>%
@@ -1318,9 +1320,10 @@ mod_infrasap_tab_module_server <- function(id){
         dplyr::filter(.data$`Country Name` == input$db_country) %>%
         dplyr::filter(.data$`Indicator Sector` %in% input$db_sector) %>%
         dplyr::filter(.data$`Indicator Pillar` == input$db_pillar) 
-      
+        rv$empty_table <- nrow(df_length_check) < 1
+        
         output$emptyDataTableMSG <- shiny::renderUI({
-          if(nrow(df_length_check) < 1) {
+          if(rv$empty_table) {
             htmltools::tagList(shiny::h3(class = "header-style-no-data", "No data available"))
           } else NULL    
         })

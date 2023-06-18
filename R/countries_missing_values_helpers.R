@@ -41,7 +41,6 @@ df <- df %>%
 }
 
 country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_years_col){
-  
   infrasap_dat_mod_modified <- infrasap::dat
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   
@@ -62,7 +61,8 @@ country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_y
   })[length(available_years_in_use)]
 
   df_cn <- temp %>% data.frame()
-
+  #browser()
+  
   df_cn <- df_cn %>% dplyr::select(-dplyr::contains(available_years_in_use)) %>%
     dplyr::rename(
       `Country Name` = .data$Country.Name,
@@ -91,7 +91,7 @@ get_last_year <- function(cn, sc, bm = NULL) {
     temp <- infrasap_dat_mod_modified %>% 
       dplyr::filter(.data$`Country Name` == cn) %>% 
       dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
-      dplyr::select(.data$`Country Name`, .data$`1990`:.data$`2020`) %>%
+      dplyr::select(.data$`Country Name`, .data$`1990`:.data$`2022`) %>%
       remove_NA_columns() %>%
       dplyr::select(-.data$`Country Name`)
     
@@ -108,7 +108,7 @@ get_last_year <- function(cn, sc, bm = NULL) {
     temp <- infrasap_dat_mod_modified %>% 
       dplyr::filter(.data$`Country Name` == cn) %>% 
       dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
-      dplyr::select(.data$`Country Name`, .data$`1990`:.data$`2020`, bm)
+      dplyr::select(.data$`Country Name`, .data$`1990`:.data$`2022`, bm)
     
     # get type of benchmark to subset benchmark data by
     bm_type <- unlist(unique(temp[,bm]))
