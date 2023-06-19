@@ -210,11 +210,11 @@ mod_infrasap_tab_module_server <- function(id){
       bm <- input$db_benchmark
       yr <- input$db_year
       pi <- input$db_pillar
-      
       # add national automatically to sector (as in the excel tool)
       if(is.null(yr)){
         NULL
       } else {
+        #browser()
         if(yr == "Latest year available") {
           if(length(input$db_benchmark) == 2 & !is.null(input$db_benchmark)) { 
             yr <- as.character(get_last_year(cn, sc, bm))
@@ -271,7 +271,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             df_r <- df_r %>% dplyr::select(-.data$`Region`)
             # Find the column where the latest year value saved 
-            yr_max_column <- year_max_column(df_r, 2020:2015)
+            yr_max_column <- year_max_column(df_r, 2022:2015)
             
             df_r <- df_r %>% dplyr::rename(
               !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
@@ -376,7 +376,7 @@ mod_infrasap_tab_module_server <- function(id){
             
             df_i <- df_i %>% dplyr::select(-.data$`IncomeGroup`)
             
-            yr_max_column <- year_max_column(df_i, 2020:2015)
+            yr_max_column <- year_max_column(df_i, 2022:2015)
             
             df_i <- df_i %>% dplyr::rename(
               # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
@@ -553,7 +553,7 @@ mod_infrasap_tab_module_server <- function(id){
               df <- df %>% dplyr::select(-.data$available_years)
               
               # Find the column where the latest year value saved 
-              yr_max_column <- year_max_column(df, 2020:2015)
+              yr_max_column <- year_max_column(df, 2022:2015)
 
               df <- df %>% dplyr::rename(
                 !!col_sym_conv(cn) := !!col_sym_conv(yr_max_column),
@@ -759,7 +759,7 @@ mod_infrasap_tab_module_server <- function(id){
                 df <- df %>% dplyr::select(-bm)
                 
                 # Find the column where the latest year value saved 
-                yr_max_column <- year_max_column(df, 2020:2015)
+                yr_max_column <- year_max_column(df, 2022:2015)
                 
                 df <- df %>% dplyr::rename(
                   # !!col_sym_conv(cn) := !!col_sym_conv(stringr::str_glue("{yr}.y")),
