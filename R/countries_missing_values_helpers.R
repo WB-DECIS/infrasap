@@ -184,7 +184,7 @@ get_year_scd <- function(cn, bm, year_position = NULL){
   temp <- infrasap::scd_dat %>%
     dplyr::filter(.data$`Country Name`%in% cn) %>%
     # filter(`Indicator Sector` %in% sc) %>%
-    dplyr::select(.data$`1990` : .data$`2020`) %>%
+    dplyr::select(.data$`1990` : .data$`2022`) %>%
     remove_NA_columns()
   # benchmark data 
   temp_bm <- infrasap::scd_bm %>% 
@@ -203,7 +203,7 @@ get_year_scd <- function(cn, bm, year_position = NULL){
   if(is.null(bm)){
     without_bm <- infrasap::scd_dat %>% 
       dplyr::filter(.data$`Country Name`%in% cn) %>%
-      dplyr::select(.data$`1990`:.data$`2020`) %>%
+      dplyr::select(.data$`1990`:.data$`2022`) %>%
       remove_NA_columns()
     
     if(!is.null(year_position)) {

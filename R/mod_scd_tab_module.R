@@ -129,7 +129,7 @@ mod_scd_tab_module_server <- function(id){
           # filter(`Country Name`== "Kenya") %>% 
           dplyr::filter(.data$`Country Name`== cn) %>%
           # filter(`Indicator Sector` %in% sc) %>%
-          dplyr::select(.data$`Country Name`,.data$`Indicator Name`,.data$`1990`:.data$`2020`) %>% 
+          dplyr::select(.data$`Country Name`,.data$`Indicator Name`,.data$`1990`:.data$`2022`) %>% 
           tidyr::gather(key = 'key', value = 'value',-.data$`Indicator Name`, -.data$`Country Name`) %>% 
           tidyr::drop_na()
         
@@ -138,7 +138,7 @@ mod_scd_tab_module_server <- function(id){
         df_bm <- infrasap::scd_bm %>%
           dplyr::filter(.data$Grouping %in% bm) %>%
           # filter(Sector %in% sc) %>%
-          dplyr::select(.data$Indicator, .data$`1990`:.data$`2020`) %>%
+          dplyr::select(.data$Indicator, .data$`1990`:.data$`2022`) %>%
           tidyr::gather(key = 'key', value = 'value',-.data$`Indicator`) %>% 
           tidyr::drop_na()
         
@@ -216,9 +216,8 @@ mod_scd_tab_module_server <- function(id){
       cn <- input$scd_country
       bm <- input$scd_benchmark
       cc <- input$scd_countries
-      
+
       yr <- as.character(get_year_scd(cn = cn, bm = bm, year_position = "last"))
-      
       # get data based on inputs
       # infrasap::scd_dat_names_unique %>% select(`Indicator Name`, `Indicator Sector`) %>% distinct()
       df <- infrasap::scd_dat %>% 

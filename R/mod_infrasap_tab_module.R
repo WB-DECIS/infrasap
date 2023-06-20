@@ -689,7 +689,6 @@ mod_infrasap_tab_module_server <- function(id){
               }
             } else {
               yr <- as.character(get_last_year(cn, sc, bm))
-              rv$empty_table <- length(yr) == 0 
               # get infrasap data based on inputs to get the benchmark type and join
               df <- infrasap_dat_mod_modified %>%
                 # dplyr::filter(`Country Name` == "Kenya") %>%
@@ -1320,10 +1319,9 @@ mod_infrasap_tab_module_server <- function(id){
         dplyr::filter(.data$`Country Name` == input$db_country) %>%
         dplyr::filter(.data$`Indicator Sector` %in% input$db_sector) %>%
         dplyr::filter(.data$`Indicator Pillar` == input$db_pillar) 
-        rv$empty_table <- nrow(df_length_check) < 1
         
         output$emptyDataTableMSG <- shiny::renderUI({
-          if(rv$empty_table) {
+          if(nrow(df_length_check) < 1) {
             htmltools::tagList(shiny::h3(class = "header-style-no-data", "No data available"))
           } else NULL    
         })

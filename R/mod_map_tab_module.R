@@ -27,18 +27,8 @@ mod_map_tab_module_ui <- function(id){
       shiny::column(3,
                     shiny::selectInput(ns('world_year'), 
                                        'Select year',
-                                       choices = c('2010',
-                                                   '2011',
-                                                   '2012',
-                                                   '2013', 
-                                                   '2014',
-                                                   '2015',
-                                                   '2016', 
-                                                   '2017', 
-                                                   '2018', 
-                                                   '2019'
-                                                   ),
-                                       selected = '2015'
+                                       choices = 2010:2022,
+                                       selected = 2015
                                        )
              ),
       shiny::column(3,
