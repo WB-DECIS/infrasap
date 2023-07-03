@@ -1,9 +1,6 @@
 ##################################################
 # SERVER
 ##################################################
-#' @import shiny
-#' @import leaflet
-#' @import tidyverse
 app_server <- function(input, output, session) {
   
   

@@ -3,9 +3,14 @@ library(rlang)
 library(dplyr)
 library(stringr)
 
-# Helper: convert string to symbol (to asign variable name via parameter)
+# Helper: convert string to symbol (to assign variable name via parameter)
 col_sym_conv <- function(x) {
   rlang::sym(x)
+}
+
+remove_NA_columns <- function(dat) {
+  # remove columns that have all NA
+  dat[,colSums(is.na(dat))<nrow(dat)]
 }
 
 fill_missing_values_in_years <- function(df, based_year, year_step_back, country, sector, pillar){
@@ -21,13 +26,13 @@ df <- df %>%
   # Bind cols
   dplyr::bind_cols(
                   infrasap_dat_mod_modified %>%
-                    dplyr::filter(`Country Name` == country) %>%
-                    dplyr::filter(`Indicator Sector` %in% sector) %>%
-                    dplyr::filter(`Indicator Pillar` == pillar) %>%
+                    dplyr::filter(.data$`Country Name` == country) %>%
+                    dplyr::filter(.data$`Indicator Sector` %in% sector) %>%
+                    dplyr::filter(.data$`Indicator Pillar` == pillar) %>%
                     dplyr::select(year_step_back)
   ) %>%
   dplyr::mutate(
-    year_pop = dplyr::if_else(is.na(!!col_sym_conv(based_year)) & !is.na(!!col_sym_conv(year_step_back)), as.numeric(year_step_back), year_pop),
+    year_pop = dplyr::if_else(is.na(!!col_sym_conv(based_year)) & !is.na(!!col_sym_conv(year_step_back)), as.numeric(year_step_back), .data$year_pop),
     !!based_year := dplyr::if_else(is.na(!!col_sym_conv(based_year)), !!col_sym_conv(year_step_back), !!col_sym_conv(based_year))
   ) 
 
@@ -36,7 +41,6 @@ df <- df %>%
 }
 
 country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_years_col){
-  
   infrasap_dat_mod_modified <- infrasap::dat
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   
@@ -44,28 +48,29 @@ country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_y
   infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "National"] <- "Cross-cutting"
 
   df_cn <- infrasap_dat_mod_modified %>%
-    dplyr::filter(`Country Name` == countryName) %>%
-    dplyr::filter(`Indicator Sector` %in% sc) %>%
-    dplyr::filter(`Indicator Pillar` == pi) %>%
-    dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
+    dplyr::filter(.data$`Country Name` == countryName) %>%
+    dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+    dplyr::filter(.data$`Indicator Pillar` == pi) %>%
+    dplyr::select(.data$`Country Name`, .data$`Indicator Name`, available_years_in_use) %>%
     dplyr::left_join(df_years_col, by=c("Indicator Name"))
 
   temp <- purrr::map(1:length(available_years_in_use), function(b){
     df_cn <<- df_cn %>%
-      dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}")), year_pop)
+      dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}")), .data$year_pop)
       )
   })[length(available_years_in_use)]
 
   df_cn <- temp %>% data.frame()
-
+  #browser()
+  
   df_cn <- df_cn %>% dplyr::select(-dplyr::contains(available_years_in_use)) %>%
     dplyr::rename(
-      `Country Name` = Country.Name,
-      `Indicator Name` = Indicator.Name
+      `Country Name` = .data$Country.Name,
+      `Indicator Name` = .data$Indicator.Name
     )  %>%
     tidyr::pivot_wider(
-      names_from = `Country Name`,
-      values_from = year_pop
+      names_from = .data$`Country Name`,
+      values_from = .data$year_pop
     )
 
   return(df_cn)
@@ -76,7 +81,6 @@ country_to_compare <- function(countryName, sc, pi, available_years_in_use, df_y
 
 # get years for data
 get_last_year <- function(cn, sc, bm = NULL) {
-  
   infrasap_dat_mod_modified <- infrasap::dat
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   
@@ -85,67 +89,56 @@ get_last_year <- function(cn, sc, bm = NULL) {
   
   if(is.null(bm)) {
     temp <- infrasap_dat_mod_modified %>% 
-      dplyr::filter(`Country Name` == cn) %>% 
-      dplyr::filter(`Indicator Sector` %in% sc) %>%
-      dplyr::select(`Country Name`, `1990`:`2020` ) 
-    
-    # get type of benchmark to subset benchmark data by
-    # bm_type <- unique(temp[,bm]) %>% pull()
-    # bm_type <- unique(temp[,bm])
-    
-    # remove columns that have all NA
-    temp <- temp[,colSums(is.na(temp)) < nrow(temp)]
-    temp <- temp %>% dplyr::select(-`Country Name`)
+      dplyr::filter(.data$`Country Name` == cn) %>% 
+      dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+      dplyr::select(.data$`Country Name`, .data$`1990`:.data$`2022`) %>%
+      remove_NA_columns() %>%
+      dplyr::select(-.data$`Country Name`)
     
     # get years for benchmark 
     temp_bm <- infrsap_dat_bm_mod_modfied %>%
       # dplyr::filter(Grouping == bm_type) %>% 
-      dplyr::filter(`Sector` %in% sc)
-    temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
+      dplyr::filter(.data$`Sector` %in% sc) %>%
+      remove_NA_columns()
     
     # get intersection of years to populate year input
     year_choices <- intersect(names(temp), names(temp_bm))
     year_choices <- year_choices[length(year_choices)]
   } else {
     temp <- infrasap_dat_mod_modified %>% 
-      dplyr::filter(`Country Name` == cn) %>% 
-      dplyr::filter(`Indicator Sector` %in% sc) %>%
-      dplyr::select(`Country Name`, `1990`:`2020`, bm ) 
+      dplyr::filter(.data$`Country Name` == cn) %>% 
+      dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+      dplyr::select(.data$`Country Name`, .data$`1990`:.data$`2022`, bm)
     
     # get type of benchmark to subset benchmark data by
-    # bm_type <- unique(temp[,bm]) %>% pull()
-    bm_type <- unique(temp[,bm])
+    bm_type <- unlist(unique(temp[,bm]))
     
-    # remove columns that have all NA
-    temp <- temp[,colSums(is.na(temp))<nrow(temp)]
-    temp <- temp %>% dplyr::select(-`Country Name`, -bm)
-    
+    temp <- remove_NA_columns(temp)
+    temp <- temp %>% dplyr::select(-.data$`Country Name`, -bm)
     # get years for benchmark 
     temp_bm <- infrsap_dat_bm_mod_modfied %>%
-      dplyr::filter(Grouping == bm_type) %>% 
-      dplyr::filter(`Sector` %in% sc)
-    temp_bm <- temp_bm[,colSums(is.na(temp_bm))<nrow(temp_bm)]
-    
+      dplyr::filter(.data$Grouping %in% bm_type) %>% 
+      dplyr::filter(.data$`Sector` %in% sc) %>%
+      remove_NA_columns()
+    if(nrow(temp_bm) == 0) temp_bm <- remove_NA_columns(infrsap_dat_bm_mod_modfied)
     # get intersection of years to populate year input
     year_choices <- dplyr::intersect(names(temp), names(temp_bm))
     year_choices <- year_choices[length(year_choices)]
   }
-  
   return(year_choices)
-  
 }
 
 
 join_df_with_ordered_layout <- function(df_main, df_layout) {
-  df <- df_layout %>% left_join(df_main, 
+  df <- df_layout %>% dplyr::left_join(df_main, 
                                 by = c('Indicator Sub-Pillar' = 'Sub-Pillar',
                                        'Indicator Topic' = 'Topic',
                                        'Indicator Name' = 'Indicator')
                                       ) %>%
                       dplyr::rename(
-                             `Sub-Pillar` = `Indicator Sub-Pillar`,
-                             `Topic` = `Indicator Topic`,
-                             `Indicator` = `Indicator Name`
+                             `Sub-Pillar` = .data$`Indicator Sub-Pillar`,
+                             `Topic` = .data$`Indicator Topic`,
+                             `Indicator` = .data$`Indicator Name`
                             )
   
   return(df)
@@ -189,22 +182,14 @@ get_year_scd <- function(cn, bm, year_position = NULL){
 
   # get data based on inputs
   temp <- infrasap::scd_dat %>%
-    dplyr::filter(`Country Name`%in% cn) %>%
+    dplyr::filter(.data$`Country Name`%in% cn) %>%
     # filter(`Indicator Sector` %in% sc) %>%
-    dplyr::select(`1990`:`2020`)
-    # dplyr::select(`1990`:`2017-2021`)
-
-  # remove columns that have all NA
-  temp <- temp[,colSums(is.na(temp)) < nrow(temp)]
-  
+    dplyr::select(.data$`1990` : .data$`2022`) %>%
+    remove_NA_columns()
   # benchmark data 
   temp_bm <- infrasap::scd_bm %>% 
-    dplyr::filter(Grouping %in% bm) 
-  # %>%
-  #   filter(Sector %in% "Energy") 
-  
-  # remove columns that have all NA
-  temp_bm <- temp_bm[,colSums(is.na(temp_bm)) < nrow(temp_bm)]
+    dplyr::filter(.data$Grouping %in% bm) %>%
+    remove_NA_columns()
   
   # get intersection of years to populate year input
   year_choices <- dplyr::intersect(names(temp), names(temp_bm))
@@ -217,39 +202,32 @@ get_year_scd <- function(cn, bm, year_position = NULL){
   
   if(is.null(bm)){
     without_bm <- infrasap::scd_dat %>% 
-      dplyr::filter(`Country Name`%in% cn) %>%
-      # filter(`Indicator Sector` %in% sc) %>%
-      dplyr::select(`1990`:`2020`)
-      # dplyr::select(`1990`:`2017-2021`)
-    without_bm <- without_bm[,colSums(is.na(without_bm)) < nrow(without_bm)]
+      dplyr::filter(.data$`Country Name`%in% cn) %>%
+      dplyr::select(.data$`1990`:.data$`2022`) %>%
+      remove_NA_columns()
     
     if(!is.null(year_position)) {
-      year_choices <- as.character(without_bm %>% colnames() %>% as.numeric() %>% max(., na.rm = TRUE))
+      year_choices <- as.character(without_bm %>% colnames() %>% as.numeric() %>% max(na.rm = TRUE))
     } else {
-      year_choices <- as.character(without_bm %>% colnames() %>% as.numeric() %>% min(., na.rm = TRUE))
+      year_choices <- as.character(without_bm %>% colnames() %>% as.numeric() %>% min(na.rm = TRUE))
     }
-
   }
-  
   return(year_choices)
-
 }
 
 
 # scd fill missing values
 fill_missing_values_in_years_scd <- function(df, based_year, year_step_back, country){
-  
-  
   df <- df %>%
     # Bind cols
     dplyr::bind_cols(
       infrasap::scd_dat %>% 
-        dplyr::filter(`Country Name`%in% country) %>% 
+        dplyr::filter(.data$`Country Name`%in% country) %>% 
         # dplyr::filter(`Indicator Sector` %in% sector) %>%
         dplyr::select(year_step_back)
     ) %>%
     dplyr::mutate(
-      year_pop = dplyr::if_else(is.na(!!col_sym_conv(based_year)) & !is.na(!!col_sym_conv(year_step_back)), as.numeric(year_step_back), year_pop),
+      year_pop = dplyr::if_else(is.na(!!col_sym_conv(based_year)) & !is.na(!!col_sym_conv(year_step_back)), as.numeric(year_step_back), .data$year_pop),
       !!based_year := dplyr::if_else(is.na(!!col_sym_conv(based_year)), !!col_sym_conv(year_step_back), !!col_sym_conv(based_year))
     )
   
@@ -262,28 +240,28 @@ fill_missing_values_in_years_scd <- function(df, based_year, year_step_back, cou
 country_to_compare_scd <- function(countryName, available_years_in_use, df_years_col){
   
   df_cn <- infrasap::scd_dat %>%
-    dplyr::filter(`Country Name` == countryName) %>%
+    dplyr::filter(.data$`Country Name` == countryName) %>%
     # dplyr::filter(`Indicator Sector` %in% sc) %>%
-    dplyr::select(`Country Name`, `Indicator Name`, available_years_in_use) %>%
+    dplyr::select(.data$`Country Name`, .data$`Indicator Name`, available_years_in_use) %>%
     dplyr::left_join(df_years_col, by=c("Indicator Name"))
   
   
   temp <- purrr::map(1:length(available_years_in_use), function(b){
     df_cn <<- df_cn %>%
-      dplyr::mutate(year_pop = dplyr::if_else(year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}")), year_pop)
+      dplyr::mutate(year_pop = dplyr::if_else(.data$year_pop == available_years_in_use[b], !!col_sym_conv(stringr::str_glue("{available_years_in_use[b]}")), .data$year_pop)
       )
   })[length(available_years_in_use)]
   
   df_cn <- temp %>% data.frame()
-  
+
   df_cn <- df_cn %>% dplyr::select(-dplyr::contains(available_years_in_use)) %>%
     dplyr::rename(
-      `Country Name` = Country.Name,
-      `Indicator Name` = Indicator.Name
+      `Country Name` = .data$Country.Name,
+      `Indicator Name` = .data$Indicator.Name
     )  %>%
     tidyr::pivot_wider(
-      names_from = `Country Name`,
-      values_from = year_pop
+      names_from = .data$`Country Name`,
+      values_from = .data$year_pop, values_fn = list
     )
   
   return(df_cn)
@@ -325,66 +303,3 @@ add_article_to_selected_country <- function(selected_country) {
   return(selected_country)
   
 }
-
-
-## Factors to arrange pillar tab ------------------------------------
-# infrasap::dat$`Indicator Sub-Pillar` %>% unique()
-# 
-# energy_transport_digit__pillar <- factor(infrasap::dat$`Indicator Sub-Pillar`, 
-#        levels = c('Project Lifecycle', 
-#                   'Cross cutting Principles', 
-#                   'Market Structure', 
-#                   'SOE capacity', 
-#                   'Finance', 
-#                   'Climate change')
-# )
-# 
-# energy_transport_digit__topic <- factor(infrasap::dat$`Indicator Topic`, 
-#        levels = c('Planning, Preparation, Selection', 
-#                   'Economic efficiency and Value for Money', 
-#                   'Fiscal Sustainability', 
-#                   'Procurement', 
-#                   'Contract Management and O&M', 
-#                   'Environmental and Social Considerations',
-#                   'Resilience and Climate Change',
-#                   'Transparency',
-#                   'Integrity',
-#                   'Market Contestability',
-#                   'Sector regulation',
-#                   'Corporate Governance',
-#                   'Financial Discipline',
-#                   'Human Resources',
-#                   'Information and Technology'
-#                   )
-# )
-# 
-# energy_digital__pillar <- factor(infrasap::dat$`Indicator Sub-Pillar`, 
-#        levels = c('Access to service', 
-#                   'Tariffs', 
-#                   'Service Quality', 
-#                   'Environmental Sustainability')
-# )
-# 
-# energy_digital__topic <- factor(infrasap::dat$`Indicator Topic`, 
-#                                         levels = c('Service Coverage', 
-#                                                    'Service Uptake', 
-#                                                    'Efficiency', 
-#                                                    'Retail tariffs',
-#                                                    'Wholesale Tariffs',
-#                                                    'Reliability', 
-#                                                    'Carbon Footprint',
-#                                                    'Environment Footprint'
-#                                         )
-# )
-# 
-# energy__pillar <- factor(infrasap::dat$`Indicator Sub-Pillar`, 
-#                          levels = c('Budget Expenditure', 
-#                                     'International Finance')
-# )
-# 
-# energy__topic <- factor(infrasap::dat$`Indicator Topic`, 
-#                          levels = c('Budget Allocation', 
-#                                     'Budget Execution', 
-#                                     'Off-Taker Risk',
-#                                     'PPP Financing Constraints')
-# )

@@ -16,18 +16,19 @@ table > thead {
     color: white !important;
 }
 
+
 table.dataTable thead .sorting {
-    background-image: url(img/arrows.png) !important;
+    /*background-image: url(img/arrows.png) !important;*/
     background-size: 15px !important;
 }
 
 table.dataTable thead .sorting_asc {
-    background-image: url(img/arrow_up.png) !important;
+    /*background-image: url(img/arrow_up.png) !important;*/
     background-size: 15px !important;
 }
 
 table.dataTable thead .sorting_desc {
-    background-image: url(img/arrow_down.png) !important;
+    /*background-image: url(img/arrow_down.png) !important;*/
     background-size: 15px !important;
 }
 
@@ -95,13 +96,6 @@ table.dataTable.no-footer {
     border-bottom: 1px solid #154164 !important;
 }
 
-#inrasaptablecomp > div > div > table > tbody > tr >td:nth-child(4) {
-    background-color: #00a59b  !important;
-    color: white !important;
-    border-top: 1px solid transparent !important;
-    text-align: center !important;
-    font-weight: 400 !important;
-}
 
 #inrasaptablecomp > div > div > table > thead > tr > th:nth-child(4) {
     text-align: center !important;
@@ -207,14 +201,6 @@ table.dataTable.no-footer {
 
 
 /* SCD TABLE  */
-#scd_table_style_id > #scd_tab-scd_table > div > table > tbody > tr > td:nth-child(3) {
-    background-color: #00a59b !important;
-    color: white !important;
-    border-top: 1px solid transparent !important;
-    border-bottom: 1px solid transparent !important;
-    border-left: 1px solid transparent !important;
-    border-right: 1px solid transparent !important;
-}
 
 #scd_tab-scd_table > div > table > tbody > tr > td:nth-child(4) {
     border-top: 1px solid transparent !important;
@@ -226,14 +212,6 @@ table.dataTable.no-footer {
 #scd_table_style_id > #scd_tab-scd_table > div > table > thead > tr > th:nth-child(3) {
     border-bottom: 1px solid transparent !important;
 }
-
-#scd_tab-scd_table > div > table > tbody > tr > td:nth-child(3) {
-    background: #00a59b !important;
-    color: #ffffff !important;
-    border-bottom: 1px solid transparent !important;
-    border-top: 1px solid transparent !important;
-}
-
 
 .dataTables_wrapper .dataTables_filter input {
     margin-left: 0.5em !important;

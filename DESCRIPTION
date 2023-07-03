@@ -1,38 +1,39 @@
 Package: infrasap
 Title: PKG_TITLE
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: person('AUTHOR_FIRST', 'AUTHOR_LAST', email = 'AUTHOR@MAIL.COM', role = c('cre', 'aut'))
 Description: PKG_DESC.
-License: What license is it under?
+License: MIT + file LICENSE
 Imports: 
     config,
     golem,
     shiny,
-    stringi,
-    tidyverse,
     dplyr,
     leaflet,
     plotly,
-    thinkr,
     rlang,
     purrr,
     DT,
     RColorBrewer,
     ggplot2,
-    gsheet,
     htmltools,
-    shinyMobile,
     shinydashboard,
     tidyr,
     stringr,
     mapview,
-    sjmisc,
     shinycssloaders,
-    pkgload
+    rmarkdown,
+    magrittr
+Suggests:
+    forcats,
+    htmlwidgets,
+    tidyselect,
+    testthat (>= 3.0.0)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Depends: 
     R (>= 2.10)
-URL: https://github.com/tonyfujs/infrasap
-BugReports: https://github.com/tonyfujs/infrasap/issues
+URL: https://github.com/WB-DECIS/infrasap
+BugReports: https://github.com/WB-DECIS/infrasap/issues
+Config/testthat/edition: 3

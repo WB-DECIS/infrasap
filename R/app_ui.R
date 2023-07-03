@@ -1,55 +1,29 @@
 ##################################################
 # UI
 ##################################################
-#' @import shiny
-#' @import shinydashboard
-#' @import leaflet
-#' @import shiny
-#' @import dplyr
-#' @import RColorBrewer
-#' @import leaflet
-#' @import tidyverse
-#' @import ggplot2
-#' @import tidyr
-#' @import gsheet
-#' @import plotly
-#' @import DT
-#' @import shinyMobile
-#' @import purrr
-#' @import rlang
-#' @import stringr
-#' @import mapview
-#' @import sjmisc
-#' @import stringi
-#' @import shinycssloaders
-#' @import haven
-#' @import forcats
-
 
 options(DT.options = list(pageLength = 20))
 
 app_ui <- function(request) {
   options(scipen = '999')
   
-  tagList(
+  shiny::tagList(
     mobile_golem_add_external_resources(),
-    
-    dashboardPage(
-      
-      dashboardHeader (title = tags$a(tags$img(src='www/logo2.jpg', alt = '', height = '50')),
+    shinydashboard::dashboardPage(title = "Infrasap dashboard",
+      shinydashboard::dashboardHeader(title = tags$a(tags$img(src='www/logo2.jpg', alt = '', height = '50')),
                        titleWidth = 260),
-      dashboardSidebar(
+      shinydashboard::dashboardSidebar(
         width = 260,
-        sidebarMenu(
+        shinydashboard::sidebarMenu(
           id = 'tabs',
-          menuItem(
+          shinydashboard::menuItem(
             text="Global Infrastructure Dashboard",
             tabName="landing_page"),
-          menuItem(
+          shinydashboard::menuItem(
             text = 'About',
             tabName = 'about')
         )),
-      dashboardBody(
+      shinydashboard::dashboardBody(
         tags$head(tags$style(".skin-blue .main-header .logo { padding: 0px;}")),
         
         tags$head(tags$style(HTML(
@@ -76,47 +50,43 @@ app_ui <- function(request) {
         .tabbable > .nav > li > a    {background-color: #DCDCDC;  color:black}
          .tabbable > .nav > li[class=active]  > a {background-color: skyblue; color:white}
       ")),
-        tabItems(
-          tabItem(
+        shinydashboard::tabItems(
+          shinydashboard::tabItem(
             tabName="landing_page",
-            tabsetPanel(
-              tabPanel('Indicator Trends',
+            shiny::tabsetPanel(
+              shiny::tabPanel('Indicator Trends',
                        # Begin data tab
-                       fluidPage(
+                       shiny::fluidPage(
                          
-                         fluidRow(
-                           column(12, 
+                         shiny::fluidRow(
+                           shiny::column(12, 
                                   mod_indicator_trend_tab_module_ui("indicator_trend_tab")
                            ),
-                           
-                           
                          ))), # End data tab
-              tabPanel('InfraSAP Pillars', # begin infrasap tab
-                       fluidPage(
-                         
-                         fluidRow(
-                           column(12, 
+              shiny::tabPanel('InfraSAP Pillars', # begin infrasap tab
+                shiny::fluidPage(
+                  shiny::fluidRow(
+                    shiny::column(12, 
                                   mod_infrasap_tab_module_ui("infrasap_tab")
                            ),
                          ),
-                         fluidRow(
-                           column(12,
+                  shiny::fluidRow(
+                    shiny::column(12,
                                   DT::dataTableOutput('db_table'))
-                           
                          )
                        )), # end infrasap tab
-              tabPanel('Systematic Country Diagnostic', # being SCD tab
-                       br(), br(),
-                       fluidPage(
+                       shiny::tabPanel('Systematic Country Diagnostic', # being SCD tab
+                       shiny::br(), shiny::br(),
+                       shiny::fluidPage(
                          
                          # scd_tab_module_ui("scd_tab")
                          mod_scd_tab_module_ui("scd_tab")
                          
                        )
               ), # End SCD tab
-              tabPanel('World maps', # begin world charts tab
-                       fluidPage(
-                         h3('All Indicators: World Map'),
+              shiny::tabPanel('World maps', # begin world charts tab
+                       shiny::fluidPage(
+                         shiny::h3('All Indicators: World Map'),
                          
                          mod_map_tab_module_ui("map_tab")
                          
@@ -124,11 +94,11 @@ app_ui <- function(request) {
               ) # end world charts tab
             )
           ),
-          tabItem(
+          shinydashboard::tabItem(
             tabName = 'about',
-            fluidPage(
-              fluidRow(
-                column(12,
+            shiny::fluidPage(
+              shiny::fluidRow(
+                shiny::column(12,
                        # tags$h2(style = 'color:#28323d', 'Infrastructure Global Indicators Dashboard'),
                        tags$p(class = "about_p", 'The Infrastructure Global Indicators Dashboard is a comprehensive compilation of all infrastructure indicators available from a wide variety of sources that permits rapid identification of country performance indicators and trends and provides an agile capability for benchmarking against different peer groups. The dashboard also contains specific indicators from the Infrastructure Sector Assessment Program (InfraSAP) Analytical Tool and the Systematic Country Diagnostic (SCD).
 '
@@ -169,7 +139,7 @@ Users can select a country and compare with other countries or benchmarks. Color
 #' @importFrom golem add_resource_path activate_js favicon bundle_resources
 #' @noRd
 mobile_golem_add_external_resources <- function(){
-  addResourcePath(
+  shiny::addResourcePath(
     'www', system.file('app/www', package = 'infrasap')
   )
   
