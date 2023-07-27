@@ -43,6 +43,7 @@ mod_indicator_trend_tab_module_ui <- function(id){
     ),
     shiny::div(
       shiny::fluidRow(
+        div(id = ns("note"), h5("Note: This is the average of all the country's airports together.")),
                       shiny::column(12,
                                     align = 'center',
                                     plotly::plotlyOutput(ns('data_chart'),
@@ -556,7 +557,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
     
     # Reactive data set that compiles data based on data inputs
     data_tab <- shiny::reactive({
-      shiny::req(input$data_sector, input$data_indicator, input$data_year, input$data_benchmarks)
+      shiny::req(input$data_sector, input$data_indicator, input$data_year)
       # shiny::req(input$data_compare_to)
       # get sector and year
       sc <- input$data_sector
@@ -569,6 +570,11 @@ mod_indicator_trend_tab_module_server <- function(id) {
       bn <- input$data_benchmarks
       cc <- input$data_countries
       oi <- input$other_indicator
+      #browser()
+      if(input$data_sector == "Transport (Airport)") 
+        shinyjs::show(id = "note")
+      else 
+        shinyjs::hide(id = "note")
       
       if(input$data_sector == 'Transport Port') {
         if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
@@ -1046,6 +1052,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
         div(id = "btn_groups",
             shiny::downloadButton(session$ns('downloadDataFilteredCSV'), 'Download Table'),
             shiny::uiOutput(session$ns('buttonByIndicator')),
+            shiny::uiOutput(session$ns('buttonByCountry')),
+            shiny::uiOutput(session$ns('buttonBySector')),
             shiny::downloadButton(session$ns('downloadPlot'), 'Download Chart')
         ) 
       } else {
@@ -1102,7 +1110,20 @@ mod_indicator_trend_tab_module_server <- function(id) {
     data_tab_all_indc <- shiny::reactive({
       ic <- input$data_indicator
       # get data
-      df <- infrasap_dat_mod_modified %>% dplyr::filter(.data$`Indicator Name` == ic)
+      df <- infrasap_dat_mod_modified %>% dplyr::filter(.data$`Indicator Name` == ic, !.data$irf_data)
+      return(df)
+    })
+    
+    
+    data_tab_all_ind_country <- shiny::reactive({
+      # get data
+      df <- infrasap_dat_mod_modified %>% dplyr::filter(.data$`Country Name` == input$data_country, !.data$irf_data)
+      return(df)
+    })
+    
+    data_tab_all_ind_sector <- shiny::reactive({
+      # get data
+      df <- infrasap_dat_mod_modified %>% dplyr::filter(.data$`Indicator Sector` == input$data_sector, !.data$irf_data)
       return(df)
     })
     
@@ -1118,13 +1139,33 @@ mod_indicator_trend_tab_module_server <- function(id) {
     })
     
     
-    # Download button fucntionality for all indicators
+    # Download button functionality for all indicators
     output$downloadDataAllIndicator <- shiny::downloadHandler(
       filename = function() {
         paste0(stringr::str_glue('{input$data_indicator}'), ".csv")
       },
       content = function(file) {
         utils::write.csv(data_tab_all_indc(), file)
+      }
+    )
+    
+    # Download button functionality for all indicators
+    output$downloadDataAllCountry <- shiny::downloadHandler(
+      filename = function() {
+        paste0(stringr::str_glue('{input$data_country}'), ".csv")
+      },
+      content = function(file) {
+        utils::write.csv(data_tab_all_ind_country(), file)
+      }
+    )
+    
+    # Download button functionality for all indicators
+    output$downloadDataAllSector <- shiny::downloadHandler(
+      filename = function() {
+        paste0(stringr::str_glue('{input$data_sector}'), ".csv")
+      },
+      content = function(file) {
+        utils::write.csv(data_tab_all_ind_sector(), file)
       }
     )
     
@@ -1194,7 +1235,15 @@ mod_indicator_trend_tab_module_server <- function(id) {
     
     # Download button by indicator functionality
     output$buttonByIndicator <- shiny::renderUI({
-      shiny::downloadButton(ns('downloadDataAllIndicator'), stringr::str_glue("Download Indicator Data"))
+      shiny::downloadButton(ns('downloadDataAllIndicator'), "Download Indicator Data")
+    })
+    
+    output$buttonBySector <- shiny::renderUI({
+      shiny::downloadButton(ns('downloadDataAllSector'), "Download Sector Data")
+    })
+    
+    output$buttonByCountry <- shiny::renderUI({
+      shiny::downloadButton(ns('downloadDataAllCountry'), "Download Country Data")
     })
   })
 }

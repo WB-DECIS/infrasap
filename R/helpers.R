@@ -150,7 +150,8 @@ indicator_trend_data_manipulation <- function(dat, ic, sc, yr, col = "Country Na
     dplyr::select(Grouping = col,.data$`1990`:.data$`2022`) %>%
     tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
     tidyr::drop_na() %>%
-    dplyr::filter(.data$key >= yr[1], .data$key<=yr[2])
+    dplyr::filter(.data$key >= yr[1], .data$key<=yr[2]) %>%
+    summarise(value = mean(value, na.rm = TRUE), .by = c(Grouping, key))
 }
 
 get_colors <- function(x, k = 3) {

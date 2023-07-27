@@ -25,7 +25,7 @@ app_ui <- function(request) {
         )),
       shinydashboard::dashboardBody(
         tags$head(tags$style(".skin-blue .main-header .logo { padding: 0px;}")),
-        
+        shinyjs::useShinyjs(),
         tags$head(tags$style(HTML(
           ' .headerTitleCust {
           font-size: 25px;

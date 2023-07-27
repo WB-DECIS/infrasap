@@ -179,9 +179,10 @@ table.dataTable.no-footer {
 
 #btn_groups {
   display: inline-flex !important;
+  margin: 0px 10px !important;
 }
 
-#indicator_trend_tab-downloadDataAllIndicator {
+#indicator_trend_tab-downloadDataAllIndicator, #indicator_trend_tab-downloadDataAllSector, #indicator_trend_tab-downloadDataAllCountry {
     margin: 0px 10px !important;
 }
 
