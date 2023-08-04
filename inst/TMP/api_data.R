@@ -34,7 +34,7 @@ replace_null_with_NA <- function(x) {
 dat = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
 #dat <- read_csv("../../Downloads/data_from_API/dat.csv")
 # Filter only from FRANCE, applying filter
-dat1 = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ("[Country] = 'Malawi'")))
+#dat1 = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ("[Country] = 'Malawi'")))
 # Filter only from FRANCE, applying filter and select only relevant columns
 #dat2 = get_df("DR0053166", "data", list("top"  = 50, "skip" = 0, "filter" = ("[Country Code] = 'FRA'")), 
 #       "Country,[Country Code],[Indicator Name],[2000],[2005],[2010],[2015]")
@@ -54,7 +54,7 @@ expect_equal(names(dat), c("Country Code", "Country Name", "Indicator Name", "In
 dat <- dat %>% distinct(`Country Code`, `Indicator Name`, `Indicator Sector`, .keep_all = TRUE) 
 
 expect_equal(sum(duplicated(dat)), 0)
-
+#expect_equal(n_distinct(dat$`Country Name`), )
 bm = get_df("DR0091284", "data", list("top"  = 50, "skip" = 0, "filter" = ""))
 #bm <- read_csv("../../Downloads/data_from_API/bm.csv")
 
@@ -471,17 +471,6 @@ dat_layout <- list(
   energy__finance = energy_finance, 
   transport__finance = transport_finance
 )
-
-
-# dat_layout <- dat %>%
-#   mutate(`Indicator Sector` = tolower(`Indicator Sector`), `Indicator Pillar` = tolower(`Indicator Pillar`)) %>%
-#   select(`Indicator Sector`, `Indicator Sub-Pillar`, `Indicator Topic`,`Indicator Name`, `Indicator Pillar`) %>%
-#   filter(!is.na(`Indicator Sector`) & !is.na(`Indicator Pillar`)) %>%
-#   arrange(`Indicator Sub-Pillar`, `Indicator Topic`) %>%
-#   distinct(`Indicator Sub-Pillar`, `Indicator Topic`, `Indicator Name`, .keep_all = TRUE) %>%
-#   unite(name, `Indicator Sector`, `Indicator Pillar`, sep = "__") %>%
-#   split(.$name) %>%
-#   map(~.x %>% select(-name))
 
 usethis::use_data(dat_layout, overwrite = TRUE)
 
