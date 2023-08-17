@@ -22,6 +22,10 @@ open_bracket <- function(x) {
 }
 
 
+has_airport <- function(x) {
+  any(grepl('Airport', x))
+}
+
 benchmark_dropdown_manipulation <- function(dat, dat_bm, cn) {
   # get sector names for this country
   temp <- dat %>% 
@@ -143,7 +147,6 @@ select_and_round <- function(dat, country_vec, ...) {
 
 
 indicator_trend_data_manipulation <- function(dat, ic, sc, yr, col = "Country Name") {
-  #browser()
   dat %>%
     dplyr::filter(.data$`Indicator Name` %in% ic) %>%
     dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
@@ -152,6 +155,14 @@ indicator_trend_data_manipulation <- function(dat, ic, sc, yr, col = "Country Na
     tidyr::drop_na() %>%
     dplyr::filter(.data$key >= yr[1], .data$key<=yr[2]) %>%
     summarise(value = mean(value, na.rm = TRUE), .by = c(Grouping, key))
+}
+
+indicator_trend_airport_data <- function(dat, sc, cn) {
+  dat %>% 
+    dplyr::filter(`Indicator Sector` == sc, `Country Name` == cn) %>% 
+    dplyr::distinct(AirportName) %>% 
+    tidyr::drop_na() %>% 
+    dplyr::pull(AirportName)
 }
 
 get_colors <- function(x, k = 3) {

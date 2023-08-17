@@ -12,44 +12,40 @@ mod_indicator_trend_tab_module_ui <- function(id){
   ns <- shiny::NS(id)
   htmltools::tagList(
     shiny::div(class = "controlSection",
-               shiny::fluidRow(
-                               shiny::column(8, class = "column-eight-width",
-                                             shiny::column(6,
-                                                           shiny::selectInput(inputId = ns('data_country'), 
-                                                                              label = '1. Select country',
-                                                                              choices = sort(unique(infrasap::dat$`Country Name`)),
-                                                                              selected = 'Jordan'
-                                                           ),
-                                                           shiny::uiOutput(ns('data_indicator_ui'))
-                   
-                                             ),
-                                             shiny::column(6,
-                                                           shiny::uiOutput(ns('data_sector_ui')),
-                                                           shiny::selectInput(ns('data_selection_type_year'), 
-                                                                              label = 'Type of selection: ',
-                                                                              choices = c('Select latest year available', 'Select a range of years'),
-                                                                              selected = 'Select a range of years'
-                                                           )
-                                             ),
-                               shiny::uiOutput(ns('data_year_ui'))
-                               ),
-                               shiny::column(4,
-                                             shiny::uiOutput(ns('country_ports_ui')),
-                                             shiny::uiOutput(ns('ports_compare_to_indicator_type_ui')),
-                                             shiny::uiOutput(ns('data_compare_to_ui')),
-                                             shiny::uiOutput(ns('data_benchmark_ui'))
-                               )
+    shiny::fluidRow(
+     shiny::column(8, class = "column-eight-width",
+                   shiny::column(6,
+                                 shiny::selectInput(inputId = ns('data_country'), 
+                                                    label = '1. Select country',
+                                                    choices = sort(unique(infrasap::dat$`Country Name`)),
+                                                    selected = 'Jordan'
+                                 ),
+                                 shiny::uiOutput(ns('data_indicator_ui'))
+  
+                   ),
+                   shiny::column(6,
+                                 shiny::uiOutput(ns('data_sector_ui')),
+                                 shiny::selectInput(ns('data_selection_type_year'), 
+                                                    label = 'Type of selection: ',
+                                                    choices = c('Select latest year available', 'Select a range of years'),
+                                                    selected = 'Select a range of years'
+                                 )
+                   ),
+     shiny::uiOutput(ns('data_year_ui'))
+     ),
+     shiny::column(4,
+                   shiny::uiOutput(ns('country_ports_ui')),
+                   shiny::uiOutput(ns('ports_compare_to_indicator_type_ui')),
+                   shiny::uiOutput(ns('data_compare_to_ui')),
+                   shiny::uiOutput(ns('data_benchmark_ui'))
+     )
               )
     ),
     shiny::div(
       shiny::fluidRow(
-        div(id = ns("note"), h5("Note: This is the average of all the country's airports together.")),
-                      shiny::column(12,
-                                    align = 'center',
-                                    plotly::plotlyOutput(ns('data_chart'),
-                                                         width = '900px', 
-                                                         height = "auto"
-                                    ) %>% shinycssloaders::withSpinner(type = 7,color = "#154164")
+        shiny::column(12,align = 'center',
+                      plotly::plotlyOutput(ns('data_chart'),width = '900px', height = "auto") %>% 
+                        shinycssloaders::withSpinner(type = 7,color = "#154164")
                       )
       ),
       shiny::br(), shiny::br(),
@@ -83,11 +79,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
     
     #------- Initialize the Memory ----------
     selected_vals = shiny::reactiveValues(
-                                          db_countries_name = NULL,
-                                          data_benchmarks_name = NULL,
-                                          data_ports_name = NULL,
-                                          data_indicator = NULL
-                    )
+      db_countries_name = NULL, data_benchmarks_name = NULL,data_ports_name = NULL,
+      data_indicator = NULL, data_airports = NULL)
     
     shiny::observe({
                     shiny::req(
@@ -173,151 +166,166 @@ mod_indicator_trend_tab_module_server <- function(id) {
     })
     
     output$country_ports_ui <- shiny::renderUI({
-                                                shiny::req(input$data_country, input$data_sector)
-                                                cn <- input$data_country
-                                                sc <- input$data_sector
-                                                
-                                                if(is.null(sc)) {
-                                                  NULL
-                                                } else {
-                                                  if(!has_port(sc)) {
-                                                    NULL
-                                                  } else {
-                                                    df <- infrasap::dat_ports
-                                                    df <- df %>% dplyr::filter(.data$`Country Name` == cn)
-                                                    # port_choices <- sort(unique(df$`Sub-national Unit Name`))
-                                                    if(!is.null(input$data_compare_to)) {
-                                                      port_choices <- sort(unique(df$`Sub-national Unit Name`[df$`Sub-national Unit Name` != input$data_compare_to]))
-                                                    } else {
-                                                      port_choices <- sort(unique(df$`Sub-national Unit Name`))
-                                                    }
-                                                    
-                                                    if(selected_vals$data_ports_name %in% port_choices && !is.null(selected_vals$data_ports_name)) {
-                                                      port_choice_selected <- selected_vals$data_ports_name
-                                                    } else {
-                                                      port_choice_selected <- port_choices[1]
-                                                    }
-                                                    
-                                                    shiny::selectInput(ns('country_ports'),
-                                                                       label = paste0('Choose a port from ',cn ),
-                                                                       choices = port_choices,
-                                                                       selected = port_choice_selected
-                                                    )
-                                                  }
-                                                }
+      #This drop down is only activated when port or airport is selected. Since, they can be compared against 
+      # same port/airport within the same country.
+      shiny::req(input$data_country, input$data_sector)
+      cn <- input$data_country
+      sc <- input$data_sector
+      out <- NULL
+      if(is.null(sc)) {
+        out <- NULL
+      } else if(has_port(sc)) {
+          df <- infrasap::dat_ports
+          df <- df %>% dplyr::filter(.data$`Country Name` == cn)
+          if(!is.null(input$data_compare_to)) {
+            port_choices <- sort(unique(df$`Sub-national Unit Name`[df$`Sub-national Unit Name` != input$data_compare_to]))
+          } else {
+            port_choices <- sort(unique(df$`Sub-national Unit Name`))
+          }
+          
+          if(selected_vals$data_ports_name %in% port_choices && !is.null(selected_vals$data_ports_name)) {
+            port_choice_selected <- selected_vals$data_ports_name
+          } else {
+            port_choice_selected <- port_choices[1]
+          }
+          
+          out <- shiny::selectInput(ns('country_ports'),
+                             label = paste0('Choose a port from ',cn ),
+                             choices = port_choices,
+                             selected = port_choice_selected
+          )
+      } else if(has_airport(sc)) {
+        port_choices <- indicator_trend_airport_data(infrasap_dat_mod_modified, sc, cn)
+        #selected_vals$data_airports <- port_choices
+        out <- shiny::selectInput(ns('country_ports'),
+                                  label = paste0('Choose an airport from ',cn ),
+                                  choices = port_choices
+        )
+      }
+    out                                                
     })
     
     output$ports_compare_to_indicator_type_ui <- shiny::renderUI({
-                                                                  shiny::req(input$data_country)
-                                                                  shiny::req(input$data_sector)
-                                                                  
-                                                                  cn <- input$data_country
-                                                                  sc <- input$data_sector
-                                                                  if(is.null(sc)){
-                                                                    NULL
-                                                                  } else {
-                                                                    if(!has_port(sc)){
-                                                                      NULL
-                                                                    } else {
-                                                                      
-                                                                      shiny::selectInput(ns('ports_compare_to_indicator_type'),
-                                                                                         label = 'Compare to:',
-                                                                                         choices = NULL,
-                                                                                         selected = NULL
-                                                                      )
-                                                                    }
-                                                                  }
+      shiny::req(input$data_country)
+      shiny::req(input$data_sector)
+      
+      cn <- input$data_country
+      sc <- input$data_sector
+      if(is.null(sc)){
+        NULL
+      } else if(has_port(sc) || has_airport(sc)) {
+        shiny::selectInput(ns('ports_compare_to_indicator_type'),
+                           label = 'Compare to:',
+                           choices = NULL,
+                           selected = NULL)
+        
+      } else NULL
     })
     
     
     
     shiny::observeEvent(c(input$data_sector), {
-                                               shiny::req(input$data_sector)
-                                              if(has_port(input$data_sector)) {
-                                                
-                                                 sc <- input$data_sector
-                                                 cn <- input$data_country
+     shiny::req(input$data_sector)
+      sc <- input$data_sector
+      cn <- input$data_country
+      if(has_port(sc)) {
 
-                                                 if(is.null(input$country_ports)) {
-                                                    df <- infrasap::dat_ports
-                                                    df <- df %>% dplyr::filter(.data$`Country Name` == cn)
-                                                    port_choices <- sort(unique(df$`Sub-national Unit Name`))
-                                                    cp <- port_choices[1]
-                                                 } else {
-                                                    cp <- input$country_ports
-                                                 }
+       if(is.null(input$country_ports)) {
+          df <- infrasap::dat_ports
+          df <- df %>% dplyr::filter(.data$`Country Name` == cn)
+          port_choices <- sort(unique(df$`Sub-national Unit Name`))
+          cp <- port_choices[1]
+       } else {
+          cp <- input$country_ports
+       }
 
-                                                 country_choice <- as.character(stringr::str_glue('Compare to other ports in country {cn}'))
-                                                 choices_ports_compare_to_indicator_type <- c('to_country', 'to_regional_bench', 'to_volume_bench')
-                                                 names(choices_ports_compare_to_indicator_type) <- c(country_choice,
-                                                                                                    'Compare to regional benchmarks',
-                                                                                                    'Compare to Volume benchmarks'
-                                                                                                    )
-                                                shiny::updateSelectInput(session, 
-                                                                         "ports_compare_to_indicator_type",
-                                                                         choices = choices_ports_compare_to_indicator_type,
-                                                                         selected = 'to_country'
-                                                )
-                                                
-                                                shiny::observeEvent(input$ports_compare_to_indicator_type, {
-                                                                    shiny::req(input$ports_compare_to_indicator_type)
-                                                                    if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
-                                                  
-                    
-                                                                        df <- infrasap::dat_ports %>% 
-                                                                                  dplyr::filter(.data$`Country Name` == cn) %>% 
-                                                                                  dplyr::filter(.data$`Sub-national Unit Name` != cp)
-                                                            
-                                                                        compare_ports <- sort(unique(df$`Sub-national Unit Name`[df$`Sub-national Unit Name` != cp]))
-                                                                        shiny::updateSelectInput(session, 
-                                                                                                 "data_compare_to",
-                                                                                                 label = paste0('Compare to other ports from ',cn, ':'),
-                                                                                                 choices = compare_ports,
-                                                                                                 selected = compare_ports[1]
-                                                                        )
-                                                  
-                                                                    } else {
-                                                                      if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_regional_bench") {
-                                                                        
-                                                                        shiny::updateSelectizeInput(session, 
-                                                                                                    "data_compare_to",
-                                                                                                    label = 'Compare to regional benchmarks',
-                                                                                                    choices = c('East Asia & Pacific', 
-                                                                                                                'Europe & Central Asia',
-                                                                                                                'Latin America & Caribbean',
-                                                                                                                'Middle East & North Africa',
-                                                                                                                'North America',
-                                                                                                                'South Asia',
-                                                                                                                'Sub-Saharan Africa'
-                                                                                                                ),
-                                                                                                    selected = 'East Asia & Pacific'
-                                                                                          
-                                                                        )
-                                                                      } else {
-                                                                        
-                                                                        if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_volume_bench") {
-                                                                          
-                                                                           shiny::updateSelectInput(session, 
-                                                                                                    "data_compare_to",
-                                                                                                    label = "Compare ports by volume",
-                                                                                                    choices = c('Small', 'Medium', 'Large', 'Upper 25 Percentile'),
-                                                                                                    selected = 'Small'
-                                                                           )
-                                                                        } else {
-                                                                        }
-                                                                        
-                                                                      }
-                                                                      
-                                                                    }
-                                                })
-                                              } else {
-                                                shiny::updateSelectInput(session, 
-                                                                         "data_compare_to",
-                                                                         label = 'Compare to: ',
-                                                                         choices = c('Other countries', 'Other benchmarks', 'Other indicators'),
-                                                                         selected = 'Other benchmarks'
-                                                )
-                                              }
+       country_choice <- as.character(stringr::str_glue('Compare to other ports in country {cn}'))
+       choices_ports_compare_to_indicator_type <- c('to_country', 'to_regional_bench', 'to_volume_bench')
+       names(choices_ports_compare_to_indicator_type) <- c(country_choice,
+                                                          'Compare to regional benchmarks',
+                                                          'Compare to Volume benchmarks'
+                                                          )
+      shiny::updateSelectInput(session, 
+                               "ports_compare_to_indicator_type",
+                               choices = choices_ports_compare_to_indicator_type,
+                               selected = 'to_country'
+      )
+      
+      shiny::observeEvent(input$ports_compare_to_indicator_type, {
+        shiny::req(input$ports_compare_to_indicator_type)
+        if(!is.null(input$ports_compare_to_indicator_type) && 
+           input$ports_compare_to_indicator_type == "to_country") {
+
+            df <- infrasap::dat_ports %>% 
+                      dplyr::filter(.data$`Country Name` == cn) %>% 
+                      dplyr::filter(.data$`Sub-national Unit Name` != cp)
+
+            compare_ports <- sort(unique(df$`Sub-national Unit Name`[df$`Sub-national Unit Name` != cp]))
+            shiny::updateSelectInput(session, 
+                                     "data_compare_to",
+                                     label = paste0('Compare to other ports from ',cn, ':'),
+                                     choices = compare_ports,
+                                     selected = compare_ports[1]
+            )
+
+        } else {
+          if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_regional_bench") {
+            
+            shiny::updateSelectizeInput(session, 
+                                        "data_compare_to",
+                                        label = 'Compare to regional benchmarks',
+                                        choices = c('East Asia & Pacific', 
+                                                    'Europe & Central Asia',
+                                                    'Latin America & Caribbean',
+                                                    'Middle East & North Africa',
+                                                    'North America',
+                                                    'South Asia',
+                                                    'Sub-Saharan Africa'
+                                                    ),
+                                        selected = 'East Asia & Pacific'
+                              
+            )
+          } else {
+            if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_volume_bench") {
+              
+               shiny::updateSelectInput(session, 
+                                        "data_compare_to",
+                                        label = "Compare ports by volume",
+                                        choices = c('Small', 'Medium', 'Large', 'Upper 25 Percentile'),
+                                        selected = 'Small'
+               )
+            } else {
+            }
+          }
+          
+        }
+      })
+    } 
+      else if(has_airport(sc)) {
+      port_choices <- indicator_trend_airport_data(infrasap_dat_mod_modified, sc, cn)
+      shiny::updateSelectInput(session, 
+                               "ports_compare_to_indicator_type",
+                               choices = setNames('to_country', paste('Compare to other airports in country ', cn)),
+                               selected = 'to_country'
+      )
+      
+      shiny::observeEvent(input$ports_compare_to_indicator_type, {
+        shiny::updateSelectInput(session, 
+                                 "data_compare_to",
+                                 label = paste0('Compare to other airports from ',cn, ':'),
+                                 choices = port_choices, 
+                                 selected = port_choices[2]
+        )
+      })
+    }  
+    else {
+      shiny::updateSelectInput(session, 
+                               "data_compare_to",
+                               label = 'Compare to: ',
+                               choices = c('Other countries', 'Other benchmarks', 'Other indicators'),
+                               selected = 'Other benchmarks'
+      )
+    }
     })
 
     # UI for indicators, based on sector and year selection
@@ -342,15 +350,10 @@ mod_indicator_trend_tab_module_server <- function(id) {
            # get a unique list of indicators
            ic <- sort(unique(df$Grouping))
            
-           shiny::fluidRow(
-                           shiny::column(12,
-                                         shiny::selectInput(inputId = ns('data_indicator'),
-                                                            label = '3. Select an indicator',
-                                                            choices = ic,
-                                                            selected = ic[1]
-                                         )
-                           )
-          )
+           shiny::fluidRow(shiny::column(12,
+              shiny::selectInput(inputId = ns('data_indicator'),label = '3. Select an indicator',
+                                 choices = ic,selected = ic[1])
+              ))
         } else {
           # subset data by sector and year and remove NAs
           df <- infrasap_dat_mod_modified %>%
@@ -385,173 +388,175 @@ mod_indicator_trend_tab_module_server <- function(id) {
     
     # UI for benchmarks or countries depending on "data_compare_to" input
     output$data_benchmark_ui <- shiny::renderUI({
-                                                 sc <- input$data_sector
-                                                 sc <- c(sc, 'Cross-cutting')
-                                                 cn <- input$data_country
-                                                 ic <- input$data_indicator
-                                                 yr <- input$data_year
-                                                 ct <- input$data_compare_to
-                                                # save(ct, file = 'temp_ct.rda')
-                                                 if(is.null(yr)) {
-                                                    NULL
-                                                 } else {
-                                                   if(has_port(sc)) {
-                                                      selected_vals$data_benchmarks_name <<- NULL
-                                                      NULL
-                                                  } else {
-                                                    if(ct == 'Other benchmarks') {
-                                                      
-                                                      df <- infrsap_dat_bm_mod_modfied %>%
-                                                        dplyr::filter(.data$Indicator == ic) %>%
-                                                        dplyr::filter(.data$Sector %in% sc) %>%
-                                                        dplyr::select(.data$`Grouping`,.data$`1990`:.data$`2022`) %>%
-                                                        tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
-                                                        tidyr::drop_na() %>%
-                                                        dplyr::filter(.data$key >= yr[1], .data$key<=yr[2])
-                                                      # get unique list of benchmarks
-                                                      bn <- sort(unique(df$Grouping))
-                                                      
-                                                      bn_selected_cir <- infrasap::dat_country_income_region %>%
-                                                                            dplyr::filter(.data$`Country Name` == input$data_country)
-                                                      
-                                                      all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa",
-                                                                  "North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income",
-                                                                  "Upper middle income","Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
-                                                      bn <- bn[order(match(bn, all_bn))]
-                                                      
-                                                      
-                                                      bn <- list(
-                                                                'Region' = all_bn[stringr::str_detect(all_bn,'Asia|America|Africa')],
-                                                                'Income group' = all_bn[stringr::str_detect(all_bn,'income')],
-                                                                'Exogenous' = all_bn[!stringr::str_detect(all_bn,'Asia|America|Africa|income')]
-                                                      )
-                                                      
-                                                      
-                                                      # bn_selected <- c(bn$Region[1], bn$`Income group`[1])
-                                                      bn_selected <- c(bn_selected_cir$Region, bn_selected_cir$IncomeGroup)
-                                                      
-                                                      shiny::fluidRow(
-                                                                      shiny::column(12,
-                                                                                    shiny::selectizeInput(inputId = ns('data_benchmarks'),
-                                                                                                          label = 'Select benchmark',
-                                                                                                          choices = bn,
-                                                                                                          selected = bn_selected,
-                                                                                                          multiple = TRUE,
-                                                                                                          options = list(
-                                                                                                                         # maxItems = 3,
-                                                                                                                         'plugins' = list('remove_button'),
-                                                                                                                         'create' = TRUE,
-                                                                                                                         'persist' = FALSE
-                                                                                                          )
-                                                                                    )
-                                                               
-                                                                     )
-                                                      )
-                                                      } else {
-                                                      
-                                                        if(ct == 'Other countries') {
-                                                            if(cn!='') {
-                                                              # subset data by indicator, sector, and year, and remove NAs
-                                                              df <- infrasap_dat_mod_modified %>%
-                                                                dplyr::filter(.data$`Indicator Name` == ic) %>%
-                                                                dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
-                                                                dplyr::select(Grouping = .data$`Country Name`,.data$Region,.data$`1990`:.data$`2022`) %>%
-                                                                tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`,-.data$Region) %>%
-                                                                tidyr::drop_na() %>%
-                                                                dplyr::filter(.data$key >= yr[1], .data$key<=yr[2])
-                                                              # get unique countries that meet the criteria
-                                                              cn_choices <- sort(unique(df$Grouping))
-                                                              cn_choices <- cn_choices[cn_choices != input$data_country]
-                                                              
-                                                              # if countries exist that meet the criteria above, then get the region
-                                                              if(length(cn_choices) > 0) {
-                                                                rn <- infrasap_dat_mod_modified %>%
-                                                                        dplyr::filter(.data$`Country Name` == cn) %>%
-                                                                        dplyr::pull(.data$Region) %>% unique()
-                                                                
-                                                                df <- df %>% dplyr::filter(.data$Region == rn)
-                                                                cs = sort(unique(df$Grouping))
-                                                                # sample one country as default
-                                                                if(is.null(selected_vals$db_countries_name)) {
-                                                                  cs <- sample(cs, 1)
-                                                                } else {
-                                                                  cs <- selected_vals$db_countries_name
-                                                                }
-                                                                
-                                                                shiny::fluidRow(
-                                                                                shiny::column(12,
-                                                                                              shiny::selectizeInput(inputId = ns('data_countries'),
-                                                                                                                    label = 'Select other countries',
-                                                                                                                    choices = cn_choices,
-                                                                                                                    selected = cs,
-                                                                                                                    multiple = TRUE,
-                                                                                                                    options = list(
-                                                                                                                                   'plugins' = list('remove_button'),
-                                                                                                                                   'create' = TRUE,
-                                                                                                                                   'persist' = FALSE
-                                                                                                                    )
-                                                                                              )
-                                                                                )
-                                                                  
+       sc <- input$data_sector
+       sc <- c(sc, 'Cross-cutting')
+       cn <- input$data_country
+       ic <- input$data_indicator
+       yr <- input$data_year
+       ct <- input$data_compare_to
+      # save(ct, file = 'temp_ct.rda')
+       if(is.null(yr)) {
+          NULL
+       } else {
+         if(has_port(sc)) {
+            selected_vals$data_benchmarks_name <<- NULL
+            NULL
+         } else if(has_airport(sc)) {
+           NULL
+        } else {
+          if(ct == 'Other benchmarks') {
+            
+            df <- infrsap_dat_bm_mod_modfied %>%
+              dplyr::filter(.data$Indicator == ic) %>%
+              dplyr::filter(.data$Sector %in% sc) %>%
+              dplyr::select(.data$`Grouping`,.data$`1990`:.data$`2022`) %>%
+              tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
+              tidyr::drop_na() %>%
+              dplyr::filter(.data$key >= yr[1], .data$key<=yr[2])
+            # get unique list of benchmarks
+            bn <- sort(unique(df$Grouping))
+            
+            bn_selected_cir <- infrasap::dat_country_income_region %>%
+                                  dplyr::filter(.data$`Country Name` == input$data_country)
+            
+            all_bn <- c("East Asia & Pacific","Europe & Central Asia","Latin America & Caribbean","Middle East & North Africa",
+                        "North America","South Asia","Sub-Saharan Africa","High income","Low income","Lower middle income",
+                        "Upper middle income","Fragile","Isolated","Low Human Capital","Low Population Density","Mountainous","OECD members","Oil Exporter")
+            bn <- bn[order(match(bn, all_bn))]
+            
+            
+            bn <- list(
+                      'Region' = all_bn[stringr::str_detect(all_bn,'Asia|America|Africa')],
+                      'Income group' = all_bn[stringr::str_detect(all_bn,'income')],
+                      'Exogenous' = all_bn[!stringr::str_detect(all_bn,'Asia|America|Africa|income')]
+            )
+            
+            
+            # bn_selected <- c(bn$Region[1], bn$`Income group`[1])
+            bn_selected <- c(bn_selected_cir$Region, bn_selected_cir$IncomeGroup)
+            
+            shiny::fluidRow(
+                            shiny::column(12,
+                                          shiny::selectizeInput(inputId = ns('data_benchmarks'),
+                                                                label = 'Select benchmark',
+                                                                choices = bn,
+                                                                selected = bn_selected,
+                                                                multiple = TRUE,
+                                                                options = list(
+                                                                               # maxItems = 3,
+                                                                               'plugins' = list('remove_button'),
+                                                                               'create' = TRUE,
+                                                                               'persist' = FALSE
                                                                 )
-                                                              }
-                                                             }
-                                                           } else {
-                                                              
-                                                              # Other indicator
-                                                              
-                                                              if(is.null(sc)){
-                                                                NULL
-                                                              } else {
-                                                                # subset data by sector and year and remove NAs
-                                                                df <- infrasap_dat_mod_modified %>%
-                                                                          dplyr::filter(.data$`Country Name` == cn) %>%
-                                                                          dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
-                                                                          dplyr::select(Grouping = .data$`Indicator Name`,.data$`1990`:.data$`2022`) %>%
-                                                                          tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
-                                                                          tidyr::drop_na()
-                                                                
-                                                                # get a unique list of indicators
-                                                                ic <- sort(unique(df$Grouping))
-                                                                measure_brackets <- regmatches(input$data_indicator, gregexpr("(?=\\().*?(?<=\\))", input$data_indicator, perl=T))[[1]]
-                                                                
-                                                                
-                                                                if(length(measure_brackets) == 0){
-                                                                  
-                                                                  ic <- setdiff(ic, ic[stringr::str_detect(ic, pattern = '[\\(\\)]')])
-                                                                  ic <- ic[ic != input$data_indicator]
-                                                                  
-                                                                } else {
-                                                                  ic <- ic[grep(pattern = as.character(stringr::str_glue('\\({measure_brackets}\\)')), x = ic)]
-                                                                  ic <- ic[ic != input$data_indicator]
-                                                                }
-
-                                                                shiny::fluidRow(
-                                                                                shiny::column(12,
-                                                                                              if(length(ic) > 0) {
-                                                                                         
-                                                                                                 shiny::selectizeInput(inputId = ns('other_indicator'),
-                                                                                                                       label = 'Select an indicator',
-                                                                                                                       choices = ic,
-                                                                                                                       selected = ic[1],
-                                                                                                                       multiple = TRUE,
-                                                                                                                       options = list(
-                                                                                                                                      'plugins' = list('remove_button'),
-                                                                                                                                      'create' = TRUE,
-                                                                                                                                      'persist' = FALSE
-                                                                                                                       )
-                                                                                                 )
-                                                                                               } else { 
-                                                                                                 shiny::div(id = "idicatorsAvailabilty", 'No indicators available...')
-                                                                                               }
-                                                                                       
-                                                                                )
-                                                              )
-                                                            }
-                                                          }
-                                                    }
-                                                  }
-                                                }
+                                          )
+                     
+                           )
+            )
+            } else {
+            
+              if(ct == 'Other countries') {
+                  if(cn!='') {
+                    # subset data by indicator, sector, and year, and remove NAs
+                    df <- infrasap_dat_mod_modified %>%
+                      dplyr::filter(.data$`Indicator Name` == ic) %>%
+                      dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                      dplyr::select(Grouping = .data$`Country Name`,.data$Region,.data$`1990`:.data$`2022`) %>%
+                      tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`,-.data$Region) %>%
+                      tidyr::drop_na() %>%
+                      dplyr::filter(.data$key >= yr[1], .data$key<=yr[2])
+                    # get unique countries that meet the criteria
+                    cn_choices <- sort(unique(df$Grouping))
+                    cn_choices <- cn_choices[cn_choices != input$data_country]
+                    
+                    # if countries exist that meet the criteria above, then get the region
+                    if(length(cn_choices) > 0) {
+                      rn <- infrasap_dat_mod_modified %>%
+                              dplyr::filter(.data$`Country Name` == cn) %>%
+                              dplyr::pull(.data$Region) %>% unique()
+                      
+                      df <- df %>% dplyr::filter(.data$Region == rn)
+                      cs = sort(unique(df$Grouping))
+                      # sample one country as default
+                      if(is.null(selected_vals$db_countries_name)) {
+                        cs <- sample(cs, 1)
+                      } else {
+                        cs <- selected_vals$db_countries_name
+                      }
+                      
+                      shiny::fluidRow(
+                                      shiny::column(12,
+                                                    shiny::selectizeInput(inputId = ns('data_countries'),
+                                                                          label = 'Select other countries',
+                                                                          choices = cn_choices,
+                                                                          selected = cs,
+                                                                          multiple = TRUE,
+                                                                          options = list(
+                                                                                         'plugins' = list('remove_button'),
+                                                                                         'create' = TRUE,
+                                                                                         'persist' = FALSE
+                                                                          )
+                                                    )
+                                      )
+                        
+                      )
+                    }
+                   }
+                 } else {
+                    
+                    # Other indicator
+                    
+                    if(is.null(sc)){
+                      NULL
+                    } else {
+                      # subset data by sector and year and remove NAs
+                      df <- infrasap_dat_mod_modified %>%
+                                dplyr::filter(.data$`Country Name` == cn) %>%
+                                dplyr::filter(.data$`Indicator Sector` %in% sc) %>%
+                                dplyr::select(Grouping = .data$`Indicator Name`,.data$`1990`:.data$`2022`) %>%
+                                tidyr::gather(key = 'key', value = 'value',-.data$`Grouping`) %>%
+                                tidyr::drop_na()
+                      
+                      # get a unique list of indicators
+                      ic <- sort(unique(df$Grouping))
+                      measure_brackets <- regmatches(input$data_indicator, gregexpr("(?=\\().*?(?<=\\))", input$data_indicator, perl=T))[[1]]
+                      
+                      
+                      if(length(measure_brackets) == 0){
+                        
+                        ic <- setdiff(ic, ic[stringr::str_detect(ic, pattern = '[\\(\\)]')])
+                        ic <- ic[ic != input$data_indicator]
+                        
+                      } else {
+                        ic <- ic[grep(pattern = as.character(stringr::str_glue('\\({measure_brackets}\\)')), x = ic)]
+                        ic <- ic[ic != input$data_indicator]
+                      }
+  
+                      shiny::fluidRow(
+                                      shiny::column(12,
+                                                    if(length(ic) > 0) {
+                                               
+                                                       shiny::selectizeInput(inputId = ns('other_indicator'),
+                                                                             label = 'Select an indicator',
+                                                                             choices = ic,
+                                                                             selected = ic[1],
+                                                                             multiple = TRUE,
+                                                                             options = list(
+                                                                                            'plugins' = list('remove_button'),
+                                                                                            'create' = TRUE,
+                                                                                            'persist' = FALSE
+                                                                             )
+                                                       )
+                                                     } else { 
+                                                       shiny::div(id = "idicatorsAvailabilty", 'No indicators available...')
+                                                     }
+                                             
+                                      )
+                    )
+                  }
+                }
+          }
+        }
+      }
     })
     
     
@@ -570,11 +575,10 @@ mod_indicator_trend_tab_module_server <- function(id) {
       bn <- input$data_benchmarks
       cc <- input$data_countries
       oi <- input$other_indicator
-      #browser()
-      if(input$data_sector == "Transport (Airport)") 
-        shinyjs::show(id = "note")
-      else 
-        shinyjs::hide(id = "note")
+      # if(input$data_sector == "Transport (Airport)") 
+      #   shinyjs::show(id = "note")
+      # else 
+      #   shinyjs::hide(id = "note")
       
       if(input$data_sector == 'Transport Port') {
         if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
@@ -632,8 +636,17 @@ mod_indicator_trend_tab_module_server <- function(id) {
           #}
           return(df)
         }
+      } 
+      else if(has_airport(sc)) {
+        df <- infrasap_dat_mod_modified %>%
+          dplyr::filter(.data$`Country Name`== cn, .data$`Indicator Name`== ic, .data$AirportName %in% c(ct, cp)) %>%
+          dplyr::select(Grouping = .data$AirportName,.data$`1990`:.data$`2022`) %>%
+          tidyr::gather(key = 'key', value = 'value',-.data$Grouping) %>%
+          tidyr::drop_na() %>%
+          dplyr::filter(.data$key >= 2016, .data$key<=2022)
+    
+        return(df)
       } else {
-        
         if(ct == 'Other benchmarks'){
           if(is.null(bn)){
             # get country data
@@ -792,7 +805,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
           
           cn <- input$data_country
           df <- data_tab()
-          # HERE is where you need to condition the chart to do ports (and then make sure do the same for latest year avaiable) And make sure benchmark doesnt show up.
+          # HERE is where you need to condition the chart to do ports (and then make sure do the same for latest year available) And make sure benchmark doesn't show up.
           if(is.null(df)){
             NULL
           } else if(nrow(df)==0){ 
