@@ -1112,7 +1112,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
         
         DT::dataTableOutput(session$ns('data_table'))
       } else {
-        shiny::h2(style = 'color:#28323d', 'This data is available on request. Please contact the Library Network for access')
+        shiny::h2(style = 'color:#28323d', 'This data is available on request. You may explore',  shiny::a('this link', 
+        href =  'https://datacatalog.worldbank.org/int/search/dataset/0033775/World-Road-Statistics'), ' to see the available datasets.')
       }
       
     })

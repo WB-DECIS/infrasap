@@ -192,7 +192,7 @@ dat <- dat %>%
 expect_equal(sum(is.na(dat$`Country Code`)), 0)
 expect_equal(sum(is.na(dat$`Country Name`)), 0)
 expect_equal(sort(unique(dat$`Indicator Sector`)), c("Cross-cutting", "Digital Development", "Energy", "National", 
-        "Transport", "Transport Port", "Transport Railways", "Transport Road"))
+        "Transport", "Transport Airport", "Transport Cross-cutting", "Transport Port", "Transport Railways", "Transport Road"))
 usethis::use_data(dat, overwrite = TRUE)
 
 # bm_trans.csv
