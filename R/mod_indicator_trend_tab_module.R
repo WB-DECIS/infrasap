@@ -229,14 +229,34 @@ mod_indicator_trend_tab_module_server <- function(id) {
       # This is specifically for airport data and for indicators that have data only for 
       # country level available. They do not have data at airport level. So we don't want
       # them to behave as other airport data.
-      if(has_airport(input$data_sector) && selected_vals$is_airport_name_available) {
+      sc <- input$data_sector
+      cn <- input$data_country
+      
+      if(has_airport(sc) && input$data_indicator %in% airport_country_specific_indicator) {
         shiny::updateSelectInput(session, 
                                  "data_compare_to",
                                  label = 'Compare to: ',
                                  choices = c('Other countries', 'Other indicators'),
                                  selected = 'Other countries'
         )
-      }
+      } 
+      else if(has_airport(sc)) {
+        port_choices <- indicator_trend_airport_data(infrasap_dat_mod_modified, sc, cn)
+        shiny::updateSelectInput(session, 
+                                 "ports_compare_to_indicator_type",
+                                 choices = setNames('to_country', paste('Compare to other airports in country ', cn)),
+                                 selected = 'to_country'
+        )
+        
+        shiny::observeEvent(input$ports_compare_to_indicator_type, {
+          shiny::updateSelectInput(session, 
+                                   "data_compare_to",
+                                   label = paste0('Compare to other airports from ',cn, ':'),
+                                   choices = port_choices, 
+                                   selected = port_choices[2]
+          )
+        })
+      } 
     })
     
     shiny::observeEvent(c(input$data_sector), {
@@ -314,25 +334,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
           
         }
       })
-    } 
-      else if(has_airport(sc) && selected_vals$is_airport_name_available) {
-      port_choices <- indicator_trend_airport_data(infrasap_dat_mod_modified, sc, cn)
-      shiny::updateSelectInput(session, 
-                               "ports_compare_to_indicator_type",
-                               choices = setNames('to_country', paste('Compare to other airports in country ', cn)),
-                               selected = 'to_country'
-      )
-      
-      shiny::observeEvent(input$ports_compare_to_indicator_type, {
-        shiny::updateSelectInput(session, 
-                                 "data_compare_to",
-                                 label = paste0('Compare to other airports from ',cn, ':'),
-                                 choices = port_choices, 
-                                 selected = port_choices[2]
-        )
-      })
-    }  
-    else {
+    } else {
       shiny::updateSelectInput(session, 
                                "data_compare_to",
                                label = 'Compare to: ',
