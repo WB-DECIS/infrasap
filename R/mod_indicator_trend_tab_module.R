@@ -70,6 +70,10 @@ mod_indicator_trend_tab_module_server <- function(id) {
   infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "Transport"] <- "Transport cross-cutting"
   infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "National"] <- "Cross-cutting"
   
+  airport_country_specific_indicator <-  infrasap::dat %>%
+    filter(`Indicator Sector` == "Transport Airport", is.na(AirportName)) %>%
+    distinct(`Indicator Name`) %>% pull
+  
   
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -80,7 +84,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
     #------- Initialize the Memory ----------
     selected_vals = shiny::reactiveValues(
       db_countries_name = NULL, data_benchmarks_name = NULL,data_ports_name = NULL,
-      data_indicator = NULL, data_airports = NULL)
+      data_indicator = NULL, is_airport_name_available = NULL)
     
     shiny::observe({
                     shiny::req(
@@ -194,9 +198,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
                              choices = port_choices,
                              selected = port_choice_selected
           )
-      } else if(has_airport(sc)) {
+      } else if(has_airport(sc) && selected_vals$is_airport_name_available) {
         port_choices <- indicator_trend_airport_data(infrasap_dat_mod_modified, sc, cn)
-        #selected_vals$data_airports <- port_choices
         out <- shiny::selectInput(ns('country_ports'),
                                   label = paste0('Choose an airport from ',cn ),
                                   choices = port_choices
@@ -213,7 +216,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
       sc <- input$data_sector
       if(is.null(sc)){
         NULL
-      } else if(has_port(sc) || has_airport(sc)) {
+      } else if(has_port(sc) || (has_airport(sc) && selected_vals$is_airport_name_available)) {
         shiny::selectInput(ns('ports_compare_to_indicator_type'),
                            label = 'Compare to:',
                            choices = NULL,
@@ -222,14 +225,25 @@ mod_indicator_trend_tab_module_server <- function(id) {
       } else NULL
     })
     
-    
+    shiny::observeEvent(input$data_indicator, {
+      # This is specifically for airport data and for indicators that have data only for 
+      # country level available. They do not have data at airport level. So we don't want
+      # them to behave as other airport data.
+      if(has_airport(input$data_sector) && selected_vals$is_airport_name_available) {
+        shiny::updateSelectInput(session, 
+                                 "data_compare_to",
+                                 label = 'Compare to: ',
+                                 choices = c('Other countries', 'Other indicators'),
+                                 selected = 'Other countries'
+        )
+      }
+    })
     
     shiny::observeEvent(c(input$data_sector), {
      shiny::req(input$data_sector)
       sc <- input$data_sector
       cn <- input$data_country
       if(has_port(sc)) {
-
        if(is.null(input$country_ports)) {
           df <- infrasap::dat_ports
           df <- df %>% dplyr::filter(.data$`Country Name` == cn)
@@ -301,7 +315,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
         }
       })
     } 
-      else if(has_airport(sc)) {
+      else if(has_airport(sc) && selected_vals$is_airport_name_available) {
       port_choices <- indicator_trend_airport_data(infrasap_dat_mod_modified, sc, cn)
       shiny::updateSelectInput(session, 
                                "ports_compare_to_indicator_type",
@@ -401,7 +415,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
          if(has_port(sc)) {
             selected_vals$data_benchmarks_name <<- NULL
             NULL
-         } else if(has_airport(sc)) {
+         } else if(has_airport(sc) && selected_vals$is_airport_name_available) {
            NULL
         } else {
           if(ct == 'Other benchmarks') {
@@ -575,11 +589,8 @@ mod_indicator_trend_tab_module_server <- function(id) {
       bn <- input$data_benchmarks
       cc <- input$data_countries
       oi <- input$other_indicator
-      # if(input$data_sector == "Transport (Airport)") 
-      #   shinyjs::show(id = "note")
-      # else 
-      #   shinyjs::hide(id = "note")
       
+      selected_vals$is_airport_name_available <- !ic %in% airport_country_specific_indicator
       if(input$data_sector == 'Transport Port') {
         if(!is.null(input$ports_compare_to_indicator_type) && input$ports_compare_to_indicator_type == "to_country") {
           # get country data
@@ -637,7 +648,7 @@ mod_indicator_trend_tab_module_server <- function(id) {
           return(df)
         }
       } 
-      else if(has_airport(sc)) {
+      else if(has_airport(sc) && selected_vals$is_airport_name_available) {
         df <- infrasap_dat_mod_modified %>%
           dplyr::filter(.data$`Country Name`== cn, .data$`Indicator Name`== ic, .data$AirportName %in% c(ct, cp)) %>%
           dplyr::select(Grouping = .data$AirportName,.data$`1990`:.data$`2022`) %>%
