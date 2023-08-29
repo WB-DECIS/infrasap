@@ -63,11 +63,11 @@ mod_indicator_trend_tab_module_ui <- function(id){
 mod_indicator_trend_tab_module_server <- function(id) {
   # Rename sector name
   infrasap_dat_mod_modified <- infrasap::dat
-  infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "Transport"] <- "Transport cross-cutting"
+  infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "Transport"] <- "Transport Cross-cutting"
   infrasap_dat_mod_modified$`Indicator Sector`[infrasap_dat_mod_modified$`Indicator Sector` == "National"] <- "Cross-cutting"
   # Rename sector name
   infrsap_dat_bm_mod_modfied <- infrasap::dat_bm
-  infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "Transport"] <- "Transport cross-cutting"
+  infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "Transport"] <- "Transport Cross-cutting"
   infrsap_dat_bm_mod_modfied$Sector[infrsap_dat_bm_mod_modfied$Sector == "National"] <- "Cross-cutting"
   
   airport_country_specific_indicator <-  infrasap::dat %>%
